@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { Inter, JetBrains_Mono, Space_Grotesk } from 'next/font/google';
+import { Navbar } from '@/components/layout/Navbar';
 import './globals.css';
 
 const inter = Inter({
@@ -58,7 +59,10 @@ export default function RootLayout({
       className={`dark ${inter.variable} ${jetbrainsMono.variable} ${spaceGrotesk.variable}`}
       style={{ backgroundColor: '#0A0A0F' }}
     >
-      <body className="min-h-screen antialiased">{children}</body>
+      <body className="min-h-screen antialiased">
+        <Navbar />
+        <main className="flex-1">{children}</main>
+      </body>
     </html>
   );
 }
