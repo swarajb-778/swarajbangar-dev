@@ -1,26 +1,169 @@
 @import "tailwindcss";
+@plugin "@tailwindcss/typography";
+
+/* ═══════════════════════════════════════════════════════════════
+   swarajbangar.dev — Design System Tokens
+   Dark mode first. All tokens from CLAUDE.md spec.
+   ═══════════════════════════════════════════════════════════════ */
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* ── Background Layers (darkest → lightest) ── */
+  --bg-base: #0A0A0F;
+  --bg-surface: #12121A;
+  --bg-elevated: #1A1A2E;
+  --bg-interactive: #242438;
+  --bg-highlight: #2D2D44;
+
+  /* ── Accent Colors ── */
+  --accent-primary: #6C5CE7;
+  --accent-teal: #00CEC9;
+  --accent-pink: #FD79A8;
+  --accent-gold: #FDCB6E;
+  --accent-emerald: #00B894;
+  --accent-coral: #E17055;
+
+  /* ── Text Colors ── */
+  --text-primary: #F0F0F0;
+  --text-secondary: #B0B0C0;
+  --text-muted: #6B6B80;
+  --text-disabled: #4A4A5E;
+
+  /* ── Borders ── */
+  --border-default: rgba(255, 255, 255, 0.06);
+  --border-hover: rgba(255, 255, 255, 0.12);
+  --border-focus: #6C5CE7;
+
+  /* ── Glows ── */
+  --glow-subtle: 0 0 20px rgba(108, 92, 231, 0.08);
+  --glow-active: 0 0 30px rgba(108, 92, 231, 0.15);
+
+  /* ── Typography ── */
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', 'SF Mono', monospace;
+  --font-display: 'Space Grotesk', var(--font-sans);
+
+  /* ── Transitions ── */
+  --transition-fast: 150ms ease-out;
+  --transition-normal: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 400ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+/* ── Tailwind 4 Theme — Maps CSS vars to utility classes ── */
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  /* Backgrounds */
+  --color-bg-base: var(--bg-base);
+  --color-bg-surface: var(--bg-surface);
+  --color-bg-elevated: var(--bg-elevated);
+  --color-bg-interactive: var(--bg-interactive);
+  --color-bg-highlight: var(--bg-highlight);
+
+  /* Accents */
+  --color-accent-primary: var(--accent-primary);
+  --color-accent-teal: var(--accent-teal);
+  --color-accent-pink: var(--accent-pink);
+  --color-accent-gold: var(--accent-gold);
+  --color-accent-emerald: var(--accent-emerald);
+  --color-accent-coral: var(--accent-coral);
+
+  /* Text */
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
+  --color-text-disabled: var(--text-disabled);
+
+  /* Borders */
+  --color-border-default: var(--border-default);
+  --color-border-hover: var(--border-hover);
+  --color-border-focus: var(--border-focus);
+
+  /* Shadows / Glows */
+  --shadow-glow-subtle: var(--glow-subtle);
+  --shadow-glow-active: var(--glow-active);
+
+  /* Font families — mapped from next/font/google CSS variables set in layout.tsx */
+  --font-sans: var(--font-inter), 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: var(--font-jetbrains-mono), 'JetBrains Mono', 'Fira Code', monospace;
+  --font-display: var(--font-space-grotesk), 'Space Grotesk', var(--font-sans);
+
+  /* Spacing (4px base: p-1=4px, p-2=8px, p-4=16px, etc.) */
+  --spacing: 4px;
+
+  /* Border radius */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-full: 9999px;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* ═══════════════════════════════════════════════════════════════
+   Base Styles
+   ═══════════════════════════════════════════════════════════════ */
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--bg-base);
+  color: var(--text-secondary);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── Selection ── */
+::selection {
+  background-color: rgba(108, 92, 231, 0.3);
+  color: var(--text-primary);
+}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-surface);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--accent-primary);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #7C6CF7;
+}
+
+/* Firefox scrollbar */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--accent-primary) var(--bg-surface);
+}
+
+/* ── Code blocks ── */
+pre,
+code {
+  font-family: var(--font-mono);
+  font-size: 14px;
+}
+
+pre {
+  background: var(--bg-highlight);
+  border-radius: 8px;
+  padding: 16px;
+  overflow-x: auto;
+}
+
+code {
+  background: var(--bg-highlight);
+  border-radius: 4px;
+  padding: 2px 6px;
+}
+
+pre code {
+  background: none;
+  padding: 0;
+  border-radius: 0;
 }
