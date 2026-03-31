@@ -1,24 +1,13 @@
 import { SectionWrapper } from '@/components/ui';
 import { SectionDivider } from '@/components/layout/SectionDivider';
 import { Footer } from '@/components/layout/Footer';
+import { HeroSection } from '@/components/hero/HeroSection';
 
 export default function Home() {
   return (
     <>
-      {/* Section 1: Terminal Hero — 100vh standalone, no SectionWrapper */}
-      <section className="relative h-screen flex items-center justify-center px-6">
-        <div className="text-center">
-          <p className="text-xs font-semibold uppercase tracking-[2px] text-accent-primary mb-3">
-            // terminal
-          </p>
-          <h1 className="text-4xl md:text-5xl font-bold text-text-primary font-display">
-            swarajbangar.dev
-          </h1>
-          <p className="mt-4 text-text-secondary max-w-lg mx-auto">
-            Terminal hero with boot sequence coming in Prompt 04.
-          </p>
-        </div>
-      </section>
+      {/* Section 1: Terminal Hero — 100vh with boot sequence + status sidebar */}
+      <HeroSection />
 
       <SectionDivider label="// about" />
 
