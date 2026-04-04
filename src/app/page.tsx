@@ -4,6 +4,7 @@ import { Footer } from '@/components/layout/Footer';
 import { HeroSection } from '@/components/hero/HeroSection';
 import { AboutSection } from '@/components/about/AboutSection';
 import { ExperienceTimeline } from '@/components/experience/ExperienceTimeline';
+import { LabSection } from '@/components/lab/LabSection';
 import { getExperience } from '@/lib/api-client';
 
 export default async function Home() {
@@ -31,11 +32,7 @@ export default async function Home() {
 
       {/* Section 4: The Lab */}
       <SectionWrapper id="lab" title="Don't read about my skills. Use them." subtitle="// lab">
-        <div className="flex items-center justify-center min-h-[400px] rounded-lg border border-border-default bg-bg-surface">
-          <p className="text-text-muted text-sm">
-            Lab Section with Tabs — Prompt 07
-          </p>
-        </div>
+        <LabSection />
       </SectionWrapper>
 
       <SectionDivider label="// deep dives" />
