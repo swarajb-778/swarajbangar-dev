@@ -3,8 +3,11 @@ import { SectionDivider } from '@/components/layout/SectionDivider';
 import { Footer } from '@/components/layout/Footer';
 import { HeroSection } from '@/components/hero/HeroSection';
 import { AboutSection } from '@/components/about/AboutSection';
+import { ExperienceTimeline } from '@/components/experience/ExperienceTimeline';
+import { getExperience } from '@/lib/api-client';
 
-export default function Home() {
+export default async function Home() {
+  const experience = await getExperience();
   return (
     <>
       {/* Section 1: Terminal Hero — 100vh with boot sequence + status sidebar */}
@@ -21,11 +24,7 @@ export default function Home() {
 
       {/* Section 3: Experience Timeline */}
       <SectionWrapper id="experience" title="Where I've built things" subtitle="// experience">
-        <div className="flex items-center justify-center min-h-[400px] rounded-lg border border-border-default bg-bg-surface">
-          <p className="text-text-muted text-sm">
-            Experience Timeline — Prompt 06
-          </p>
-        </div>
+        <ExperienceTimeline entries={experience} />
       </SectionWrapper>
 
       <SectionDivider label="// lab" />
