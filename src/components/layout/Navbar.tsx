@@ -6,8 +6,10 @@ import { Menu, X, Terminal } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { NAV_ITEMS } from '@/lib/constants';
+import { useFloating } from '@/lib/floating-context';
 
 export function Navbar() {
+  const { toggleTerminal } = useFloating();
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [activeSection, setActiveSection] = useState('');
@@ -101,11 +103,13 @@ export function Navbar() {
           {/* Right side: Terminal button + hamburger */}
           <div className="flex items-center gap-2">
             <button
+              onClick={toggleTerminal}
               className={cn(
                 'hidden md:inline-flex items-center gap-2 px-3 py-1.5',
                 'text-sm text-accent-primary border border-border-hover rounded-md',
                 'hover:bg-white/[0.04] transition-colors duration-150'
               )}
+              aria-label="Toggle terminal overlay"
             >
               <Terminal size={14} />
               Terminal
@@ -151,7 +155,11 @@ export function Navbar() {
               ))}
               <button
                 className="mt-4 inline-flex items-center gap-2 px-4 py-2 text-accent-primary border border-border-hover rounded-md"
-                onClick={closeMobile}
+                onClick={() => {
+                  closeMobile();
+                  toggleTerminal();
+                }}
+                aria-label="Toggle terminal overlay"
               >
                 <Terminal size={16} />
                 Terminal

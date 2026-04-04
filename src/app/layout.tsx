@@ -1,6 +1,11 @@
 import type { Metadata } from 'next';
 import { Inter, JetBrains_Mono, Space_Grotesk } from 'next/font/google';
 import { Navbar } from '@/components/layout/Navbar';
+import { FloatingProvider } from '@/lib/floating-context';
+import { ChatButton } from '@/components/agent/ChatButton';
+import { ChatPanel } from '@/components/agent/ChatPanel';
+import { TerminalOverlay } from '@/components/terminal/TerminalOverlay';
+import { KeyboardShortcuts } from '@/components/layout/KeyboardShortcuts';
 import './globals.css';
 
 const inter = Inter({
@@ -60,8 +65,14 @@ export default function RootLayout({
       style={{ backgroundColor: '#0A0A0F' }}
     >
       <body className="min-h-screen antialiased">
-        <Navbar />
-        <main className="flex-1">{children}</main>
+        <FloatingProvider>
+          <Navbar />
+          <main className="flex-1">{children}</main>
+          <ChatButton />
+          <ChatPanel />
+          <TerminalOverlay />
+          <KeyboardShortcuts />
+        </FloatingProvider>
       </body>
     </html>
   );
