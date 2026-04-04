@@ -2,6 +2,7 @@ import { SectionWrapper } from '@/components/ui';
 import { SectionDivider } from '@/components/layout/SectionDivider';
 import { Footer } from '@/components/layout/Footer';
 import { HeroSection } from '@/components/hero/HeroSection';
+import { AboutSection } from '@/components/about/AboutSection';
 
 export default function Home() {
   return (
@@ -13,30 +14,7 @@ export default function Home() {
 
       {/* Section 2: About + Skills */}
       <SectionWrapper id="about" title="Building systems that think" subtitle="// about">
-        <div className="grid md:grid-cols-2 gap-12">
-          <div className="space-y-4">
-            <p className="text-text-secondary leading-relaxed">
-              AI engineer who builds production agent systems — not demos, not
-              prototypes, but systems that serve 1.8K+ enterprises daily. Previously
-              at Amazon building payment infrastructure processing 50M+ requests/day.
-            </p>
-            <p className="text-text-secondary leading-relaxed">
-              Currently exploring the frontier of agentic AI: multi-agent
-              orchestration, RAG pipeline optimization, and making LLMs actually
-              reliable in production.
-            </p>
-            <div className="flex gap-4 pt-4">
-              <PlaceholderStatCard label="Experience" value="4+ Years" />
-              <PlaceholderStatCard label="Requests/Day" value="50M+" />
-              <PlaceholderStatCard label="Enterprises" value="1.8K+" />
-            </div>
-          </div>
-          <div className="flex items-center justify-center min-h-[300px] rounded-lg border border-border-default bg-bg-surface">
-            <p className="text-text-muted text-sm">
-              Skill Constellation (D3 graph) — Prompt 05
-            </p>
-          </div>
-        </div>
+        <AboutSection />
       </SectionWrapper>
 
       <SectionDivider label="// experience" />
@@ -125,21 +103,6 @@ export default function Home() {
 }
 
 // ── Temporary placeholder components (will be replaced in later prompts) ──
-
-function PlaceholderStatCard({
-  label,
-  value,
-}: {
-  readonly label: string;
-  readonly value: string;
-}) {
-  return (
-    <div className="flex-1 bg-bg-surface border border-border-default rounded-lg p-4">
-      <p className="text-xs text-text-muted uppercase tracking-wider">{label}</p>
-      <p className="text-xl font-bold text-text-primary mt-1">{value}</p>
-    </div>
-  );
-}
 
 function PlaceholderCard({ title }: { readonly title: string }) {
   return (
