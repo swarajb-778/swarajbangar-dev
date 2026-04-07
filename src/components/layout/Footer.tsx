@@ -52,7 +52,7 @@ export function Footer() {
 
         {/* Tagline */}
         <p className="text-sm text-text-muted text-center">
-          Built with Next.js, FastAPI, LangGraph, Claude, and too much coffee.
+          Built in SF with ❤️
         </p>
 
         {/* Source link */}
@@ -64,6 +64,11 @@ export function Footer() {
         >
           View Source
         </a>
+
+        {/* Shortcuts hint */}
+        <p className="text-xs text-text-disabled">
+          Press <kbd className="px-1 py-0.5 bg-bg-interactive rounded text-[10px] font-mono">?</kbd> for keyboard shortcuts
+        </p>
       </div>
     </footer>
   );
