@@ -17,10 +17,35 @@ and a multi-agent AI system (SwarajOS). See PRD.md for full spec.
 - Backend: FastAPI, LangGraph, Redis, pgvector, Neo4j
 - Deploy: Vercel (frontend), Hetzner VPS Docker Compose (backend)
 
-## Current Phase: Phase 1 (Frontend Shell)
-Building the complete frontend with mocked data. No backend yet.
-Every component should accept typed props matching the real API shapes.
-Mock data lives in src/lib/mock-data.ts.
+## Current Phase: Phase 2 — Terminal + Navigation + Interactivity
+
+Phase 1 is complete. All 8 sections render with mock data. Terminal has basic
+boot sequence. Chat button floats. Now making everything REAL:
+
+- Terminal: command history (up/down), tab completion, all commands wired to
+  real navigation actions (scroll, route, open URLs)
+- Easter eggs: neofetch, sudo hire swaraj, matrix rain, coffee, rm -rf /
+- Keyboard shortcuts: /, Cmd+K, Escape, Cmd+Shift+A, 1-8, j/k, ?, t
+- Terminal overlay: resizable, persistent state, split-view with source code
+- View-source toggle: every lab demo shows its implementation code
+- Active section detection: nav highlights, scroll progress bar, section dots
+- Commands use ANSI escape codes for colored output in xterm.js
+
+### Key files added/modified in Phase 2:
+- src/lib/hooks/useCommandHistory.ts (terminal history)
+- src/lib/hooks/useTabCompletion.ts (autocomplete engine)
+- src/lib/hooks/useTerminalActions.ts (command → navigation bridge)
+- src/lib/hooks/useKeyboardShortcuts.ts (global shortcut registry)
+- src/lib/hooks/useActiveSection.ts (scroll-aware section tracking)
+- src/components/terminal/Terminal.tsx (major upgrade: history, completion, resize)
+- src/components/terminal/CommandParser.ts (all commands fully implemented)
+- src/components/terminal/TerminalOverlay.tsx (resize, persistence, split-view)
+- src/components/layout/ShortcutsOverlay.tsx (keyboard shortcuts help modal)
+- src/components/layout/ScrollProgress.tsx (top progress bar)
+- src/components/layout/SectionIndicator.tsx (right-edge dot navigation)
+- src/components/lab/ViewSourceToggle.tsx (demo/code split-pane)
+- src/components/lab/CodeViewer.tsx (multi-file code viewer with tabs)
+- src/components/lab/DemoContainer.tsx (wrapper for all lab demos)
 
 ## Code Style
 - Functional React components with hooks

@@ -6,9 +6,19 @@ A dark-mode, terminal-first developer portfolio that **proves** full-stack, back
 
 Target: Senior AI Engineer / Staff Engineer roles. Audience: hiring managers, CTOs, AI leads, peer engineers.
 
-## Current Phase: Phase 1 — Frontend Shell
+## Current Phase: Phase 2 — Terminal + Navigation + Interactivity
 
-Building the complete frontend with mocked data. No backend yet. Every component accepts typed props matching the real API shapes so we can swap mocks for real endpoints later without changing component code.
+Phase 1 is complete. All 8 sections render with mock data. Terminal has basic
+boot sequence. Chat button floats. Now making everything REAL:
+
+- Terminal: command history (up/down), tab completion, all commands wired to
+  real navigation actions (scroll, route, open URLs)
+- Easter eggs: neofetch, sudo hire swaraj, matrix rain, coffee, rm -rf /
+- Keyboard shortcuts: /, Cmd+K, Escape, Cmd+Shift+A, 1-8, j/k, ?, t
+- Terminal overlay: resizable, persistent state, split-view with source code
+- View-source toggle: every lab demo shows its implementation code
+- Active section detection: nav highlights, scroll progress bar, section dots
+- Commands use ANSI escape codes for colored output in xterm.js
 
 ## Design System (Dark Mode First)
 
