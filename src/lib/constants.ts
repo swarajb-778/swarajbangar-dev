@@ -12,8 +12,8 @@ export const SITE_CONFIG = {
   description:
     'AI Engineer building production agent systems, distributed backends, and interactive demos. Previously Amazon, currently exploring the frontier of agentic AI.',
   url: 'https://swarajbangar.dev',
-  github: 'https://github.com/swarajbangar',
-  linkedin: 'https://linkedin.com/in/swarajbangar',
+  github: 'https://github.com/swarajb-778',
+  linkedin: 'https://www.linkedin.com/in/swarajb778/',
   email: 'swarajbangar778@gmail.com',
   resume: '/resume.pdf',
 } as const;
