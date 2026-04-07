@@ -7,6 +7,7 @@ import {
   type Variants,
 } from 'framer-motion';
 import { cn } from '@/lib/utils';
+import { useReducedMotion } from '@/lib/hooks/useReducedMotion';
 
 export interface SectionWrapperProps {
   readonly id?: string;
@@ -37,6 +38,14 @@ const childVariants: Variants = {
   },
 };
 
+const reducedVariants: Variants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { duration: 0.01 },
+  },
+};
+
 export function SectionWrapper({
   id,
   children,
@@ -46,6 +55,10 @@ export function SectionWrapper({
 }: SectionWrapperProps) {
   const ref = useRef<HTMLElement>(null);
   const isInView = useInView(ref, { once: true, margin: '-80px' });
+  const prefersReduced = useReducedMotion();
+
+  const activeContainer = prefersReduced ? { hidden: {}, visible: {} } : containerVariants;
+  const activeChild = prefersReduced ? reducedVariants : childVariants;
 
   return (
     <section
@@ -54,12 +67,12 @@ export function SectionWrapper({
       className={cn('scroll-mt-20 py-24 px-6 max-w-7xl mx-auto', className)}
     >
       <motion.div
-        variants={containerVariants}
+        variants={activeContainer}
         initial="hidden"
         animate={isInView ? 'visible' : 'hidden'}
       >
         {title && (
-          <motion.div variants={childVariants} className="mb-12">
+          <motion.div variants={activeChild} className="mb-12">
             {subtitle && (
               <p className="text-xs font-semibold uppercase tracking-[2px] text-accent-primary mb-3">
                 {subtitle}
@@ -70,7 +83,7 @@ export function SectionWrapper({
             </h2>
           </motion.div>
         )}
-        <motion.div variants={childVariants}>{children}</motion.div>
+        <motion.div variants={activeChild}>{children}</motion.div>
       </motion.div>
     </section>
   );

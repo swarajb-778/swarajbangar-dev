@@ -6,11 +6,13 @@ import { cn } from '@/lib/utils';
 export interface CardProps extends HTMLAttributes<HTMLDivElement> {
   readonly children: ReactNode;
   readonly hover?: boolean;
+  readonly glass?: boolean;
 }
 
 export function Card({
   children,
   hover = false,
+  glass = false,
   className,
   onClick,
   ...props
@@ -18,10 +20,13 @@ export function Card({
   return (
     <div
       className={cn(
-        'bg-bg-surface border border-border-default rounded-lg p-6',
+        'rounded-lg p-6',
         'transition-all duration-[250ms] ease-[cubic-bezier(0.4,0,0.2,1)]',
+        glass
+          ? 'glass-surface'
+          : 'bg-bg-surface border border-border-default',
         hover && [
-          'hover:border-border-hover hover:-translate-y-0.5 hover:shadow-glow-subtle',
+          'hover:border-white/[0.1] hover:-translate-y-0.5 hover:shadow-glow-subtle',
           'active:scale-[0.99] active:duration-100',
         ],
         onClick && 'cursor-pointer',

@@ -5,3 +5,4 @@ export { Input, type InputProps } from './Input';
 export { CodeBlock, type CodeBlockProps } from './CodeBlock';
 export { SectionWrapper, type SectionWrapperProps } from './SectionWrapper';
 export { Tooltip, type TooltipProps, type TooltipSide } from './Tooltip';
+export { Skeleton, TerminalSkeleton, ConstellationSkeleton, ChartSkeleton, type SkeletonProps } from './Skeleton';
