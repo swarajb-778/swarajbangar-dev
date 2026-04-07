@@ -1,72 +1,78 @@
 'use client';
 
 // ═══════════════════════════════════════════════════════════════
-// HeroSection — Terminal + StatusSidebar, 100vh, "/" shortcut
+// HeroSection — Terminal + StatusSidebar, 100vh, orchestrated load
 // ═══════════════════════════════════════════════════════════════
 
-import { useRef, useEffect, useState, useCallback } from 'react';
+import { useRef, useState, useCallback } from 'react';
+import dynamic from 'next/dynamic';
 import { motion, AnimatePresence } from 'framer-motion';
-import { BootSequence } from '@/components/terminal/BootSequence';
 import { StatusSidebar } from '@/components/terminal/StatusSidebar';
-import type { TerminalHandle } from '@/components/terminal/Terminal';
+import { useReducedMotion } from '@/lib/hooks/useReducedMotion';
+import { TerminalSkeleton } from '@/components/ui/Skeleton';
+
+const BootSequence = dynamic(
+  () => import('@/components/terminal/BootSequence').then((m) => m.BootSequence),
+  { ssr: false, loading: () => <TerminalSkeleton /> }
+);
 
 export function HeroSection() {
   const terminalContainerRef = useRef<HTMLDivElement>(null);
   const [bootDone, setBootDone] = useState(false);
+  const prefersReduced = useReducedMotion();
 
   const handleBootComplete = useCallback(() => {
     setBootDone(true);
   }, []);
 
-  // "/" keyboard shortcut to focus terminal
-  useEffect(() => {
-    function handleKeyDown(e: KeyboardEvent) {
-      if (
-        e.key === '/' &&
-        !e.ctrlKey &&
-        !e.metaKey &&
-        !e.altKey &&
-        !(e.target instanceof HTMLInputElement) &&
-        !(e.target instanceof HTMLTextAreaElement)
-      ) {
-        e.preventDefault();
-        // Focus the xterm canvas inside the terminal container
-        const canvas = terminalContainerRef.current?.querySelector(
-          '.xterm-helper-textarea'
-        ) as HTMLTextAreaElement | null;
-        canvas?.focus();
-      }
-    }
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
-
   return (
-    <section className="relative h-screen flex flex-col justify-center px-6 pt-16">
+    <section id="hero" className="relative h-screen flex flex-col justify-center px-6 pt-16 scroll-mt-16">
       <div className="max-w-7xl mx-auto w-full flex flex-col lg:flex-row gap-6 items-stretch">
         {/* Terminal — 65% on desktop, full width on mobile */}
-        <div ref={terminalContainerRef} className="lg:w-[65%] w-full">
+        <motion.div
+          ref={terminalContainerRef}
+          className="lg:w-[65%] w-full"
+          initial={prefersReduced ? false : { opacity: 0, scale: 0.98 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={
+            prefersReduced
+              ? { duration: 0.01 }
+              : { delay: 0.3, duration: 0.5, ease: [0.4, 0, 0.2, 1] }
+          }
+        >
           <BootSequence
             onBootComplete={handleBootComplete}
             className="h-full"
           />
-        </div>
+        </motion.div>
 
         {/* StatusSidebar — 35% on desktop, hidden on mobile */}
-        <div className="lg:w-[35%]">
+        <motion.div
+          className="lg:w-[35%]"
+          initial={prefersReduced ? false : { opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={
+            prefersReduced
+              ? { duration: 0.01 }
+              : { delay: 0.5, duration: 0.5, ease: [0.4, 0, 0.2, 1] }
+          }
+        >
           <StatusSidebar />
-        </div>
+        </motion.div>
       </div>
 
       {/* Scroll indicator */}
       <AnimatePresence>
         {bootDone && (
           <motion.div
-            initial={{ opacity: 0 }}
+            initial={prefersReduced ? { opacity: 1 } : { opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ delay: 0.5, duration: 0.6 }}
+            transition={
+              prefersReduced
+                ? { duration: 0.01 }
+                : { delay: 0.5, duration: 0.6 }
+            }
             className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2"
           >
             <span className="text-xs text-text-disabled font-mono">
@@ -78,12 +84,16 @@ export function HeroSection() {
               viewBox="0 0 20 20"
               fill="none"
               className="text-text-disabled"
-              animate={{ y: [0, 6, 0] }}
-              transition={{
-                duration: 1.5,
-                repeat: Infinity,
-                ease: 'easeInOut',
-              }}
+              animate={prefersReduced ? {} : { y: [0, 6, 0] }}
+              transition={
+                prefersReduced
+                  ? undefined
+                  : {
+                      duration: 1.5,
+                      repeat: Infinity,
+                      ease: 'easeInOut',
+                    }
+              }
             >
               <path
                 d="M5 8L10 13L15 8"
