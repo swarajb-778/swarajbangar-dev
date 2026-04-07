@@ -1,15 +1,17 @@
 'use client';
 
 // ═══════════════════════════════════════════════════════════════
-// LabSection — Tabs + animated content with preview cards
+// LabSection — Tabs + animated content with DemoContainer
 // ═══════════════════════════════════════════════════════════════
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { LabTabs, type LabTab } from './LabTabs';
 import { LabPreviewCard, type LabPreviewCardProps } from './LabPreviewCard';
+import { DemoContainer } from './DemoContainer';
+import { LAB_SOURCE_FILES } from '@/lib/constants/code-snippets';
 
-const LAB_CONTENT: Record<LabTab, LabPreviewCardProps> = {
+const LAB_CONTENT: Record<LabTab, LabPreviewCardProps & { sourceKey: keyof typeof LAB_SOURCE_FILES }> = {
   fullstack: {
     title: 'Collaborative Notepad',
     description:
@@ -23,6 +25,7 @@ const LAB_CONTENT: Record<LabTab, LabPreviewCardProps> = {
     techStack: ['React', 'Socket.io', 'Redis', 'Node.js', 'TypeScript'],
     status: 'coming-soon',
     demoUrl: '/lab/fullstack',
+    sourceKey: 'fullstack',
   },
   backend: {
     title: 'Distributed Systems Chaos Lab',
@@ -37,6 +40,7 @@ const LAB_CONTENT: Record<LabTab, LabPreviewCardProps> = {
     techStack: ['Go', 'Redis Streams', 'Docker', 'gRPC', 'Prometheus'],
     status: 'coming-soon',
     demoUrl: '/lab/backend',
+    sourceKey: 'backend',
   },
   ai: {
     title: 'Intelligence Lab',
@@ -51,6 +55,7 @@ const LAB_CONTENT: Record<LabTab, LabPreviewCardProps> = {
     techStack: ['LangChain', 'pgvector', 'Three.js', 'Claude API', 'Python'],
     status: 'coming-soon',
     demoUrl: '/lab/ai',
+    sourceKey: 'ai',
   },
   agent: {
     title: 'SwarajOS',
@@ -65,11 +70,15 @@ const LAB_CONTENT: Record<LabTab, LabPreviewCardProps> = {
     techStack: ['LangGraph', 'Neo4j', 'Pyodide', 'Claude API', 'FastAPI'],
     status: 'coming-soon',
     demoUrl: '/lab/agent',
+    sourceKey: 'agent',
   },
 } as const;
 
 export function LabSection() {
   const [activeTab, setActiveTab] = useState<LabTab>('fullstack');
+
+  const content = LAB_CONTENT[activeTab];
+  const sourceFiles = LAB_SOURCE_FILES[content.sourceKey];
 
   return (
     <div className="space-y-6">
@@ -83,7 +92,15 @@ export function LabSection() {
           exit={{ opacity: 0, y: -12 }}
           transition={{ duration: 0.25, ease: 'easeInOut' }}
         >
-          <LabPreviewCard {...LAB_CONTENT[activeTab]} />
+          <DemoContainer
+            title={content.title}
+            description={content.description}
+            techStack={content.techStack}
+            sourceFiles={sourceFiles}
+            demoUrl={content.demoUrl}
+          >
+            <LabPreviewCard {...content} />
+          </DemoContainer>
         </motion.div>
       </AnimatePresence>
     </div>
