@@ -7,7 +7,7 @@ import { ExperienceTimeline } from '@/components/experience/ExperienceTimeline';
 import { LabSection } from '@/components/lab/LabSection';
 import { CaseStudyCard } from '@/components/case-studies/CaseStudyCard';
 import { BlogPostCard } from '@/components/blog/BlogPostCard';
-import { ObservabilityWall } from '@/components/observability/ObservabilityWall';
+import { ObservabilityWallLazy } from '@/components/observability/ObservabilityWallLazy';
 import { ContactSection } from '@/components/contact/ContactSection';
 import {
   getExperience,
@@ -83,7 +83,7 @@ export default async function Home() {
 
       {/* Section 7: Observability Wall */}
       <SectionWrapper id="observability" title="This portfolio monitors itself" subtitle="// observability">
-        <ObservabilityWall metrics={metrics} />
+        <ObservabilityWallLazy metrics={metrics} />
       </SectionWrapper>
 
       <SectionDivider />
