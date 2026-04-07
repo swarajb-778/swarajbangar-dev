@@ -5,7 +5,7 @@ export default function AILabPage() {
     <div className="min-h-screen bg-bg-base flex items-center justify-center px-6">
       <div className="text-center max-w-md">
         <p className="text-xs font-semibold uppercase tracking-[2px] text-accent-primary mb-3">
-          // ai
+          {'// ai'}
         </p>
         <h1 className="text-2xl font-bold text-text-primary font-display mb-3">
           Intelligence Lab

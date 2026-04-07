@@ -5,7 +5,7 @@ export default function AgentLabPage() {
     <div className="min-h-screen bg-bg-base flex items-center justify-center px-6">
       <div className="text-center max-w-md">
         <p className="text-xs font-semibold uppercase tracking-[2px] text-accent-emerald mb-3">
-          // agent
+          {'// agent'}
         </p>
         <h1 className="text-2xl font-bold text-text-primary font-display mb-3">
           SwarajOS

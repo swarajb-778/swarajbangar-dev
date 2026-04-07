@@ -42,7 +42,7 @@ export default function LabPage() {
     <div className="min-h-screen bg-bg-base pt-24 pb-16 px-6">
       <div className="max-w-5xl mx-auto">
         <p className="text-xs font-semibold uppercase tracking-[2px] text-accent-primary mb-3">
-          // lab
+          {'// lab'}
         </p>
         <h1 className="text-3xl md:text-4xl font-bold text-text-primary font-display mb-3">
           Interactive Demos
