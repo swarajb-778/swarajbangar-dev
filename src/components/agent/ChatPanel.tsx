@@ -98,7 +98,7 @@ export function ChatPanel() {
         animate={{ opacity: 1, y: 0, scale: 1 }}
         exit={{ opacity: 0, y: 20, scale: 0.95 }}
         transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-        className="fixed z-50 bottom-0 right-0 w-full lg:bottom-24 lg:right-6 lg:w-[420px] lg:max-h-[600px] lg:rounded-lg overflow-hidden border border-border-default bg-bg-elevated shadow-xl flex flex-col"
+        className="fixed z-50 bottom-0 right-0 w-full lg:bottom-24 lg:right-6 lg:w-[420px] lg:max-h-[600px] lg:rounded-lg overflow-hidden glass-elevated flex flex-col"
         style={{ height: 'min(80vh, 600px)' }}
         role="dialog"
         aria-label="AI Chat Assistant"
