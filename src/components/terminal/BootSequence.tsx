@@ -7,8 +7,10 @@
 import { useRef, useEffect, useCallback, useState } from 'react';
 import { TERMINAL_CONFIG } from '@/lib/constants';
 import { sleep } from '@/lib/utils';
+import { useTerminalActions } from '@/lib/hooks/useTerminalActions';
 import { Terminal } from './Terminal';
 import { parseCommand } from './CommandParser';
+import { getAsyncCommand } from './async-commands';
 import type { TerminalHandle } from './Terminal';
 
 const BOOT_SESSION_KEY = 'swaraj-boot-played';
@@ -28,39 +30,89 @@ export interface BootSequenceProps {
 export function BootSequence({ onBootComplete, className }: BootSequenceProps) {
   const terminalRef = useRef<TerminalHandle>(null);
   const bootCompleteRef = useRef(false);
+  const busyRef = useRef(false);
+  const abortRef = useRef<AbortController | null>(null);
   const [isReady, setIsReady] = useState(false);
+  const actions = useTerminalActions();
 
-  const handleCommand = useCallback((input: string) => {
-    const term = terminalRef.current;
-    if (!term) return;
+  const executeAction = useCallback(
+    (result: ReturnType<typeof parseCommand>) => {
+      if (!result.action) return;
 
-    const result = parseCommand(input);
+      const delay = result.action === 'clear' ? 0 : result.action === 'scroll_to' ? 300 : 500;
 
-    if (result.action === 'clear') {
-      term.clear();
+      setTimeout(() => {
+        switch (result.action) {
+          case 'scroll_to':
+            if (result.target) actions.scrollToSection(result.target);
+            break;
+          case 'navigate':
+            if (result.target) actions.navigateTo(result.target);
+            break;
+          case 'open_url':
+            if (result.target) actions.openUrl(result.target);
+            break;
+          case 'open_chat':
+            actions.openChat();
+            break;
+          case 'copy':
+            if (result.copyText) actions.copyToClipboard(result.copyText);
+            break;
+          case 'clear':
+            terminalRef.current?.clear();
+            break;
+        }
+      }, delay);
+    },
+    [actions]
+  );
+
+  const handleCommand = useCallback(
+    (input: string) => {
+      const term = terminalRef.current;
+      if (!term) return;
+
+      // If busy with async command, Ctrl+C is handled in Terminal.tsx
+      if (busyRef.current) return;
+
+      // Check for async command first
+      const asyncRunner = getAsyncCommand(input);
+      if (asyncRunner) {
+        busyRef.current = true;
+        const controller = new AbortController();
+        abortRef.current = controller;
+        term.writeln(''); // newline after Enter
+        asyncRunner(term, controller.signal).finally(() => {
+          busyRef.current = false;
+          abortRef.current = null;
+        });
+        return;
+      }
+
+      const result = parseCommand(input);
+
+      if (result.action === 'clear') {
+        term.clear();
+        term.prompt();
+        return;
+      }
+
+      for (const line of result.output) {
+        term.writeln(line);
+      }
+
       term.prompt();
-      return;
-    }
-
-    for (const line of result.output) {
-      term.writeln(line);
-    }
-
-    if (result.action === 'scroll_to' && result.target) {
-      const el = document.getElementById(result.target);
-      el?.scrollIntoView({ behavior: 'smooth' });
-    }
-
-    if (result.action === 'open_url' && result.target) {
-      window.open(result.target, '_blank', 'noopener,noreferrer');
-    }
-
-    term.prompt();
-  }, []);
+      executeAction(result);
+    },
+    [executeAction]
+  );
 
   const runBootSequence = useCallback(async () => {
     const term = terminalRef.current;
     if (!term) return;
+
+    // T+500ms: boot sequence starts after terminal container animation
+    await sleep(500);
 
     term.writeln('');
 
