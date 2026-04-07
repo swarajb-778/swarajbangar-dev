@@ -7,12 +7,14 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { NAV_ITEMS } from '@/lib/constants';
 import { useFloating } from '@/lib/floating-context';
+import { useReducedMotion } from '@/lib/hooks/useReducedMotion';
 
 export function Navbar() {
   const { toggleTerminal } = useFloating();
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [activeSection, setActiveSection] = useState('');
+  const prefersReduced = useReducedMotion();
 
   // Frosted glass on scroll past hero
   useEffect(() => {
@@ -52,12 +54,15 @@ export function Navbar() {
 
   return (
     <>
-      <nav
+      <motion.nav
+        initial={prefersReduced ? false : { opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={prefersReduced ? { duration: 0.01 } : { delay: 0.1, duration: 0.4 }}
         className={cn(
           'fixed top-0 left-0 right-0 z-50 h-16 md:h-16',
           'transition-all duration-200',
           scrolled
-            ? 'bg-bg-base/80 backdrop-blur-xl border-b border-border-default'
+            ? 'glass-nav border-b border-white/[0.08]'
             : 'bg-transparent'
         )}
       >
@@ -106,13 +111,17 @@ export function Navbar() {
               onClick={toggleTerminal}
               className={cn(
                 'hidden md:inline-flex items-center gap-2 px-3 py-1.5',
-                'text-sm text-accent-primary border border-border-hover rounded-md',
-                'hover:bg-white/[0.04] transition-colors duration-150'
+                'text-sm text-accent-primary border border-white/[0.08] rounded-md',
+                'hover:bg-white/[0.04] hover:border-white/[0.12] transition-all duration-150',
+                'backdrop-blur-sm'
               )}
               aria-label="Toggle terminal overlay"
             >
               <Terminal size={14} />
               Terminal
+              <span className="ml-1 px-1.5 py-0.5 bg-white/[0.06] rounded text-[10px] text-text-muted font-mono">
+                T
+              </span>
             </button>
 
             {/* Mobile hamburger */}
@@ -125,7 +134,7 @@ export function Navbar() {
             </button>
           </div>
         </div>
-      </nav>
+      </motion.nav>
 
       {/* Mobile overlay */}
       <AnimatePresence>
@@ -154,7 +163,7 @@ export function Navbar() {
                 </Link>
               ))}
               <button
-                className="mt-4 inline-flex items-center gap-2 px-4 py-2 text-accent-primary border border-border-hover rounded-md"
+                className="mt-4 inline-flex items-center gap-2 px-4 py-2 text-accent-primary border border-white/[0.08] rounded-md backdrop-blur-sm"
                 onClick={() => {
                   closeMobile();
                   toggleTerminal();
