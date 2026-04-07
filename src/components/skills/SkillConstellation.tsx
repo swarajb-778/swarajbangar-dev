@@ -7,7 +7,7 @@
 import { useRef, useEffect, useState, useCallback } from 'react';
 import { Badge } from '@/components/ui';
 import { SKILLS_DATA } from '@/lib/constants';
-import type { SkillNode } from '@/lib/types';
+
 
 const CATEGORY_COLORS: Record<string, string> = {
   'ai-ml': '#6C5CE7',

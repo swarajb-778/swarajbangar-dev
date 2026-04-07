@@ -4,9 +4,15 @@
 // AboutSection — Bio + StatCards + SkillConstellation
 // ═══════════════════════════════════════════════════════════════
 
+import dynamic from 'next/dynamic';
 import { Briefcase, Zap, Building2 } from 'lucide-react';
 import { StatCard } from './StatCard';
-import { SkillConstellation } from '@/components/skills/SkillConstellation';
+import { ConstellationSkeleton } from '@/components/ui/Skeleton';
+
+const SkillConstellation = dynamic(
+  () => import('@/components/skills/SkillConstellation').then(m => m.SkillConstellation),
+  { ssr: false, loading: () => <ConstellationSkeleton /> }
+);
 
 const STATS = [
   {
