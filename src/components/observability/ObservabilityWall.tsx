@@ -80,7 +80,7 @@ function MetricPanel({ metric }: { readonly metric: MetricCard }) {
   const useBar = BAR_LABELS.has(metric.label);
 
   return (
-    <div className="bg-bg-surface rounded-md p-4">
+    <div className="glass-surface rounded-md p-4">
       <p className="text-xs text-text-muted uppercase tracking-wider mb-1">
         {metric.label}
       </p>
@@ -125,7 +125,7 @@ function MetricPanel({ metric }: { readonly metric: MetricCard }) {
 export function ObservabilityWall({ metrics }: ObservabilityWallProps) {
   return (
     <div>
-      <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
         {metrics.map((metric) => (
           <MetricPanel key={metric.label} metric={metric} />
         ))}
