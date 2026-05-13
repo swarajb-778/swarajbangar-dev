@@ -3,6 +3,7 @@
 // ═══════════════════════════════════════════════════════════════
 
 import { SITE_CONFIG } from '@/lib/constants';
+import { isSoundEnabled, setSoundEnabled } from '@/lib/hooks/useSoundEffects';
 
 export interface CommandResult {
   readonly output: readonly string[];
@@ -211,7 +212,7 @@ export const COMMAND_NAMES: readonly string[] = [
   'resume', 'contact', 'agent', 'chat', 'clear', 'api', 'ls',
   'cat', 'neofetch', 'sudo', 'cd', 'rm', 'theme', 'blog',
   'whoami', 'pwd', 'ping', 'exit', 'vim', 'nano', 'emacs',
-  'matrix', 'coffee', 'date',
+  'matrix', 'coffee', 'date', 'sound',
 ] as const;
 
 export function parseCommand(input: string): CommandResult {
@@ -425,6 +426,40 @@ export function parseCommand(input: string): CommandResult {
           '',
         ],
       };
+
+    case 'sound': {
+      const arg = args[0];
+      if (arg === 'on') {
+        setSoundEnabled(true);
+        return {
+          output: [
+            '',
+            `  ${C.emerald}🔊 Terminal sounds enabled.${C.reset}`,
+            `  ${C.muted}Type ${C.teal}sound off${C.muted} to disable.${C.reset}`,
+            '',
+          ],
+        };
+      }
+      if (arg === 'off') {
+        setSoundEnabled(false);
+        return {
+          output: [
+            '',
+            `  ${C.gold}🔇 Terminal sounds disabled.${C.reset}`,
+            '',
+          ],
+        };
+      }
+      const status = isSoundEnabled() ? 'on' : 'off';
+      return {
+        output: [
+          '',
+          `  ${C.teal}Terminal sound: ${status}${C.reset}`,
+          `  ${C.muted}Usage: ${C.teal}sound on${C.muted} | ${C.teal}sound off${C.reset}`,
+          '',
+        ],
+      };
+    }
 
     case '':
       return { output: [] };

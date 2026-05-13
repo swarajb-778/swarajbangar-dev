@@ -2,19 +2,34 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { Menu, X, Terminal } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { NAV_ITEMS } from '@/lib/constants';
 import { useFloating } from '@/lib/floating-context';
 import { useReducedMotion } from '@/lib/hooks/useReducedMotion';
+import { useActiveSection } from '@/lib/hooks/useActiveSection';
 
 export function Navbar() {
+  const pathname = usePathname();
   const { toggleTerminal } = useFloating();
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [activeSection, setActiveSection] = useState('');
   const prefersReduced = useReducedMotion();
+  const { activeSection: activeSectionId } = useActiveSection();
+
+  // On route pages, determine parent section for highlighting
+  const isHome = pathname === '/';
+  const activeSection = isHome
+    ? activeSectionId
+    : pathname.startsWith('/lab')
+      ? 'lab'
+      : pathname.startsWith('/blog')
+        ? 'blog'
+        : pathname.startsWith('/case-studies')
+          ? 'case-studies'
+          : '';
 
   // Frosted glass on scroll past hero
   useEffect(() => {
@@ -23,31 +38,6 @@ export function Navbar() {
     };
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  // Intersection observer for active section highlighting
-  useEffect(() => {
-    const sectionIds = NAV_ITEMS.map((item) => item.href.replace('#', ''));
-    const observers: IntersectionObserver[] = [];
-
-    for (const id of sectionIds) {
-      const el = document.getElementById(id);
-      if (!el) continue;
-
-      const observer = new IntersectionObserver(
-        ([entry]) => {
-          if (entry.isIntersecting) {
-            setActiveSection(id);
-          }
-        },
-        { rootMargin: '-40% 0px -55% 0px' }
-      );
-
-      observer.observe(el);
-      observers.push(observer);
-    }
-
-    return () => observers.forEach((o) => o.disconnect());
   }, []);
 
   const closeMobile = useCallback(() => setMobileOpen(false), []);
@@ -95,9 +85,9 @@ export function Navbar() {
                   {item.label}
                   {isActive && (
                     <motion.span
-                      layoutId="nav-active-dot"
+                      layoutId="nav-indicator"
                       className="absolute bottom-0.5 left-1/2 -translate-x-1/2 size-1 rounded-full bg-accent-primary"
-                      transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                      transition={{ type: 'spring', stiffness: 400, damping: 30 }}
                     />
                   )}
                 </Link>

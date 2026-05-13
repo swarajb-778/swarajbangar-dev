@@ -22,6 +22,23 @@ const COLOR_MAP: Record<string, string> = {
   primary: '\x1b[37m',
 } as const;
 
+// ── SWARAJ ASCII Art Logo ──
+// Gradient: purple → teal, displayed on boot & reload
+const SWARAJ_LOGO: readonly string[] = [
+  '',
+  '\x1b[38;2;108;92;231m  ███████╗\x1b[38;2;98;102;221m██╗    ██╗\x1b[38;2;78;132;221m █████╗ \x1b[38;2;58;162;211m██████╗  \x1b[38;2;28;192;201m █████╗  \x1b[38;2;0;206;201m     ██╗\x1b[0m',
+  '\x1b[38;2;108;92;231m  ██╔════╝\x1b[38;2;98;102;221m██║    ██║\x1b[38;2;78;132;221m██╔══██╗\x1b[38;2;58;162;211m██╔══██╗ \x1b[38;2;28;192;201m██╔══██╗ \x1b[38;2;0;206;201m     ██║\x1b[0m',
+  '\x1b[38;2;108;92;231m  ███████╗\x1b[38;2;98;102;221m██║ █╗ ██║\x1b[38;2;78;132;221m███████║\x1b[38;2;58;162;211m██████╔╝ \x1b[38;2;28;192;201m███████║ \x1b[38;2;0;206;201m     ██║\x1b[0m',
+  '\x1b[38;2;108;92;231m  ╚════██║\x1b[38;2;98;102;221m██║███╗██║\x1b[38;2;78;132;221m██╔══██║\x1b[38;2;58;162;211m██╔══██╗ \x1b[38;2;28;192;201m██╔══██║ \x1b[38;2;0;206;201m██   ██║\x1b[0m',
+  '\x1b[38;2;108;92;231m  ███████║\x1b[38;2;98;102;221m╚███╔███╔╝\x1b[38;2;78;132;221m██║  ██║\x1b[38;2;58;162;211m██║  ██║ \x1b[38;2;28;192;201m██║  ██║ \x1b[38;2;0;206;201m╚█████╔╝\x1b[0m',
+  '\x1b[38;2;108;92;231m  ╚══════╝\x1b[38;2;98;102;221m ╚══╝╚══╝ \x1b[38;2;78;132;221m╚═╝  ╚═╝\x1b[38;2;58;162;211m╚═╝  ╚═╝ \x1b[38;2;28;192;201m╚═╝  ╚═╝ \x1b[38;2;0;206;201m ╚════╝ \x1b[0m',
+  '',
+  '\x1b[90m  ──────────────────────────────────────────────────────────\x1b[0m',
+  '\x1b[38;2;108;92;231m  AI Engineer\x1b[0m \x1b[90m·\x1b[0m \x1b[38;2;0;206;201mFull Stack\x1b[0m \x1b[90m·\x1b[0m \x1b[38;2;253;203;110mDistributed Systems\x1b[0m',
+  '\x1b[90m  ──────────────────────────────────────────────────────────\x1b[0m',
+  '',
+] as const;
+
 export interface BootSequenceProps {
   readonly onBootComplete?: () => void;
   readonly className?: string;
@@ -114,7 +131,10 @@ export function BootSequence({ onBootComplete, className }: BootSequenceProps) {
     // T+500ms: boot sequence starts after terminal container animation
     await sleep(500);
 
-    term.writeln('');
+    // Render SWARAJ ASCII logo instantly (not typed)
+    for (const line of SWARAJ_LOGO) {
+      term.writeln(line);
+    }
 
     for (const line of TERMINAL_CONFIG.bootLines) {
       const color = COLOR_MAP[line.color] ?? '\x1b[37m';
@@ -147,7 +167,10 @@ export function BootSequence({ onBootComplete, className }: BootSequenceProps) {
     const term = terminalRef.current;
     if (!term) return;
 
-    term.writeln('');
+    // Render SWARAJ ASCII logo on reload/welcome back
+    for (const line of SWARAJ_LOGO) {
+      term.writeln(line);
+    }
     term.writeln("\x1b[36m  Welcome back. Type 'help' for commands.\x1b[0m");
     term.writeln('');
     term.prompt();
@@ -167,6 +190,9 @@ export function BootSequence({ onBootComplete, className }: BootSequenceProps) {
     if (!term || bootCompleteRef.current) return;
 
     term.onInput(handleCommand);
+    term.onAbort(() => {
+      abortRef.current?.abort();
+    });
 
     let hasPlayed = false;
     try {

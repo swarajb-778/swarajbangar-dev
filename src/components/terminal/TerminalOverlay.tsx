@@ -5,7 +5,7 @@
 // xterm instance persists across open/close cycles
 // ═══════════════════════════════════════════════════════════════
 
-import { useRef, useEffect, useCallback, useState } from 'react';
+import { useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown, X, GripHorizontal } from 'lucide-react';
 import { useFloating } from '@/lib/floating-context';
@@ -126,6 +126,9 @@ export function TerminalOverlay() {
     const term = terminalRef.current;
     if (!term) return;
     term.onInput(handleCommand);
+    term.onAbort(() => {
+      abortRef.current?.abort();
+    });
     // Only show welcome message once per session
     if (!hasShownWelcomeRef.current) {
       term.writeln('');
@@ -137,24 +140,16 @@ export function TerminalOverlay() {
     term.focus();
   }, [handleCommand]);
 
-  // Lock body scroll + Escape key to close
+  // Lock body scroll when terminal is open (Escape handled centrally by useKeyboardShortcuts)
   useEffect(() => {
     if (!isTerminalOpen) return;
 
     document.body.style.overflow = 'hidden';
 
-    function handleKeyDown(e: KeyboardEvent) {
-      if (e.key === 'Escape') {
-        toggleTerminal();
-      }
-    }
-
-    window.addEventListener('keydown', handleKeyDown);
     return () => {
-      window.removeEventListener('keydown', handleKeyDown);
       document.body.style.overflow = '';
     };
-  }, [isTerminalOpen, toggleTerminal]);
+  }, [isTerminalOpen]);
 
   // Fit + focus when overlay opens (after animation settles)
   useEffect(() => {

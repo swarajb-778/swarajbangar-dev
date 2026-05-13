@@ -17,6 +17,7 @@ import { TERMINAL_CONFIG } from '@/lib/constants';
 import { createCommandHistory, type CommandHistory } from '@/lib/hooks/useCommandHistory';
 import { createTabCompletion, type TabCompletion } from '@/lib/hooks/useTabCompletion';
 import { COMMAND_NAMES } from './CommandParser';
+import { playTick } from '@/lib/hooks/useSoundEffects';
 
 export interface TerminalHandle {
   write(data: string): void;
@@ -26,6 +27,8 @@ export interface TerminalHandle {
   focus(): void;
   fit(): void;
   onInput(callback: (input: string) => void): void;
+  /** Register a callback invoked when Ctrl+C is pressed (to abort async commands) */
+  onAbort(callback: () => void): void;
 }
 
 export interface TerminalProps {
@@ -62,7 +65,7 @@ const TERMINAL_THEME = {
 
 const PROMPT_STR = TERMINAL_CONFIG.prompt;
 // Prompt length without ANSI codes (for cursor positioning)
-const PROMPT_VISIBLE_LEN = PROMPT_STR.replace(/\x1b\[[^m]*m/g, '').length;
+// Prompt visible length (without ANSI codes) used implicitly by cursor positioning
 
 export const Terminal = forwardRef<TerminalHandle, TerminalProps>(
   function Terminal({ onReady, className, useWebGL: enableWebGL = true }, ref) {
@@ -70,6 +73,7 @@ export const Terminal = forwardRef<TerminalHandle, TerminalProps>(
     const termRef = useRef<import('@xterm/xterm').Terminal | null>(null);
     const fitAddonRef = useRef<import('@xterm/addon-fit').FitAddon | null>(null);
     const inputCallbackRef = useRef<((input: string) => void) | null>(null);
+    const abortCallbackRef = useRef<(() => void) | null>(null);
     const handleDataRef = useRef<((data: string) => void) | null>(null);
     const onReadyRef = useRef(onReady);
 
@@ -143,6 +147,9 @@ export const Terminal = forwardRef<TerminalHandle, TerminalProps>(
       },
       onInput(callback: (input: string) => void) {
         inputCallbackRef.current = callback;
+      },
+      onAbort(callback: () => void) {
+        abortCallbackRef.current = callback;
       },
     }));
 
@@ -268,8 +275,10 @@ export const Terminal = forwardRef<TerminalHandle, TerminalProps>(
           return;
         }
 
-        // Ctrl+C — cancel input
+        // Ctrl+C — cancel input / abort async command
         if (code === 3) {
+          // If an async command is running, abort it
+          abortCallbackRef.current?.();
           inputBufferRef.current = '';
           cursorPosRef.current = 0;
           history?.reset();
@@ -321,6 +330,7 @@ export const Terminal = forwardRef<TerminalHandle, TerminalProps>(
           const pos = cursorPosRef.current;
           inputBufferRef.current = buf.slice(0, pos) + data + buf.slice(pos);
           cursorPosRef.current = pos + 1;
+          playTick();
           // Reset history when user types
           history?.reset();
           redrawInput();
@@ -335,7 +345,6 @@ export const Terminal = forwardRef<TerminalHandle, TerminalProps>(
 
     // Initialize xterm instance — runs ONCE on mount (+ if enableWebGL changes).
     // Uses refs for callbacks to avoid re-creating the instance when parent re-renders.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => {
       let disposed = false;
 

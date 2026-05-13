@@ -4,7 +4,7 @@
 // HeroSection — Terminal + StatusSidebar, 100vh, orchestrated load
 // ═══════════════════════════════════════════════════════════════
 
-import { useRef, useState, useCallback } from 'react';
+import { useRef, useState, useCallback, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import { motion, AnimatePresence } from 'framer-motion';
 import { StatusSidebar } from '@/components/terminal/StatusSidebar';
@@ -21,8 +21,19 @@ export function HeroSection() {
   const [bootDone, setBootDone] = useState(false);
   const prefersReduced = useReducedMotion();
 
+  const [scrolledPast, setScrolledPast] = useState(false);
+
   const handleBootComplete = useCallback(() => {
     setBootDone(true);
+  }, []);
+
+  // Fade out scroll indicator after scrolling past 200px
+  useEffect(() => {
+    function handleScroll() {
+      setScrolledPast(window.scrollY > 200);
+    }
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   return (
@@ -61,9 +72,9 @@ export function HeroSection() {
         </motion.div>
       </div>
 
-      {/* Scroll indicator */}
+      {/* Scroll indicator — shows after boot, fades on scroll */}
       <AnimatePresence>
-        {bootDone && (
+        {bootDone && !scrolledPast && (
           <motion.div
             initial={prefersReduced ? { opacity: 1 } : { opacity: 0 }}
             animate={{ opacity: 1 }}

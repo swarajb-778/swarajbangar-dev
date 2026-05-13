@@ -7,6 +7,7 @@ import { ChatPanel } from '@/components/agent/ChatPanel';
 import { TerminalOverlay } from '@/components/terminal/TerminalOverlay';
 import { FloatingTerminalButton } from '@/components/terminal/FloatingTerminalButton';
 import { KeyboardShortcuts } from '@/components/layout/KeyboardShortcuts';
+import { ScrollProgress } from '@/components/layout/ScrollProgress';
 import './globals.css';
 
 const inter = Inter({
@@ -86,6 +87,7 @@ export default function RootLayout({
           <TerminalOverlay />
           <FloatingTerminalButton />
           <KeyboardShortcuts />
+          <ScrollProgress />
         </FloatingProvider>
       </body>
     </html>

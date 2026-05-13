@@ -4,7 +4,6 @@
 // ShortcutsOverlay — Modal showing all keyboard shortcuts
 // ═══════════════════════════════════════════════════════════════
 
-import { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
 import { formatKey, isMac, type Shortcut } from '@/lib/hooks/useKeyboardShortcuts';
@@ -45,30 +44,8 @@ const TERMINAL_SHORTCUTS: readonly { readonly key: string; readonly description:
 ];
 
 export function ShortcutsOverlay({ isOpen, onClose, shortcuts }: ShortcutsOverlayProps) {
-  // Close on Escape
-  useEffect(() => {
-    if (!isOpen) return;
-    function handleKey(e: KeyboardEvent) {
-      if (e.key === 'Escape') {
-        e.preventDefault();
-        onClose();
-      }
-    }
-    window.addEventListener('keydown', handleKey);
-    return () => window.removeEventListener('keydown', handleKey);
-  }, [isOpen, onClose]);
-
-  const navShortcuts = shortcuts.filter((s) => s.category === 'navigation');
+  // Escape handled centrally by useKeyboardShortcuts (priority order)
   const panelShortcuts = shortcuts.filter((s) => s.category === 'panels');
-
-  // Dedupe display: show Cmd+K and / together
-  const dedupedNav = navShortcuts.filter(
-    (s, i, arr) =>
-      // Remove duplicate "Open terminal" (keep Cmd+K, skip /)
-      !(s.key === '/' && arr.some((o) => o.key === 'k' && o.metaKey))
-      // Remove duplicate "Previous section" for 'k' without meta (conflicts with Cmd+K display)
-      && !(s.key === 'k' && !s.metaKey)
-  );
 
   return (
     <AnimatePresence>

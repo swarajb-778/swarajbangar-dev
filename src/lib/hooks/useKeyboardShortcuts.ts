@@ -2,9 +2,12 @@
 
 // ═══════════════════════════════════════════════════════════════
 // useKeyboardShortcuts — Centralized shortcut registry + section nav
+// Single global keydown listener. Priority-based Escape handling.
+// Uses useActiveSection for section tracking (no duplicate observers).
 // ═══════════════════════════════════════════════════════════════
 
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useCallback, useMemo, useRef } from 'react';
+import { useActiveSection } from './useActiveSection';
 
 export interface Shortcut {
   readonly key: string;
@@ -62,42 +65,30 @@ function scrollToSection(sectionId: string): void {
 interface UseKeyboardShortcutsOptions {
   readonly toggleTerminal: () => void;
   readonly toggleChat: () => void;
-  readonly closeAll: () => void;
   readonly toggleShortcutsOverlay: () => void;
+  /** Current state flags for priority-based Escape */
+  readonly isShortcutsOpen?: boolean;
+  readonly isChatOpen?: boolean;
+  readonly isTerminalOpen?: boolean;
 }
 
 export function useKeyboardShortcuts({
   toggleTerminal,
   toggleChat,
-  closeAll,
   toggleShortcutsOverlay,
+  isShortcutsOpen = false,
+  isChatOpen = false,
+  isTerminalOpen = false,
 }: UseKeyboardShortcutsOptions): { readonly shortcuts: readonly Shortcut[] } {
+  // Use shared useActiveSection for section index (no duplicate observers)
+  const { activeSection, sectionIds } = useActiveSection();
   const currentSectionRef = useRef(0);
 
-  // Track current section via IntersectionObserver
+  // Sync current section index from shared hook
   useEffect(() => {
-    const observers: IntersectionObserver[] = [];
-
-    for (let i = 0; i < SECTION_IDS.length; i++) {
-      const el = document.getElementById(SECTION_IDS[i]);
-      if (!el) continue;
-
-      const idx = i;
-      const observer = new IntersectionObserver(
-        ([entry]) => {
-          if (entry.isIntersecting) {
-            currentSectionRef.current = idx;
-          }
-        },
-        { threshold: 0.3 }
-      );
-
-      observer.observe(el);
-      observers.push(observer);
-    }
-
-    return () => observers.forEach((o) => o.disconnect());
-  }, []);
+    const idx = sectionIds.indexOf(activeSection);
+    if (idx !== -1) currentSectionRef.current = idx;
+  }, [activeSection, sectionIds]);
 
   const scrollNext = useCallback(() => {
     const next = Math.min(currentSectionRef.current + 1, SECTION_IDS.length - 1);
@@ -109,8 +100,30 @@ export function useKeyboardShortcuts({
     scrollToSection(SECTION_IDS[prev]);
   }, []);
 
-  // Build shortcut registry
-  const shortcuts: readonly Shortcut[] = [
+  // Priority-based Escape: closes topmost overlay first
+  // Sync refs in effect to comply with React 19 lint rules
+  const isShortcutsOpenRef = useRef(isShortcutsOpen);
+  const isChatOpenRef = useRef(isChatOpen);
+  const isTerminalOpenRef = useRef(isTerminalOpen);
+  useEffect(() => {
+    isShortcutsOpenRef.current = isShortcutsOpen;
+    isChatOpenRef.current = isChatOpen;
+    isTerminalOpenRef.current = isTerminalOpen;
+  }, [isShortcutsOpen, isChatOpen, isTerminalOpen]);
+
+  const handleEscape = useCallback(() => {
+    // Priority order: shortcuts overlay → chat panel → terminal overlay
+    if (isShortcutsOpenRef.current) {
+      toggleShortcutsOverlay();
+    } else if (isChatOpenRef.current) {
+      toggleChat();
+    } else if (isTerminalOpenRef.current) {
+      toggleTerminal();
+    }
+  }, [toggleShortcutsOverlay, toggleChat, toggleTerminal]);
+
+  // Build shortcut registry (memoized to stabilize useEffect deps)
+  const shortcuts: readonly Shortcut[] = useMemo(() => [
     // Navigation
     { key: '/', description: 'Open terminal', action: toggleTerminal, global: false, category: 'navigation' },
     { key: 'k', metaKey: true, description: 'Open terminal', action: toggleTerminal, global: true, category: 'navigation' },
@@ -127,10 +140,10 @@ export function useKeyboardShortcuts({
     // Panels
     { key: 't', description: 'Toggle terminal', action: toggleTerminal, global: false, category: 'panels' },
     { key: 'a', metaKey: true, shiftKey: true, description: 'Toggle AI chat', action: toggleChat, global: true, category: 'panels' },
-    { key: 'Escape', description: 'Close overlays', action: closeAll, global: true, category: 'panels' },
+    { key: 'Escape', description: 'Close overlays', action: handleEscape, global: true, category: 'panels' },
     { key: '?', description: 'Show shortcuts', action: toggleShortcutsOverlay, global: false, category: 'panels' },
     { key: 's', description: 'Toggle view source', action: () => window.dispatchEvent(new CustomEvent('toggle-view-source')), global: false, category: 'panels' },
-  ];
+  ], [toggleTerminal, toggleChat, handleEscape, toggleShortcutsOverlay, scrollNext, scrollPrev]);
 
   // Global keydown handler
   useEffect(() => {
@@ -171,7 +184,7 @@ export function useKeyboardShortcuts({
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [shortcuts, toggleTerminal, toggleChat, closeAll, toggleShortcutsOverlay, scrollNext, scrollPrev]);
+  }, [shortcuts]);
 
   return { shortcuts };
 }

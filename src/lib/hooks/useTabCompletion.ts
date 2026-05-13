@@ -6,8 +6,9 @@
 const SUBCOMMAND_COMPLETIONS: Record<string, readonly string[]> = {
   cat: ['about.md', 'skills.json', 'readme.md'],
   sudo: ['hire swaraj'],
-  theme: ['dark', 'light', 'contrast'],
   ping: ['google.com'],
+  rm: ['-rf /'],
+  sound: ['on', 'off'],
 } as const;
 
 export interface TabCompletion {

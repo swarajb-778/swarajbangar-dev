@@ -10,7 +10,7 @@ import { useKeyboardShortcuts } from '@/lib/hooks/useKeyboardShortcuts';
 import { ShortcutsOverlay } from './ShortcutsOverlay';
 
 export function KeyboardShortcuts() {
-  const { toggleTerminal, toggleChat, closeAll } = useFloating();
+  const { toggleTerminal, toggleChat, isTerminalOpen, isChatOpen } = useFloating();
   const [showOverlay, setShowOverlay] = useState(false);
 
   const toggleShortcutsOverlay = useCallback(() => {
@@ -24,8 +24,10 @@ export function KeyboardShortcuts() {
   const { shortcuts } = useKeyboardShortcuts({
     toggleTerminal,
     toggleChat,
-    closeAll,
     toggleShortcutsOverlay,
+    isShortcutsOpen: showOverlay,
+    isChatOpen,
+    isTerminalOpen,
   });
 
   return (
