@@ -18,6 +18,8 @@ if TYPE_CHECKING:  # avoid heavy imports at module load
     import neo4j
     import redis.asyncio as aioredis
 
+    from app.rag.embedder import LocalEmbedder
+
 
 # ════════════════════════════════════════════════════════════════════
 # ── Settings ──
@@ -91,3 +93,22 @@ def get_neo4j(request: Request) -> "neo4j.AsyncDriver":
 
 
 Neo4jDep = Annotated[Any, Depends(get_neo4j)]
+
+
+# ════════════════════════════════════════════════════════════════════
+# ── Embedder (LocalEmbedder on app.state.embedder) ──
+# ════════════════════════════════════════════════════════════════════
+
+
+def get_embedder(request: Request) -> "LocalEmbedder":
+    """Return the shared LocalEmbedder instance.
+
+    Raises if the embedder was not initialized.
+    """
+    embedder = getattr(request.app.state, "embedder", None)
+    if embedder is None:
+        raise RuntimeError("Embedder not initialized — lifespan did not run.")
+    return embedder
+
+
+EmbedderDep = Annotated[Any, Depends(get_embedder)]

@@ -27,20 +27,24 @@ logger = logging.getLogger("swarajbangar.api")
 
 
 def _sanitize_dsn(dsn: str) -> str:
-    """Percent-encode special chars in a Postgres DSN password.
+    """Make a Postgres DSN safe for Python 3.13's stricter URL parser.
 
-    Python 3.13 tightened URL host validation and now rejects `@`, `[`, `]`
-    inside the password portion when it appears before the host.  We find the
-    password by splitting on the LAST `@` (the user:pass / host boundary) and
-    percent-encode only the password component.
+    Python 3.13 tightened URL host validation and now rejects unencoded
+    ``@``, ``[``, ``]`` inside the password portion.  We find the password by
+    splitting on the LAST ``@`` (the user:pass / host boundary) and
+    re-encode it idempotently: ``unquote`` first so an already-encoded
+    password ("Pa%23ss") stays correct, then ``quote`` so any raw special
+    chars get encoded.  Net effect: ``unencoded → encoded``, already
+    ``encoded → encoded`` (no-op round-trip).
     """
     import re
-    from urllib.parse import quote
+    from urllib.parse import quote, unquote
 
     m = re.match(r"^(postgresql|postgres)://([^:@]+):(.+)@([^@]+)$", dsn)
     if m:
         scheme, user, password, rest = m.groups()
-        return f"{scheme}://{user}:{quote(password, safe='')}@{rest}"
+        decoded = unquote(password)
+        return f"{scheme}://{user}:{quote(decoded, safe='')}@{rest}"
     return dsn
 
 
@@ -67,7 +71,9 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     import asyncpg
     import neo4j
     import redis.asyncio as aioredis
-    from sentence_transformers import CrossEncoder, SentenceTransformer
+    from sentence_transformers import CrossEncoder
+
+    from app.rag.embedder import LocalEmbedder
 
     # Postgres connection pool (Supabase pgbouncer)
     try:
@@ -106,9 +112,13 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     except Exception as exc:  # noqa: BLE001 — degrade gracefully if Neo4j is down
         logger.warning("neo4j connectivity check failed: %s", exc)
 
-    # Pre-load models (cached in Docker image layer; first run downloads them)
-    app.state.embedder = SentenceTransformer(settings.EMBEDDING_MODEL)
-    logger.info("embedder loaded: %s (%d dims)", settings.EMBEDDING_MODEL, app.state.embedder.get_sentence_embedding_dimension())
+    # Pre-load models (cached in Docker image layer; first run downloads them).
+    # LocalEmbedder owns the SentenceTransformer model and exposes async
+    # embed_text / embed_batch with Redis caching.
+    app.state.embedder = LocalEmbedder(
+        model_name=settings.EMBEDDING_MODEL,
+        redis_client=app.state.redis,
+    )
 
     try:
         app.state.reranker = CrossEncoder(settings.RERANKER_MODEL)
