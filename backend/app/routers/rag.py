@@ -5,7 +5,6 @@ reranker, hybrid search). For now these endpoints return 501 so /docs
 documents the contract without misleading callers.
 """
 
-from __future__ import annotations
 
 from fastapi import APIRouter, HTTPException, status
 

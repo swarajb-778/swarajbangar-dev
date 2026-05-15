@@ -8,7 +8,6 @@ POST /v1/agent/orchestrate streams Server-Sent Events:
 The real implementation is wired in a later prompt.
 """
 
-from __future__ import annotations
 
 from fastapi import APIRouter, HTTPException, status
 

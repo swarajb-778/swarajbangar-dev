@@ -26,6 +26,24 @@ from app.routers import agent, health, rag, stats, ws
 logger = logging.getLogger("swarajbangar.api")
 
 
+def _sanitize_dsn(dsn: str) -> str:
+    """Percent-encode special chars in a Postgres DSN password.
+
+    Python 3.13 tightened URL host validation and now rejects `@`, `[`, `]`
+    inside the password portion when it appears before the host.  We find the
+    password by splitting on the LAST `@` (the user:pass / host boundary) and
+    percent-encode only the password component.
+    """
+    import re
+    from urllib.parse import quote
+
+    m = re.match(r"^(postgresql|postgres)://([^:@]+):(.+)@([^@]+)$", dsn)
+    if m:
+        scheme, user, password, rest = m.groups()
+        return f"{scheme}://{user}:{quote(password, safe='')}@{rest}"
+    return dsn
+
+
 # ════════════════════════════════════════════════════════════════════
 # ── Lifespan: own all shared resources ──
 # ════════════════════════════════════════════════════════════════════
@@ -52,22 +70,30 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     from sentence_transformers import CrossEncoder, SentenceTransformer
 
     # Postgres connection pool (Supabase pgbouncer)
-    app.state.db_pool = await asyncpg.create_pool(
-        dsn=settings.DATABASE_URL,
-        min_size=1,
-        max_size=settings.database_pool_size,
-        command_timeout=10,
-    )
-    logger.info("postgres pool ready (max_size=%d)", settings.database_pool_size)
+    try:
+        app.state.db_pool = await asyncpg.create_pool(
+            dsn=_sanitize_dsn(settings.DATABASE_URL),
+            min_size=1,
+            max_size=settings.database_pool_size,
+            command_timeout=10,
+        )
+        logger.info("postgres pool ready (max_size=%d)", settings.database_pool_size)
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("postgres pool failed to start: %s — continuing without DB", exc)
+        app.state.db_pool = None
 
     # Redis client (decode_responses=False — we may store binary later)
-    app.state.redis = aioredis.from_url(
-        settings.REDIS_URL,
-        encoding="utf-8",
-        decode_responses=True,
-    )
-    await app.state.redis.ping()
-    logger.info("redis ready")
+    try:
+        app.state.redis = aioredis.from_url(
+            settings.REDIS_URL,
+            encoding="utf-8",
+            decode_responses=True,
+        )
+        await app.state.redis.ping()
+        logger.info("redis ready")
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("redis unavailable: %s — rate limiting and caching disabled", exc)
+        app.state.redis = None
 
     # Neo4j async driver
     app.state.neo4j = neo4j.AsyncGraphDatabase.driver(

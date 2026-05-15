@@ -3,7 +3,6 @@
 Reads counters maintained by the request-logging middleware.
 """
 
-from __future__ import annotations
 
 from fastapi import APIRouter
 

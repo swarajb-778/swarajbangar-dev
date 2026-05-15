@@ -4,7 +4,6 @@ GET /health  →  liveness: always 200 if the process is alive.
 GET /ready   →  readiness: 200 only if all dependencies respond.
 """
 
-from __future__ import annotations
 
 import logging
 import time

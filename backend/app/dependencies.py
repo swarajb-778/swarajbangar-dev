@@ -7,7 +7,7 @@ back so handlers can declare them via `Depends(...)`.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Annotated
+from typing import TYPE_CHECKING, Annotated, Any
 
 from fastapi import Depends, Request
 
@@ -52,7 +52,7 @@ def get_redis(request: Request) -> "aioredis.Redis":
     return client
 
 
-RedisDep = Annotated["aioredis.Redis", Depends(get_redis)]
+RedisDep = Annotated[Any, Depends(get_redis)]
 
 
 # ════════════════════════════════════════════════════════════════════
@@ -71,7 +71,7 @@ def get_db_pool(request: Request) -> "asyncpg.Pool":
     return pool
 
 
-DbPoolDep = Annotated["asyncpg.Pool", Depends(get_db_pool)]
+DbPoolDep = Annotated[Any, Depends(get_db_pool)]
 
 
 # ════════════════════════════════════════════════════════════════════
@@ -90,4 +90,4 @@ def get_neo4j(request: Request) -> "neo4j.AsyncDriver":
     return driver
 
 
-Neo4jDep = Annotated["neo4j.AsyncDriver", Depends(get_neo4j)]
+Neo4jDep = Annotated[Any, Depends(get_neo4j)]

@@ -4,7 +4,6 @@ Real-time streaming alternative to SSE. For demos that need
 bidirectional communication (e.g. cancel mid-stream).
 """
 
-from __future__ import annotations
 
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 
