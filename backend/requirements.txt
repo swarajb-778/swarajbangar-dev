@@ -1,0 +1,26 @@
+# swarajbangar.dev backend — Free-tier edition
+# Anthropic SDK only. NO openai. NO litellm.
+# Local sentence-transformers (384 dims) for embeddings.
+# torch from CPU index — smaller, faster install on x86_64.
+
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+pydantic==2.10.0
+pydantic-settings==2.7.0
+python-dotenv==1.0.1
+httpx==0.28.0
+sse-starlette==2.2.1
+websockets==14.1
+redis==5.2.1
+asyncpg==0.30.0
+pgvector==0.3.6
+neo4j==5.27.0
+langchain==0.3.14
+langchain-anthropic==0.3.4
+langchain-community==0.3.14
+langgraph==0.2.60
+anthropic==0.40.0
+tiktoken==0.8.0
+numpy==2.2.0
+sentence-transformers==3.3.1
+torch==2.5.1 --index-url https://download.pytorch.org/whl/cpu

@@ -1,0 +1,27 @@
+# Real secrets
+.env
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Virtualenv
+.venv/
+venv/
+
+# Cached sentence-transformers models (downloaded on first run / build)
+models/
+
+# Persistent volume data (Docker)
+redis_data/
+caddy_data/
+caddy_config/
+
+# IDE
+.idea/
+.vscode/

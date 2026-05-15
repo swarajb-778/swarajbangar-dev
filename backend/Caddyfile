@@ -1,0 +1,30 @@
+# ════════════════════════════════════════════════════════════════════
+# Caddyfile for swarajbangar.dev backend
+#
+# nip.io is a free wildcard DNS service that resolves
+#   <ip>.nip.io  →  <ip>
+# So if your VPS is at 164.90.123.45, the hostname
+#   164.90.123.45.nip.io
+# resolves to that IP without any DNS configuration. Caddy then
+# auto-provisions a Let's Encrypt cert for it on first request.
+# ⇒ HTTPS with zero DNS setup. Replace VPS_IP below with your droplet IP.
+#
+# After you point a real domain (e.g., api.swarajbangar.dev) at the VPS,
+# add a second site block here and rebuild — Caddy handles certs for both.
+# ════════════════════════════════════════════════════════════════════
+
+# Replace VPS_IP with your DigitalOcean droplet's public IPv4 address.
+VPS_IP.nip.io {
+    reverse_proxy api:8000
+
+    encode gzip
+
+    header {
+        Strict-Transport-Security "max-age=31536000; includeSubDomains"
+        X-Content-Type-Options "nosniff"
+        X-Frame-Options "DENY"
+        # CORS handled in FastAPI, but Caddy mirrors the allowed origin
+        # so misconfigured browsers see consistent headers.
+        Access-Control-Allow-Origin "https://swarajbangar-dev.vercel.app"
+    }
+}

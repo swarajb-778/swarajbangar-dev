@@ -1,0 +1,54 @@
+# ════════════════════════════════════════════════════════════════════
+# swarajbangar.dev backend — Docker Compose
+# Services: caddy (TLS proxy) + api (FastAPI) + redis (cache/session)
+# Postgres lives on Supabase (free tier). Neo4j lives on Neo4j Aura.
+# ════════════════════════════════════════════════════════════════════
+
+services:
+  caddy:
+    image: caddy:2-alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - api
+    restart: unless-stopped
+
+  api:
+    build: .
+    env_file: .env
+    # In prod, Caddy proxies to api:8000 over the internal Docker network.
+    # For local dev outside Docker, uncomment the next two lines:
+    # ports:
+    #   - "8000:8000"
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+  redis:
+    image: redis:7-alpine
+    command: redis-server --maxmemory 512mb --maxmemory-policy allkeys-lru --appendonly yes
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
+volumes:
+  caddy_data: {}
+  caddy_config: {}
+  redis_data: {}
