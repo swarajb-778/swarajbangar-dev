@@ -70,7 +70,7 @@ export const EXPERIENCE_DATA: readonly ExperienceEntry[] = [
   {
     company: 'Meshi.io',
     title: 'AI Engineer',
-    dates: 'Jan 2024 – Present',
+    dates: 'Sep 2025 – Present',
     description:
       'Building multi-agent orchestration systems and production RAG pipelines for enterprise AI applications. Designing LangGraph-based agent workflows with real-time reasoning visibility.',
     metrics: [
@@ -93,7 +93,7 @@ export const EXPERIENCE_DATA: readonly ExperienceEntry[] = [
   {
     company: 'Amazon',
     title: 'Software Development Engineer',
-    dates: 'Jun 2022 – Dec 2023',
+    dates: 'Jun 2023 – Sep 2024',
     description:
       'Built and maintained high-throughput payment infrastructure handling 50M+ daily transactions. Designed event-driven microservices with circuit breakers and chaos engineering practices.',
     metrics: [
@@ -115,7 +115,7 @@ export const EXPERIENCE_DATA: readonly ExperienceEntry[] = [
   {
     company: 'Softgenio',
     title: 'Full Stack Developer',
-    dates: 'Aug 2021 – May 2022',
+    dates: 'Aug 2023 – Mar 2024',
     description:
       'Developed end-to-end web applications for enterprise clients. Led migration from monolith to microservices architecture, improving deployment frequency by 4x.',
     metrics: [
@@ -135,7 +135,7 @@ export const EXPERIENCE_DATA: readonly ExperienceEntry[] = [
   {
     company: 'Black Box',
     title: 'Software Engineer',
-    dates: 'Jan 2021 – Jul 2021',
+    dates: 'Dec 2021 – Jun 2023',
     description:
       'Built data pipeline and analytics dashboards for network infrastructure monitoring. Implemented real-time alerting system processing thousands of events per second.',
     metrics: [

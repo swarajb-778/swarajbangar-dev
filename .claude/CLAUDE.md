@@ -17,120 +17,87 @@ and a multi-agent AI system (SwarajOS). See PRD.md for full spec.
 - Backend: FastAPI, LangGraph, Redis, pgvector, Neo4j
 - Deploy: Vercel (frontend), Hetzner VPS Docker Compose (backend)
 
-## Current Phase: Phase 2 — Terminal + Navigation + Interactivity
+## Current Phase: Phase 3 — Backend Foundation + RAG Agents (Free-Tier Edition)
 
-Phase 1 is complete. All 8 sections render with mock data. Terminal has basic
-boot sequence. Chat button floats. Now making everything REAL:
+Phase 1-2 complete. Frontend live at https://swarajbangar-dev.vercel.app.
+Now building the real backend on DigitalOcean and wiring it up.
 
-- Terminal: command history (up/down), tab completion, all commands wired to
-  real navigation actions (scroll, route, open URLs)
-- Easter eggs: neofetch, sudo hire swaraj, matrix rain, coffee, rm -rf /
-- Keyboard shortcuts: /, Cmd+K, Escape, Cmd+Shift+A, 1-8, j/k, ?, t
-- Terminal overlay: resizable, persistent state, split-view with source code
-- View-source toggle: every lab demo shows its implementation code
-- Active section detection: nav highlights, scroll progress bar, section dots
-- Commands use ANSI escape codes for colored output in xterm.js
+### Infrastructure (all free-tier)
+- VPS: DigitalOcean Droplet, Ubuntu 24.04 x86_64, $6/mo via $200 student credit
+- Database: Supabase Postgres + pgvector (free, 500 MB)
+- Graph: Neo4j Aura Free (200K nodes)
+- Cache: Redis 7-alpine in Docker on the VPS
+- LLM: Anthropic API only (Sonnet for responses, Haiku for classification)
+- Embeddings: LOCAL sentence-transformers all-MiniLM-L6-v2 (384 dims, on VPS CPU)
+- Reranker: LOCAL cross-encoder ms-marco-MiniLM-L-6-v2 (22 MB, on VPS CPU)
+- Frontend: Vercel Hobby (already deployed)
 
-### Key files added/modified in Phase 2:
-- src/lib/hooks/useCommandHistory.ts (terminal history)
-- src/lib/hooks/useTabCompletion.ts (autocomplete engine)
-- src/lib/hooks/useTerminalActions.ts (command → navigation bridge)
-- src/lib/hooks/useKeyboardShortcuts.ts (global shortcut registry)
-- src/lib/hooks/useActiveSection.ts (scroll-aware section tracking)
-- src/components/terminal/Terminal.tsx (major upgrade: history, completion, resize)
-- src/components/terminal/CommandParser.ts (all commands fully implemented)
-- src/components/terminal/TerminalOverlay.tsx (resize, persistence, split-view)
-- src/components/layout/ShortcutsOverlay.tsx (keyboard shortcuts help modal)
-- src/components/layout/ScrollProgress.tsx (top progress bar)
-- src/components/layout/SectionIndicator.tsx (right-edge dot navigation)
-- src/components/lab/ViewSourceToggle.tsx (demo/code split-pane)
-- src/components/lab/CodeViewer.tsx (multi-file code viewer with tabs)
-- src/components/lab/DemoContainer.tsx (wrapper for all lab demos)
+### Backend structure (being built now)
+backend/
+  app/
+    main.py                  # FastAPI entry: CORS, middleware, lifespan
+    config.py                # pydantic-settings reading .env
+    models.py                # Pydantic request/response models
+    dependencies.py          # Shared deps: db pool, redis, neo4j driver
+    routers/
+      agent.py               # POST /v1/agent/orchestrate (SSE)
+      rag.py                 # POST /v1/rag/query
+      health.py              # GET /health, /ready
+      stats.py               # GET /v1/stats
+      ws.py                  # WebSocket /v1/agent/stream
+    agents/
+      orchestrator.py        # LangGraph state machine
+      experience_agent.py    # Experience Navigator
+      intent_classifier.py   # Intent classification node
+      state.py               # AgentState TypedDict
+      response_formatter.py  # Synthesize node
+    rag/
+      embedder.py            # LOCAL sentence-transformers wrapper
+      retriever.py           # Hybrid search (HNSW + BM25 + RRF)
+      reranker.py            # Cross-encoder reranking
+      chunker.py             # Document chunking
+      pipeline.py            # Full RAG pipeline orchestration
+    memory/
+      graph.py               # Neo4j knowledge graph
+      session.py             # Redis session management
+    tools/
+      vector_search.py       # LangChain @tool: vector search
+      github_search.py       # LangChain @tool: GitHub API
+      graph_traverse.py      # LangChain @tool: Neo4j queries
+  scripts/
+    ingest.py                # One-time: embed and store all documents
+    seed_graph.py            # One-time: seed Neo4j with entity relationships
+    test_health.py           # Smoke test
+    init_db.sql              # Schema (already run in Supabase UI)
+  data/
+    documents/               # Resume, projects, case studies (markdown)
+  docker-compose.yml
+  Caddyfile
+  Dockerfile
+  requirements.txt
+  .env.example
+  Makefile
 
-## Code Style
-- Functional React components with hooks
-- Named exports, not default exports
-- Collocate types with components when single-use
-- Shared types in src/lib/types.ts
-- Use cn() utility (clsx + tailwind-merge) for conditional classes
-- Framer Motion for all animations, respecting prefers-reduced-motion
-```
+### Environment variables (single .env)
+ANTHROPIC_API_KEY=sk-ant-...
+DATABASE_URL=postgresql://...      # Supabase pooler connection
+SUPABASE_URL=https://...supabase.co
+SUPABASE_ANON_KEY=eyJ...
+SUPABASE_SERVICE_KEY=eyJ...        # secret, never to frontend
+NEO4J_URI=neo4j+s://...
+NEO4J_USER=neo4j
+NEO4J_PASSWORD=...
+REDIS_URL=redis://redis:6379/0    # internal Docker network
+CORS_ORIGINS=https://swarajbangar-dev.vercel.app,http://localhost:3000
+APP_ENV=development
+LOG_LEVEL=info
+DAILY_TOKEN_BUDGET=100000
+GITHUB_TOKEN=                     # optional
 
-**Step 2: First Claude Code prompt — scaffold the entire project.**
-
-Run `claude` in your terminal and give it this:
-```
-Read PRD.md and CLAUDE.md. Scaffold the complete Phase 1 Next.js project:
-
-1. Initialize Next.js 14 with App Router, TypeScript, Tailwind CSS
-2. Set up tailwind.config.ts with all dark mode design tokens from CLAUDE.md
-3. Create the full directory structure from PRD Section 11.3
-4. Build src/lib/types.ts with all TypeScript interfaces (AgentStep, 
-   ChaosMetrics, RAGResult, ChatMessage, SkillNode, ExperienceEntry)
-5. Build src/lib/mock-data.ts with realistic mock data for every component
-6. Create src/components/ui/ primitives: Button, Card, Badge, Input, 
-   CodeBlock — all using the design tokens
-7. Create the root layout with Inter + JetBrains Mono fonts, dark mode 
-   class, and metadata
-8. Create page.tsx with placeholder sections for all 8 sections
-9. Create the global.css with CSS custom properties from PRD Section 11.1
-10. Add the cn() utility with clsx + tailwind-merge
-
-Don't build individual section components yet — just the skeleton 
-with proper types and structure. I'll build each section next.
-```
-
-Claude Code will generate 30-40 files in about 2-3 minutes. Review, commit.
-
-**Step 3: Build Section 1 (Terminal Hero) in Claude Code.**
-```
-Build the Terminal Hero section (Section 4.1 from PRD.md):
-
-1. Create src/components/terminal/Terminal.tsx using xterm.js with 
-   WebGL renderer
-2. Create src/components/terminal/commands.ts with the command parser 
-   (all 15 commands from the PRD)
-3. Create src/components/terminal/BootSequence.tsx with the typewriter 
-   animation (40ms per char, 200ms between lines)
-4. Create src/components/terminal/StatusSidebar.tsx with 4 metric cards 
-   (GitHub activity, uptime, agent chats, visitors) using mock data
-5. Wire everything into a HeroSection component that occupies 100vh
-6. Use the exact terminal theme from PRD: bg-elevated background, 
-   accent-teal prompt color, JetBrains Mono font at 14px
-7. Implement the slide-up terminal overlay triggered by the nav button
-
-Install xterm.js and @xterm/addon-webgl as dependencies.
-```
-
-**Step 4: Open in Cursor, iterate visually.**
-
-Now open the project in Cursor. Run `npm run dev`. You'll see the terminal rendering. This is where Cursor shines — you're looking at the real thing and tweaking:
-
-- "Make the cursor glow more subtle, use box-shadow with 6px spread"
-- "The boot sequence feels too fast, change to 50ms per character"
-- "Add a slight blur to the terminal container border"
-- "Make the status sidebar cards animate in with stagger delay"
-
-Use Cursor Composer (Cmd+I) for changes that touch multiple files. Use inline Chat (Cmd+K) for single-line tweaks.
-
-**Step 5: Repeat for each section.**
-
-Go back to Claude Code for each new section (About + Skills, Experience Timeline, Lab tabs, etc.). Claude Code generates the component structure and logic. Then switch to Cursor for visual polish. The rhythm is:
-```
-Claude Code: "Build Section 3: Experience Timeline with expandable 
-cards, mock data for 4 roles, and Framer Motion expand animation"
-→ generates 3-4 files
-
-Cursor: tweak animations, spacing, responsive behavior, hover states
-→ 15-20 quick iterations looking at the browser
-```
-
-**Step 6: Use Antigravity for experiments.**
-
-Before you build something complex like the 3D embedding explorer or the chaos lab particle animation, prototype it in Antigravity first. Create a throwaway project:
-```
-Build a standalone React component that visualizes a token bucket 
-rate limiter. Show requests as colored particles flowing through 
-a funnel — green for accepted, amber for queued, red for rejected. 
-Add a slider to control incoming RPS from 1 to 10000. 
-Use Framer Motion for particle animation.
+### Critical constraints (DON'T LET CLAUDE CODE VIOLATE THESE)
+- vector(384), NOT vector(1536) — we use the local model
+- NO openai package in requirements.txt
+- NO litellm package in requirements.txt — direct Anthropic SDK only
+- All Docker images must be x86_64-compatible (default on DigitalOcean)
+- The reranker must fall back gracefully if the model fails to download
+- All LLM calls go through a token-budget wrapper that checks Redis first

@@ -28,31 +28,31 @@ export default async function Home() {
       {/* Section 1: Terminal Hero — 100vh with boot sequence + status sidebar */}
       <HeroSection />
 
-      <SectionDivider label="// about" />
+      <SectionDivider label="About" />
 
       {/* Section 2: About + Skills */}
-      <SectionWrapper id="about" title="Building systems that think" subtitle="// about">
+      <SectionWrapper id="about" title="Building systems that think">
         <AboutSection />
       </SectionWrapper>
 
-      <SectionDivider label="// experience" />
+      <SectionDivider label="Experience" />
 
       {/* Section 3: Experience Timeline */}
-      <SectionWrapper id="experience" title="Where I've built things" subtitle="// experience">
+      <SectionWrapper id="experience" title="Where I've built things">
         <ExperienceTimeline entries={experience} />
       </SectionWrapper>
 
-      <SectionDivider label="// lab" />
+      <SectionDivider label="Lab" />
 
       {/* Section 4: The Lab */}
-      <SectionWrapper id="lab" title="Don't read about my skills. Use them." subtitle="// lab">
+      <SectionWrapper id="lab" title="Don't read about my skills. Use them.">
         <LabSection />
       </SectionWrapper>
 
-      <SectionDivider label="// deep dives" />
+      <SectionDivider label="Deep Dives" />
 
       {/* Section 5: Case Studies */}
-      <SectionWrapper id="case-studies" title="The hard problems, dissected" subtitle="// deep dives">
+      <SectionWrapper id="case-studies" title="The hard problems, dissected">
         <div className="grid md:grid-cols-3 gap-6">
           {caseStudies.map((study) => (
             <CaseStudyCard key={study.slug} study={study} />
@@ -60,10 +60,10 @@ export default async function Home() {
         </div>
       </SectionWrapper>
 
-      <SectionDivider label="// writing" />
+      <SectionDivider label="Writing" />
 
       {/* Section 6: Blog */}
-      <SectionWrapper id="blog" title="Thinking out loud" subtitle="// writing">
+      <SectionWrapper id="blog" title="Thinking out loud">
         <div className="grid md:grid-cols-3 gap-6">
           {blogPosts.map((post) => (
             <BlogPostCard key={post.slug} post={post} />
@@ -79,17 +79,17 @@ export default async function Home() {
         </div>
       </SectionWrapper>
 
-      <SectionDivider label="// observability" />
+      <SectionDivider label="Observability" />
 
       {/* Section 7: Observability Wall */}
-      <SectionWrapper id="observability" title="This portfolio monitors itself" subtitle="// observability">
+      <SectionWrapper id="observability" title="This portfolio monitors itself">
         <ObservabilityWallLazy metrics={metrics} />
       </SectionWrapper>
 
-      <SectionDivider />
+      <SectionDivider label="Contact" />
 
       {/* Section 8: Contact */}
-      <SectionWrapper id="contact" title="Let's build something together" subtitle="// contact">
+      <SectionWrapper id="contact" title="Let's build something together">
         <ContactSection />
       </SectionWrapper>
 
