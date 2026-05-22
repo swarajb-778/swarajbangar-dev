@@ -71,17 +71,24 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     import asyncpg
     import neo4j
     import redis.asyncio as aioredis
-    from sentence_transformers import CrossEncoder
+    from anthropic import AsyncAnthropic
 
     from app.rag.embedder import LocalEmbedder
+    from app.rag.pipeline import RAGPipeline
+    from app.rag.reranker import CrossEncoderReranker
+    from app.rag.retriever import HybridRetriever
 
-    # Postgres connection pool (Supabase pgbouncer)
+    # Postgres connection pool (Supabase pgbouncer in transaction mode).
+    # statement_cache_size=0 is REQUIRED: transaction-mode pgbouncer
+    # reshuffles backends between queries, so prepared-statement reuse
+    # blows up with "prepared statement already exists" errors.
     try:
         app.state.db_pool = await asyncpg.create_pool(
             dsn=_sanitize_dsn(settings.DATABASE_URL),
             min_size=1,
             max_size=settings.database_pool_size,
             command_timeout=10,
+            statement_cache_size=0,
         )
         logger.info("postgres pool ready (max_size=%d)", settings.database_pool_size)
     except Exception as exc:  # noqa: BLE001
@@ -120,12 +127,35 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         redis_client=app.state.redis,
     )
 
-    try:
-        app.state.reranker = CrossEncoder(settings.RERANKER_MODEL)
-        logger.info("reranker loaded: %s", settings.RERANKER_MODEL)
-    except Exception as exc:  # noqa: BLE001 — reranker is optional
-        logger.warning("reranker failed to load (continuing without): %s", exc)
-        app.state.reranker = None
+    # CrossEncoderReranker handles its own load-failure path and exposes
+    # an ``.available`` flag — the pipeline degrades to pass-through if
+    # the model can't be loaded (e.g. air-gapped first boot).
+    app.state.reranker = CrossEncoderReranker(model_name=settings.RERANKER_MODEL)
+
+    # Anthropic client for the generate stage.  AsyncAnthropic manages
+    # its own httpx pool internally — we keep one shared instance for
+    # the lifetime of the app.
+    app.state.anthropic = AsyncAnthropic(api_key=settings.ANTHROPIC_API_KEY)
+
+    # Assemble the retriever + pipeline once we have all the pieces.
+    # Both are pure orchestrators over app.state — no extra resources.
+    if app.state.db_pool is not None:
+        app.state.retriever = HybridRetriever(
+            db_pool=app.state.db_pool,
+            embedder=app.state.embedder,
+            settings=settings,
+        )
+        app.state.rag_pipeline = RAGPipeline(
+            retriever=app.state.retriever,
+            reranker=app.state.reranker,
+            settings=settings,
+            anthropic_client=app.state.anthropic,
+        )
+        logger.info("rag pipeline ready")
+    else:
+        app.state.retriever = None
+        app.state.rag_pipeline = None
+        logger.warning("rag pipeline disabled — no db pool")
 
     logger.info("backend ready in %.1fs", time.monotonic() - boot_start)
 
