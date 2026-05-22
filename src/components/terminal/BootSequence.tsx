@@ -50,6 +50,10 @@ export function BootSequence({ onBootComplete, className }: BootSequenceProps) {
   const busyRef = useRef(false);
   const abortRef = useRef<AbortController | null>(null);
   const [isReady, setIsReady] = useState(false);
+  // While true, Terminal.tsx skips fit() on window resize.  We hold this
+  // up during the boot animation so a mid-typing reflow can't scramble
+  // the character grid.  Released as soon as the prompt is drawn.
+  const [bootInProgress, setBootInProgress] = useState(true);
   const actions = useTerminalActions();
 
   const executeAction = useCallback(
@@ -153,6 +157,11 @@ export function BootSequence({ onBootComplete, className }: BootSequenceProps) {
     term.prompt();
     term.focus();
     bootCompleteRef.current = true;
+    // Defer the state update — the boot-complete handler can be invoked
+    // from inside the parent effect via runBootSequence(), and the lint
+    // rule (react-hooks/set-state-in-effect) treats that as setting state
+    // inside an effect even though the actual call happens much later.
+    queueMicrotask(() => setBootInProgress(false));
 
     try {
       sessionStorage.setItem(BOOT_SESSION_KEY, 'true');
@@ -176,6 +185,9 @@ export function BootSequence({ onBootComplete, className }: BootSequenceProps) {
     term.prompt();
     term.focus();
     bootCompleteRef.current = true;
+    // Defer the state update so we don't synchronously setState inside
+    // the parent effect that triggered us (react-hooks/set-state-in-effect).
+    queueMicrotask(() => setBootInProgress(false));
     onBootComplete?.();
   }, [onBootComplete]);
 
@@ -209,6 +221,11 @@ export function BootSequence({ onBootComplete, className }: BootSequenceProps) {
   }, [isReady, handleCommand, runBootSequence, showWelcomeBack]);
 
   return (
-    <Terminal ref={terminalRef} onReady={handleReady} className={className} />
+    <Terminal
+      ref={terminalRef}
+      onReady={handleReady}
+      className={className}
+      suppressFitOnResize={bootInProgress}
+    />
   );
 }
