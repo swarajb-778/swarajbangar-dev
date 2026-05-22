@@ -9,8 +9,7 @@ import { motion } from 'framer-motion';
 import { X, Send } from 'lucide-react';
 import { ChatMessage, TypingIndicator } from './ChatMessage';
 import { useFloating } from '@/lib/floating-context';
-import { getMockChatResponse } from '@/lib/mock-data';
-import { sleep } from '@/lib/utils';
+import { chatWithAgent } from '@/lib/api-client';
 import type { ChatMessage as ChatMessageType } from '@/lib/types';
 
 const INITIAL_MESSAGE: ChatMessageType = {
@@ -28,6 +27,11 @@ export function ChatPanel() {
   const [isTyping, setIsTyping] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  // Stable session ID for this chat instance — lets the backend group
+  // turns once we add session-scoped memory. Generated once per mount.
+  const sessionIdRef = useRef<string>(
+    `chat-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`
+  );
 
   // Auto-scroll to bottom on new messages
   useEffect(() => {
@@ -60,12 +64,27 @@ export function ChatPanel() {
     setInput('');
     setIsTyping(true);
 
-    // Simulate 1-2s delay
-    await sleep(1000 + Math.random() * 1000);
-
-    const response = getMockChatResponse();
-    setMessages((prev) => [...prev, response]);
-    setIsTyping(false);
+    try {
+      const response = await chatWithAgent(trimmed, sessionIdRef.current);
+      setMessages((prev) => [...prev, response]);
+    } catch (err) {
+      // chatWithAgent has its own mock fallback, so any error reaching
+      // here means even the mock path failed — surface a polite reply
+      // instead of an empty UI.
+      console.error('chatWithAgent unrecoverable error', err);
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: `err-${Date.now()}`,
+          role: 'assistant',
+          content:
+            "I had trouble reaching my backend just now. Try again in a moment?",
+          timestamp: new Date().toISOString(),
+        },
+      ]);
+    } finally {
+      setIsTyping(false);
+    }
   }, [input, isTyping]);
 
   const handleKeyDown = useCallback(
