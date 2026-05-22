@@ -46,6 +46,8 @@ export interface BootSequenceProps {
 
 export function BootSequence({ onBootComplete, className }: BootSequenceProps) {
   const terminalRef = useRef<TerminalHandle>(null);
+  const bootSequenceIdRef = useRef(0);
+  const isMountedRef = useRef(true);
   // Flips to true the MOMENT runBootSequence (or showWelcomeBack) is
   // invoked.  Protects against effect re-runs during the typing
   // animation that would otherwise start a second boot in parallel —
@@ -64,6 +66,13 @@ export function BootSequence({ onBootComplete, className }: BootSequenceProps) {
   // the character grid.  Released as soon as the prompt is drawn.
   const [bootInProgress, setBootInProgress] = useState(true);
   const actions = useTerminalActions();
+
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
 
   const executeAction = useCallback(
     (result: ReturnType<typeof parseCommand>) => {
@@ -141,8 +150,11 @@ export function BootSequence({ onBootComplete, className }: BootSequenceProps) {
     const term = terminalRef.current;
     if (!term) return;
 
+    const runId = ++bootSequenceIdRef.current;
+
     // T+500ms: boot sequence starts after terminal container animation
     await sleep(500);
+    if (!isMountedRef.current || runId !== bootSequenceIdRef.current) return;
 
     // Render SWARAJ ASCII logo instantly (not typed)
     for (const line of SWARAJ_LOGO) {
@@ -156,10 +168,12 @@ export function BootSequence({ onBootComplete, className }: BootSequenceProps) {
       for (let i = 0; i < line.text.length; i++) {
         term.write(`${color}${line.text[i]}${reset}`);
         await sleep(TERMINAL_CONFIG.typingSpeed);
+        if (!isMountedRef.current || runId !== bootSequenceIdRef.current) return;
       }
 
       term.writeln('');
       await sleep(TERMINAL_CONFIG.linePause);
+      if (!isMountedRef.current || runId !== bootSequenceIdRef.current) return;
     }
 
     term.writeln('');
@@ -170,7 +184,11 @@ export function BootSequence({ onBootComplete, className }: BootSequenceProps) {
     // from inside the parent effect via runBootSequence(), and the lint
     // rule (react-hooks/set-state-in-effect) treats that as setting state
     // inside an effect even though the actual call happens much later.
-    queueMicrotask(() => setBootInProgress(false));
+    queueMicrotask(() => {
+      if (isMountedRef.current && runId === bootSequenceIdRef.current) {
+        setBootInProgress(false);
+      }
+    });
 
     try {
       sessionStorage.setItem(BOOT_SESSION_KEY, 'true');
@@ -196,7 +214,11 @@ export function BootSequence({ onBootComplete, className }: BootSequenceProps) {
     bootCompleteRef.current = true;
     // Defer the state update so we don't synchronously setState inside
     // the parent effect that triggered us (react-hooks/set-state-in-effect).
-    queueMicrotask(() => setBootInProgress(false));
+    queueMicrotask(() => {
+      if (isMountedRef.current) {
+        setBootInProgress(false);
+      }
+    });
     onBootComplete?.();
   }, [onBootComplete]);
 
