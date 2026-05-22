@@ -36,6 +36,13 @@ export interface TerminalProps {
   readonly className?: string;
   /** Enable WebGL renderer. Disable for short-lived instances to avoid context exhaustion. Default: true */
   readonly useWebGL?: boolean;
+  /**
+   * When true, the resize handler suppresses `fit()` calls.  Set this
+   * while an animated write is in flight (e.g. the boot sequence) so a
+   * mid-typing reflow can't desync xterm's parser queue from the
+   * rendered grid.  Default: false.
+   */
+  readonly suppressFitOnResize?: boolean;
 }
 
 const TERMINAL_THEME = {
@@ -68,7 +75,14 @@ const PROMPT_STR = TERMINAL_CONFIG.prompt;
 // Prompt visible length (without ANSI codes) used implicitly by cursor positioning
 
 export const Terminal = forwardRef<TerminalHandle, TerminalProps>(
-  function Terminal({ onReady, className, useWebGL: enableWebGL = true }, ref) {
+  function Terminal(
+    { onReady, className, useWebGL: enableWebGL = true, suppressFitOnResize = false },
+    ref
+  ) {
+    // Read latest suppress flag from a ref so the debounced handler
+    // (created once on mount) always sees the current value.
+    const suppressFitRef = useRef(suppressFitOnResize);
+    suppressFitRef.current = suppressFitOnResize;
     const containerRef = useRef<HTMLDivElement>(null);
     const termRef = useRef<import('@xterm/xterm').Terminal | null>(null);
     const fitAddonRef = useRef<import('@xterm/addon-fit').FitAddon | null>(null);
@@ -422,17 +436,50 @@ export const Terminal = forwardRef<TerminalHandle, TerminalProps>(
       };
     }, [enableWebGL]);
 
-    // Handle resize
+    // Handle resize — debounced + skipped during animated writes.
+    //
+    // Without debouncing, an unsuppressed fit() can fire many times during
+    // initial layout (font swap, scrollbar appearing, hero settling).  Each
+    // fit() reflows xterm's grid; if the boot sequence is mid-typing
+    // (await sleep(40ms) between chars), characters in the parser queue
+    // get committed at stale column positions and the visible output looks
+    // scrambled — which is exactly what we hit on first load + quick scroll.
     useEffect(() => {
       if (!loaded) return;
 
+      let timer: ReturnType<typeof setTimeout> | null = null;
       const handleResize = () => {
-        fitAddonRef.current?.fit();
+        if (timer) clearTimeout(timer);
+        timer = setTimeout(() => {
+          timer = null;
+          // Skip while the boot animation is writing; HeroSection clears
+          // the suppress flag once boot completes, then we'll fit once
+          // on the next resize (or below — see immediate post-boot fit).
+          if (suppressFitRef.current) return;
+          fitAddonRef.current?.fit();
+        }, 150);
       };
 
       window.addEventListener('resize', handleResize);
-      return () => window.removeEventListener('resize', handleResize);
+      return () => {
+        if (timer) clearTimeout(timer);
+        window.removeEventListener('resize', handleResize);
+      };
     }, [loaded]);
+
+    // Once the suppress flag clears (boot animation finished), do one
+    // catch-up fit + refresh so any layout that settled during the boot
+    // gets reflected.  refresh() forces xterm to redraw every row, which
+    // also clears any partial-glyph artifacts left by a missed fit.
+    useEffect(() => {
+      if (!loaded) return;
+      if (suppressFitOnResize) return;
+      fitAddonRef.current?.fit();
+      const rows = termRef.current?.rows ?? 0;
+      if (rows > 0) {
+        termRef.current?.refresh(0, rows - 1);
+      }
+    }, [loaded, suppressFitOnResize]);
 
     return (
       <div className={`${className} flex flex-col overflow-hidden`}>
