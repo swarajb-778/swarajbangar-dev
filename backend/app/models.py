@@ -67,6 +67,26 @@ class RAGEmbedRequest(BaseModel):
     text: str = Field(..., min_length=1, max_length=2_000)
 
 
+class RAGEmbedResponse(BaseModel):
+    """POST /v1/rag/embed response."""
+
+    model_config = ConfigDict(
+        json_schema_extra={
+            "example": {
+                "embedding": [0.012, -0.034, 0.087],
+                "dimensions": 384,
+                "model": "all-MiniLM-L6-v2",
+                "latency_ms": 14.2,
+            }
+        }
+    )
+
+    embedding: list[float]
+    dimensions: int
+    model: str
+    latency_ms: float
+
+
 # ════════════════════════════════════════════════════════════════════
 # ── SSE event payloads (agent orchestrate stream) ──
 # ════════════════════════════════════════════════════════════════════
@@ -157,7 +177,15 @@ class RAGChunk(BaseModel):
     reranker_score: float | None = None
 
 
-RAGStepName = Literal["embed", "vector_search", "bm25_search", "fuse", "rerank", "generate"]
+RAGStepName = Literal[
+    "embed",
+    "retrieve",
+    "vector_search",
+    "bm25_search",
+    "fuse",
+    "rerank",
+    "generate",
+]
 
 
 class RAGPipelineStep(BaseModel):
@@ -200,6 +228,64 @@ class RAGQueryResponse(BaseModel):
     chunks: list[RAGChunk] = Field(default_factory=list)
     pipeline: list[RAGPipelineStep] = Field(default_factory=list)
     total_latency_ms: float
+
+
+class RAGDocumentSummary(BaseModel):
+    """One row in GET /v1/rag/documents."""
+
+    model_config = ConfigDict(
+        json_schema_extra={
+            "example": {
+                "source": "resume",
+                "chunk_count": 20,
+                "latest_update": "2026-05-15T01:16:09Z",
+            }
+        }
+    )
+
+    source: str
+    chunk_count: int
+    latest_update: datetime | None = None
+
+
+class RAGDocumentsResponse(BaseModel):
+    """GET /v1/rag/documents response — corpus summary by source."""
+
+    documents: list[RAGDocumentSummary]
+    total_chunks: int
+
+
+class RAGEmbedding3DPoint(BaseModel):
+    """One point in the 3D embedding explorer scatter plot."""
+
+    model_config = ConfigDict(
+        json_schema_extra={
+            "example": {
+                "id": "74716647-65f3-4d36-a0ee-dd89a2aec770",
+                "x": 0.412,
+                "y": -1.07,
+                "z": 0.83,
+                "text_preview": "I'm Swaraj Bangar — an AI engineer who likes the boring...",
+                "source": "about",
+            }
+        }
+    )
+
+    id: str
+    x: float
+    y: float
+    z: float
+    text_preview: str
+    source: str
+
+
+class RAGEmbeddings3DResponse(BaseModel):
+    """GET /v1/rag/embeddings/3d response — UMAP projection cached in Redis."""
+
+    points: list[RAGEmbedding3DPoint]
+    method: Literal["umap"] = "umap"
+    dimensions: Literal[3] = 3
+    cached: bool = False
 
 
 # ════════════════════════════════════════════════════════════════════
