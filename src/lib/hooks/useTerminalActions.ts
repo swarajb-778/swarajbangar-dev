@@ -4,7 +4,7 @@
 // useTerminalActions — Navigation actions triggered by terminal commands
 // ═══════════════════════════════════════════════════════════════
 
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useFloating } from '@/lib/floating-context';
 
@@ -77,12 +77,15 @@ export function useTerminalActions(): TerminalActions {
     return '→ Copied to clipboard!';
   }, []);
 
-  return {
-    scrollToSection,
-    navigateTo,
-    openUrl,
-    openChat,
-    clearTerminal,
-    copyToClipboard,
-  };
+  return useMemo(
+    () => ({
+      scrollToSection,
+      navigateTo,
+      openUrl,
+      openChat,
+      clearTerminal,
+      copyToClipboard,
+    }),
+    [scrollToSection, navigateTo, openUrl, openChat, clearTerminal, copyToClipboard]
+  );
 }
