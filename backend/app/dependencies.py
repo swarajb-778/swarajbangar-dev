@@ -19,6 +19,9 @@ if TYPE_CHECKING:  # avoid heavy imports at module load
     import redis.asyncio as aioredis
 
     from app.rag.embedder import LocalEmbedder
+    from app.rag.pipeline import RAGPipeline
+    from app.rag.reranker import CrossEncoderReranker
+    from app.rag.retriever import HybridRetriever
 
 
 # ════════════════════════════════════════════════════════════════════
@@ -112,3 +115,49 @@ def get_embedder(request: Request) -> "LocalEmbedder":
 
 
 EmbedderDep = Annotated[Any, Depends(get_embedder)]
+
+
+# ════════════════════════════════════════════════════════════════════
+# ── Retriever / Reranker / RAGPipeline (built once in lifespan) ──
+# ════════════════════════════════════════════════════════════════════
+
+
+def get_retriever(request: Request) -> "HybridRetriever":
+    """Return the shared HybridRetriever."""
+    retriever = getattr(request.app.state, "retriever", None)
+    if retriever is None:
+        raise RuntimeError(
+            "HybridRetriever not initialized — DB pool likely failed at startup."
+        )
+    return retriever
+
+
+RetrieverDep = Annotated[Any, Depends(get_retriever)]
+
+
+def get_reranker(request: Request) -> "CrossEncoderReranker":
+    """Return the shared CrossEncoderReranker.
+
+    Always returns the wrapper instance — its ``.available`` flag tells
+    callers whether the underlying model loaded successfully.
+    """
+    reranker = getattr(request.app.state, "reranker", None)
+    if reranker is None:
+        raise RuntimeError("Reranker not initialized — lifespan did not run.")
+    return reranker
+
+
+RerankerDep = Annotated[Any, Depends(get_reranker)]
+
+
+def get_rag_pipeline(request: Request) -> "RAGPipeline":
+    """Return the shared RAGPipeline orchestrator."""
+    pipeline = getattr(request.app.state, "rag_pipeline", None)
+    if pipeline is None:
+        raise RuntimeError(
+            "RAGPipeline not initialized — DB pool likely failed at startup."
+        )
+    return pipeline
+
+
+RAGPipelineDep = Annotated[Any, Depends(get_rag_pipeline)]
