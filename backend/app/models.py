@@ -92,7 +92,15 @@ class RAGEmbedResponse(BaseModel):
 # ════════════════════════════════════════════════════════════════════
 
 
-AgentStepType = Literal["classify", "route", "tool_call", "retrieve", "generate", "memory"]
+AgentStepType = Literal[
+    "classify",
+    "route",
+    "tool_call",
+    "retrieve",
+    "generate",
+    "synthesize",
+    "memory",
+]
 AgentStepStatus = Literal["pending", "active", "complete", "error"]
 
 
