@@ -157,6 +157,15 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         app.state.rag_pipeline = None
         logger.warning("rag pipeline disabled — no db pool")
 
+    # Register shared resources in the agent-tools global registry so the
+    # @tool functions (vector_search, graph_traverse) can reach them
+    # without threading clients through LangGraph state.
+    from app.tools import registry as tool_registry
+
+    tool_registry.set_retriever(app.state.retriever)
+    tool_registry.set_reranker(app.state.reranker)
+    tool_registry.set_neo4j(app.state.neo4j)
+
     logger.info("backend ready in %.1fs", time.monotonic() - boot_start)
 
     try:

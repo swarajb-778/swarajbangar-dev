@@ -19,6 +19,7 @@ import asyncio
 import sys
 import time
 from pathlib import Path
+from typing import Any
 
 # Allow both ``python -m scripts.test_orchestrator`` and direct execution.
 ROOT = Path(__file__).resolve().parent.parent
@@ -37,8 +38,15 @@ YELLOW = "\x1b[33m"
 PURPLE = "\x1b[35m"
 
 
-async def _build_deps(use_rag: bool) -> dict:
-    """Construct the deps dict the orchestrator expects."""
+async def _build_deps(skip_retriever: bool) -> tuple[dict, Any]:
+    """Construct the deps dict the orchestrator expects.
+
+    Returns ``(deps, pool)`` — the asyncpg pool is returned separately so
+    the caller can close it on exit.  Unless ``skip_retriever`` is set we
+    build the hybrid retriever (pool + embedder) and register it in the
+    agent-tools global registry, since the Experience Navigator reaches it
+    via the ``vector_search`` tool rather than through ``deps``.
+    """
     from anthropic import AsyncAnthropic
 
     settings = get_settings()
@@ -46,9 +54,9 @@ async def _build_deps(use_rag: bool) -> dict:
         "settings": settings,
         "anthropic": AsyncAnthropic(api_key=settings.ANTHROPIC_API_KEY),
         "redis": None,
-        "rag_pipeline": None,
         "ws_manager": None,
     }
+    pool = None
 
     # Optional Redis — enables intent caching + budget tracking.
     try:
@@ -63,22 +71,36 @@ async def _build_deps(use_rag: bool) -> dict:
     except Exception as exc:  # noqa: BLE001
         print(f"{DIM}redis: unavailable ({exc}); caching/budget disabled{RESET}")
 
-    if use_rag:
-        print(f"{DIM}building RAG pipeline (loads models + connects to Supabase)…{RESET}")
-        deps["rag_pipeline"] = await _build_rag_pipeline(settings, deps["anthropic"])
+    if not skip_retriever:
+        print(f"{DIM}building retriever (loads embedder + connects to Supabase)…{RESET}")
+        pool = await _register_retriever(settings)
 
-    return deps
+    # Optional Neo4j — enables the graph_traverse tool on follow-ups.
+    try:
+        import neo4j as neo4j_driver
+
+        from app.tools import registry as tool_registry
+
+        driver = neo4j_driver.AsyncGraphDatabase.driver(
+            settings.NEO4J_URI, auth=(settings.NEO4J_USER, settings.NEO4J_PASSWORD)
+        )
+        await driver.verify_connectivity()
+        tool_registry.set_neo4j(driver)
+        print(f"{DIM}neo4j: connected{RESET}")
+    except Exception as exc:  # noqa: BLE001
+        print(f"{DIM}neo4j: unavailable ({exc}); graph_traverse disabled{RESET}")
+
+    return deps, pool
 
 
-async def _build_rag_pipeline(settings, anthropic):
-    """Wire the real RAG pipeline for --rag runs."""
+async def _register_retriever(settings):
+    """Build the HybridRetriever and register it globally. Returns the pool."""
     import asyncpg
 
     from app.main import _sanitize_dsn
     from app.rag.embedder import LocalEmbedder
-    from app.rag.pipeline import RAGPipeline
-    from app.rag.reranker import CrossEncoderReranker
     from app.rag.retriever import HybridRetriever
+    from app.tools import registry as tool_registry
 
     pool = await asyncpg.create_pool(
         dsn=_sanitize_dsn(settings.DATABASE_URL),
@@ -88,15 +110,21 @@ async def _build_rag_pipeline(settings, anthropic):
         statement_cache_size=0,
     )
     embedder = LocalEmbedder(model_name=settings.EMBEDDING_MODEL)
-    reranker = CrossEncoderReranker(model_name=settings.RERANKER_MODEL)
     retriever = HybridRetriever(pool, embedder, settings)
-    return RAGPipeline(retriever, reranker, settings, anthropic)
+    tool_registry.set_retriever(retriever)
+
+    # Reranker is what surfaces embedding-diluted chunks (e.g. the Amazon
+    # role) for the vector_search tool.
+    from app.rag.reranker import CrossEncoderReranker
+
+    tool_registry.set_reranker(CrossEncoderReranker(model_name=settings.RERANKER_MODEL))
+    return pool
 
 
-async def main(message: str, use_rag: bool) -> None:
+async def main(message: str, skip_retriever: bool) -> None:
     from app.agents.orchestrator import run_agent
 
-    deps = await _build_deps(use_rag)
+    deps, pool = await _build_deps(skip_retriever)
 
     print()
     print(f"{CYAN}━━━ query ━━━{RESET}  {message!r}")
@@ -132,23 +160,26 @@ async def main(message: str, use_rag: bool) -> None:
     wall = (time.perf_counter() - start) * 1000
     print(f"{DIM}wall-clock: {wall:.0f}ms{RESET}")
 
-    # Clean up Redis connection if we opened one.
+    # Clean up connections we opened.
     redis = deps.get("redis")
     if redis is not None:
         await redis.aclose()
+    if pool is not None:
+        await pool.close()
 
 
 def _parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Test the SwarajOS orchestrator.")
     parser.add_argument("message", help="The user message to run through the graph.")
     parser.add_argument(
-        "--rag",
+        "--no-retriever",
         action="store_true",
-        help="Wire the real RAG pipeline into the experience node.",
+        help="Skip building the retriever (faster; experience queries won't "
+        "have grounded context).",
     )
     return parser.parse_args()
 
 
 if __name__ == "__main__":
     args = _parse_args()
-    asyncio.run(main(args.message, args.rag))
+    asyncio.run(main(args.message, args.no_retriever))
