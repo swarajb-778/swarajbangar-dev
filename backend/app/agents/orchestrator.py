@@ -42,7 +42,9 @@ from app.agents.budget import (
     budget_available,
     record_tokens,
 )
+from app.agents.experience_agent import execute_experience
 from app.agents.intent_classifier import classify_intent
+from app.agents.response_formatter import synthesize_response
 from app.agents.state import AgentState, append_step
 from app.models import AgentDoneEvent, AgentStepEvent, AgentTokenEvent
 
@@ -130,56 +132,13 @@ def _route_decision(state: AgentState) -> str:
 async def _execute_experience_node(
     state: AgentState, config: "RunnableConfig"
 ) -> AgentState:
-    """Answer experience/skills/project queries.
+    """Delegate to the Experience Navigator sub-agent.
 
-    Interim implementation: if the RAG pipeline is wired into deps we use
-    it for a real, grounded answer.  Otherwise we emit a clear stub so
-    routing can still be verified.  The dedicated Experience Navigator
-    (with Neo4j-backed entity traversal) replaces this in a later prompt.
+    The agent runs vector_search (+ github_search / graph_traverse as
+    warranted) in parallel, then generates a grounded, cited answer.
     """
-    t0 = time.perf_counter()
     deps = _deps_from_config(config)
-    rag_pipeline = deps.get("rag_pipeline")
-
-    if rag_pipeline is not None:
-        try:
-            result = await rag_pipeline.query(
-                query=state["current_message"],
-                top_k=5,
-                show_pipeline=False,
-            )
-            state["agent_response"] = result.answer
-            state["retrieved_chunks"] = [c.model_dump() for c in result.chunks]
-            append_step(
-                state,
-                "retrieve",
-                "complete",
-                {
-                    "source": "rag_pipeline",
-                    "chunks": len(result.chunks),
-                    "rag_latency_ms": round(result.total_latency_ms, 1),
-                },
-                (time.perf_counter() - t0) * 1000,
-            )
-            return state
-        except Exception as exc:  # noqa: BLE001 — degrade to stub on any failure
-            logger.warning("experience node RAG call failed: %s", exc)
-
-    # Stub fallback.
-    state["agent_response"] = (
-        "I can answer that from Swaraj's experience — the Experience "
-        "Navigator that does the deep retrieval is being wired up. In the "
-        "meantime, ask me about his work at Meshi.io or Amazon and I'll do "
-        "my best."
-    )
-    append_step(
-        state,
-        "retrieve",
-        "complete",
-        {"source": "stub", "chunks": 0},
-        (time.perf_counter() - t0) * 1000,
-    )
-    return state
+    return await execute_experience(state, deps)
 
 
 async def _execute_general_node(
@@ -308,34 +267,9 @@ async def _execute_system_design_node(
 
 
 async def _synthesize_node(state: AgentState, config: "RunnableConfig") -> AgentState:
-    """Finalize the response and stamp run metadata.
-
-    We keep the user-visible answer clean (no footer text) and record the
-    accounting — intent, agent, token estimate — into ``state['metadata']``
-    so the SSE/WebSocket layer and the X-ray UI can surface it separately.
-    """
-    t0 = time.perf_counter()
-    meta = state.setdefault("metadata", {})
-    meta["intent"] = state.get("intent")
-    meta["selected_agent"] = state.get("selected_agent")
-    meta["confidence"] = state.get("intent_confidence")
-    if not state.get("agent_response"):
-        state["agent_response"] = (
-            "I'm not sure how to answer that yet — try rephrasing, or type "
-            "`help` in the terminal to see what I can do."
-        )
-    append_step(
-        state,
-        "synthesize",
-        "complete",
-        {
-            "intent": meta.get("intent"),
-            "agent": meta.get("selected_agent"),
-            "response_chars": len(state.get("agent_response") or ""),
-        },
-        (time.perf_counter() - t0) * 1000,
-    )
-    return state
+    """Finalize the response (delegates to response_formatter)."""
+    deps = _deps_from_config(config)
+    return await synthesize_response(state, deps)
 
 
 async def _store_memory_node(state: AgentState, config: "RunnableConfig") -> AgentState:
