@@ -10,6 +10,7 @@ Responsibilities:
 
 from __future__ import annotations
 
+import asyncio
 import logging
 import time
 from contextlib import asynccontextmanager
@@ -22,8 +23,47 @@ from fastapi.responses import JSONResponse
 from app import __version__
 from app.config import get_settings
 from app.routers import agent, health, rag, stats, ws
+from app.routers.ws import ConnectionManager
 
 logger = logging.getLogger("swarajbangar.api")
+
+# Redis keys for the latency p95 pipeline (sorted set of recent samples →
+# a scalar p95 recomputed periodically by a background task).
+_LATENCY_SAMPLES_KEY = "latency:samples"
+_LATENCY_P95_KEY = "latency:p95"
+_LATENCY_MAX_SAMPLES = 1000
+_P95_REFRESH_SECONDS = 60
+
+
+async def _recompute_p95_loop(app: FastAPI) -> None:
+    """Background task: derive p95 from the latency-sample sorted set.
+
+    Runs every ``_P95_REFRESH_SECONDS``.  The middleware records each
+    request's latency as a sorted-set member scored by its duration; here
+    we read the 95th-percentile member and store it as a scalar the stats
+    endpoint can fetch in O(1).
+    """
+    while True:
+        try:
+            await asyncio.sleep(_P95_REFRESH_SECONDS)
+            redis = getattr(app.state, "redis", None)
+            if redis is None:
+                continue
+            count = await redis.zcard(_LATENCY_SAMPLES_KEY)
+            if not count:
+                continue
+            # 95th-percentile index into the ascending-by-score set.
+            idx = max(0, int(count * 0.95) - 1)
+            sample = await redis.zrange(
+                _LATENCY_SAMPLES_KEY, idx, idx, withscores=True
+            )
+            if sample:
+                _, score = sample[0]
+                await redis.set(_LATENCY_P95_KEY, round(float(score), 1))
+        except asyncio.CancelledError:
+            raise
+        except Exception as exc:  # noqa: BLE001 — never let the loop die
+            logger.warning("p95 recompute failed: %s", exc)
 
 
 def _sanitize_dsn(dsn: str) -> str:
@@ -166,6 +206,13 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     tool_registry.set_reranker(app.state.reranker)
     tool_registry.set_neo4j(app.state.neo4j)
 
+    # WebSocket connection manager for the reasoning panel — run_agent
+    # pushes step/token events to it during a run.
+    app.state.ws_manager = ConnectionManager()
+
+    # Background task: periodically recompute the p95 latency scalar.
+    app.state.p95_task = asyncio.create_task(_recompute_p95_loop(app))
+
     logger.info("backend ready in %.1fs", time.monotonic() - boot_start)
 
     try:
@@ -173,11 +220,18 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     finally:
         # ─── Shutdown ──
         logger.info("backend shutting down")
-        if hasattr(app.state, "db_pool"):
+        p95_task = getattr(app.state, "p95_task", None)
+        if p95_task is not None:
+            p95_task.cancel()
+            try:
+                await p95_task
+            except asyncio.CancelledError:
+                pass
+        if hasattr(app.state, "db_pool") and app.state.db_pool is not None:
             await app.state.db_pool.close()
-        if hasattr(app.state, "redis"):
+        if hasattr(app.state, "redis") and app.state.redis is not None:
             await app.state.redis.aclose()
-        if hasattr(app.state, "neo4j"):
+        if hasattr(app.state, "neo4j") and app.state.neo4j is not None:
             await app.state.neo4j.close()
 
 
@@ -290,6 +344,17 @@ async def rate_limit_and_log(request: Request, call_next):
                 pipe.expire("requests:today", 86_400)
                 if response.status_code >= 400:
                     pipe.incr("requests:errors")
+                # Count agent interactions separately for the stats panel.
+                if path.startswith("/v1/agent/orchestrate"):
+                    pipe.incr("agent:interactions:today")
+                    pipe.expire("agent:interactions:today", 86_400)
+                # Record this request's latency as a sorted-set sample,
+                # then trim to the most recent N. A background task reads
+                # the 95th percentile from this set into latency:p95.
+                pipe.zadd(_LATENCY_SAMPLES_KEY, {f"{now_ms}-{client_ip}": elapsed_ms})
+                pipe.zremrangebyrank(
+                    _LATENCY_SAMPLES_KEY, 0, -(_LATENCY_MAX_SAMPLES + 1)
+                )
                 await pipe.execute()
         except Exception as exc:  # noqa: BLE001
             logger.debug("metrics counter failed: %s", exc)
