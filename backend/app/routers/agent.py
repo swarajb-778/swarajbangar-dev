@@ -1,31 +1,100 @@
-"""Agent orchestration endpoints — placeholder for Phase 3.
+"""Agent orchestration endpoint — Server-Sent Events.
 
-POST /v1/agent/orchestrate streams Server-Sent Events:
-  - AgentStepEvent (one per LangGraph node transition)
-  - AgentTokenEvent (one per LLM streamed token)
-  - AgentDoneEvent  (final, with accounting)
+``POST /v1/agent/orchestrate`` runs a message through the LangGraph
+orchestrator (``run_agent``) and streams the result as SSE:
 
-The real implementation is wired in a later prompt.
+  - ``event: step``   — one per pipeline step (classify / route / tool_call
+                        / generate / synthesize / memory) as it completes
+  - ``event: token``  — answer text, chunked for a typing effect
+  - ``event: done``   — final accounting (latency, tokens, model)
+  - ``event: error``  — terminal error with a code
+
+The same ``session_id`` is used to push the reasoning trace over the
+WebSocket (see app/routers/ws.py), so a browser can correlate the answer
+stream with the live X-ray panel.
 """
 
+from __future__ import annotations
 
-from fastapi import APIRouter, HTTPException, status
+import asyncio
+import json
+import logging
 
-from app.models import AgentChatRequest
+from fastapi import APIRouter, Request
+from sse_starlette.sse import EventSourceResponse
+
+from app.agents.orchestrator import run_agent
+from app.models import (
+    AgentChatRequest,
+    AgentDoneEvent,
+    AgentStepEvent,
+    AgentTokenEvent,
+)
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
 
-@router.post(
-    "/orchestrate",
-    responses={501: {"description": "Not implemented yet"}},
-)
-async def orchestrate(req: AgentChatRequest) -> dict[str, str]:
-    """Run a message through the LangGraph multi-agent orchestrator.
+def _build_deps(request: Request) -> dict:
+    """Assemble the deps bundle run_agent needs from app.state.
 
-    Streams Server-Sent Events. Not implemented yet — wired in a later prompt.
+    Optional resources (redis, neo4j, rag_pipeline, ws_manager) are read
+    defensively so a partially-degraded backend (e.g. Redis down) still
+    serves the endpoint rather than 500-ing on a missing dependency.
     """
-    raise HTTPException(
-        status_code=status.HTTP_501_NOT_IMPLEMENTED,
-        detail="Agent orchestrator not implemented in this scaffold.",
+    state = request.app.state
+    return {
+        "settings": getattr(state, "settings", None),
+        "anthropic": getattr(state, "anthropic", None),
+        "embedder": getattr(state, "embedder", None),
+        "retriever": getattr(state, "retriever", None),
+        "reranker": getattr(state, "reranker", None),
+        "rag_pipeline": getattr(state, "rag_pipeline", None),
+        "ws_manager": getattr(state, "ws_manager", None),
+        "redis": getattr(state, "redis", None),
+        "neo4j": getattr(state, "neo4j", None),
+    }
+
+
+@router.post("/orchestrate")
+async def orchestrate(req: AgentChatRequest, request: Request) -> EventSourceResponse:
+    """Stream a SwarajOS agent run as Server-Sent Events."""
+    deps = _build_deps(request)
+    session_id = str(req.session_id)
+
+    async def event_generator():
+        try:
+            async for event in run_agent(
+                req.message, session_id, deps, context=req.context
+            ):
+                if isinstance(event, AgentStepEvent):
+                    yield {"event": "step", "data": event.model_dump_json()}
+                elif isinstance(event, AgentTokenEvent):
+                    yield {"event": "token", "data": json.dumps({"text": event.text})}
+                elif isinstance(event, AgentDoneEvent):
+                    yield {"event": "done", "data": event.model_dump_json()}
+        except asyncio.TimeoutError:
+            yield {
+                "event": "error",
+                "data": json.dumps({"message": "Agent timed out", "code": "TIMEOUT"}),
+            }
+        except asyncio.CancelledError:
+            # Client disconnected mid-stream — let it propagate so the
+            # server can tear the generator down cleanly.
+            raise
+        except Exception as exc:  # noqa: BLE001 — surface a terminal error frame
+            logger.exception("agent orchestrate failed")
+            yield {
+                "event": "error",
+                "data": json.dumps({"message": str(exc), "code": "AGENT_ERROR"}),
+            }
+
+    return EventSourceResponse(
+        event_generator(),
+        headers={
+            "Cache-Control": "no-cache",
+            "X-Accel-Buffering": "no",  # disable proxy buffering (nginx/Caddy)
+            "Connection": "keep-alive",
+        },
     )

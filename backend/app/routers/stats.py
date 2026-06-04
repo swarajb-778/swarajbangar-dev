@@ -1,29 +1,149 @@
-"""Stats endpoints — feeds the Observability Wall on the frontend.
+"""Stats endpoints — feed the Observability Wall on the frontend.
 
-Reads counters maintained by the request-logging middleware.
+``GET /v1/stats``         live service metrics (requests, latency p95,
+                          error rate, uptime, active WS sessions, cache).
+``GET /v1/stats/github``  GitHub profile stats (1h Redis cache; curated
+                          fallback when no token is configured).
+
+Counters are maintained by the request-logging middleware in main.py.
+Everything is None/zero-safe so a fresh deploy (or a Redis outage) returns
+sensible defaults rather than raising.
 """
 
+from __future__ import annotations
 
-from fastapi import APIRouter
+import json
+import logging
+import time
 
-from app.dependencies import RedisDep
+import httpx
+from fastapi import APIRouter, Request
+
+from app.dependencies import SettingsDep
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
+_GITHUB_USERNAME = "swarajb-778"
+_GITHUB_CACHE_KEY = "stats:github:v1"
+_GITHUB_CACHE_TTL = 3600
+
+_GITHUB_FALLBACK = {
+    "public_repos": 12,
+    "contributions_last_year": 234,
+    "top_languages": ["Python", "Go", "TypeScript"],
+    "source": "static_fallback",
+}
+
+
+def _as_int(value: object) -> int:
+    try:
+        return int(value)  # type: ignore[arg-type]
+    except (TypeError, ValueError):
+        return 0
+
 
 @router.get("")
-async def stats(redis: RedisDep) -> dict[str, int | float]:
-    """Aggregate counters: total requests, today, errors.
+async def stats(request: Request) -> dict[str, float | int]:
+    """Live service metrics for the Observability Wall.
 
-    Returns zeros for any missing key — never raises on a fresh deploy.
+    Reads Redis counters + the precomputed p95 latency, and the live
+    WebSocket session count from the in-process ConnectionManager.
     """
-    keys = ["requests:total", "requests:today", "requests:errors"]
-    values = await redis.mget(*keys)
-    total, today, errors = (int(v or 0) for v in values)
-    error_rate = (errors / total) if total else 0.0
+    state = request.app.state
+    redis = getattr(state, "redis", None)
+    ws_manager = getattr(state, "ws_manager", None)
+
+    total = today = errors_today = agent_today = 0
+    cache_hits = cache_misses = 0
+    p95 = 0.0
+
+    if redis is not None:
+        try:
+            async with redis.pipeline(transaction=False) as pipe:
+                pipe.get("requests:total")
+                pipe.get("requests:today")
+                pipe.get("requests:errors")
+                pipe.get("agent:interactions:today")
+                pipe.get("latency:p95")
+                pipe.get("cache:hits:today")
+                pipe.get("cache:misses:today")
+                results = await pipe.execute()
+            total = _as_int(results[0])
+            today = _as_int(results[1])
+            errors_today = _as_int(results[2])
+            agent_today = _as_int(results[3])
+            p95 = float(results[4]) if results[4] else 0.0
+            cache_hits = _as_int(results[5])
+            cache_misses = _as_int(results[6])
+        except Exception as exc:  # noqa: BLE001 — degrade to zeros on Redis error
+            logger.warning("stats Redis read failed: %s", exc)
+
+    cache_total = cache_hits + cache_misses
+    uptime = time.time() - getattr(state, "start_time", time.time())
+    active_sessions = len(ws_manager.active) if ws_manager is not None else 0
+
     return {
-        "requests_total": total,
+        "total_requests": total,
         "requests_today": today,
-        "requests_errors": errors,
-        "error_rate": round(error_rate, 4),
+        "p95_latency_ms": round(p95, 1),
+        "error_rate": round(errors_today / max(today, 1), 4),
+        "uptime_seconds": round(uptime, 1),
+        "uptime_percent": 100.0,  # placeholder until incident tracking lands
+        "agent_interactions_today": agent_today,
+        "active_sessions": active_sessions,
+        "cache_hit_rate": round(cache_hits / max(cache_total, 1), 4),
     }
+
+
+@router.get("/github")
+async def github_stats(request: Request, settings: SettingsDep) -> dict:
+    """GitHub profile stats, cached in Redis for 1 hour.
+
+    Falls back to curated numbers when no ``GITHUB_TOKEN`` is configured or
+    the API call fails.
+    """
+    redis = getattr(request.app.state, "redis", None)
+
+    if redis is not None:
+        try:
+            cached = await redis.get(_GITHUB_CACHE_KEY)
+            if cached:
+                return json.loads(cached)
+        except Exception as exc:  # noqa: BLE001
+            logger.warning("github stats cache read failed: %s", exc)
+
+    if not settings.GITHUB_TOKEN:
+        data = dict(_GITHUB_FALLBACK)
+    else:
+        try:
+            async with httpx.AsyncClient(timeout=10) as client:
+                resp = await client.get(
+                    f"https://api.github.com/users/{_GITHUB_USERNAME}",
+                    headers={
+                        "Authorization": f"token {settings.GITHUB_TOKEN}",
+                        "Accept": "application/vnd.github+json",
+                    },
+                )
+                resp.raise_for_status()
+                raw = resp.json()
+            data = {
+                "public_repos": raw.get("public_repos", 0),
+                "followers": raw.get("followers", 0),
+                "following": raw.get("following", 0),
+                "name": raw.get("name"),
+                "bio": raw.get("bio"),
+                "source": "github_api",
+            }
+        except Exception as exc:  # noqa: BLE001 — degrade to curated on any failure
+            logger.warning("github stats API call failed: %s", exc)
+            data = dict(_GITHUB_FALLBACK)
+
+    if redis is not None:
+        try:
+            await redis.setex(_GITHUB_CACHE_KEY, _GITHUB_CACHE_TTL, json.dumps(data))
+        except Exception as exc:  # noqa: BLE001
+            logger.warning("github stats cache write failed: %s", exc)
+
+    return data
