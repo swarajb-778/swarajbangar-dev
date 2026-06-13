@@ -273,18 +273,53 @@ async def _synthesize_node(state: AgentState, config: "RunnableConfig") -> Agent
 
 
 async def _store_memory_node(state: AgentState, config: "RunnableConfig") -> AgentState:
-    """Persist the turn to memory.
+    """Persist the turn to memory: Redis session history + Neo4j entities.
 
-    Stub for now — the Neo4j + Redis session writer is wired in a later
-    prompt.  We still emit a ``memory`` step so the trace shows the full
-    intended pipeline.
+    Both writers are best-effort — a memory outage records the step as
+    not-persisted but never fails the run.
     """
     t0 = time.perf_counter()
+    deps = _deps_from_config(config)
+    session_manager = deps.get("session_manager")
+    knowledge_graph = deps.get("knowledge_graph")
+
+    session_id = state["session_id"]
+    user_message = state["current_message"]
+    agent_response = state.get("agent_response") or ""
+
+    persisted = {"session": False, "graph": False}
+    entities_stored = 0
+
+    if session_manager is not None:
+        try:
+            await session_manager.add_message(session_id, "user", user_message)
+            await session_manager.add_message(session_id, "assistant", agent_response)
+            persisted["session"] = True
+        except Exception as exc:  # noqa: BLE001
+            logger.warning("session memory write failed: %s", exc)
+
+    if knowledge_graph is not None and agent_response:
+        try:
+            await knowledge_graph.store_interaction(
+                session_id, user_message, agent_response
+            )
+            persisted["graph"] = True
+            # Re-read the discussed-entity count for the trace (cheap).
+            ctx = await knowledge_graph.get_session_context(session_id, limit=10)
+            entities_stored = ctx.count(",") + 1 if ctx else 0
+        except Exception as exc:  # noqa: BLE001
+            logger.warning("graph memory write failed: %s", exc)
+
     append_step(
         state,
         "memory",
         "complete",
-        {"persisted": False, "note": "memory writer wired in a later prompt"},
+        {
+            "persisted": persisted["session"] or persisted["graph"],
+            "session": persisted["session"],
+            "graph": persisted["graph"],
+            "entities_tracked": entities_stored,
+        },
         (time.perf_counter() - t0) * 1000,
     )
     return state
@@ -353,16 +388,43 @@ async def run_agent(
     """Run a message through the orchestrator, yielding events as they happen.
 
     ``deps`` must contain ``anthropic`` and ``settings``; ``redis``,
-    ``rag_pipeline`` and ``ws_manager`` are optional.  Yields:
+    ``rag_pipeline``, ``ws_manager``, ``session_manager`` and
+    ``knowledge_graph`` are optional.  Yields:
       - ``AgentStepEvent`` for each reasoning step as it completes,
       - ``AgentTokenEvent`` chunks of the final answer (typing effect),
       - a final ``AgentDoneEvent`` with accounting.
+
+    Memory: when ``session_manager`` / ``knowledge_graph`` are provided we
+    load this session's recent history + a one-line "previously discussed"
+    summary into the initial state (so follow-ups have context), and persist
+    the completed turn in the store_memory node.
     """
     start = time.perf_counter()
+    session_manager = deps.get("session_manager")
+    knowledge_graph = deps.get("knowledge_graph")
+
+    # ─── Load prior conversation memory ──
+    history: list[dict[str, Any]] = (context or {}).get("messages", [])
+    if session_manager is not None:
+        try:
+            loaded = await session_manager.get_history(session_id, limit=10)
+            if loaded:
+                history = loaded
+        except Exception as exc:  # noqa: BLE001 — memory is best-effort
+            logger.debug("session history load failed: %s", exc)
+
+    conversation_context = ""
+    if knowledge_graph is not None:
+        try:
+            conversation_context = await knowledge_graph.get_session_context(session_id)
+        except Exception as exc:  # noqa: BLE001
+            logger.debug("session context load failed: %s", exc)
+
     state: AgentState = {
-        "messages": (context or {}).get("messages", []),
+        "messages": history,
         "current_message": message,
         "session_id": session_id,
+        "conversation_context": conversation_context,
         "pipeline_steps": [],
         "tool_calls": [],
         "retrieved_chunks": [],
