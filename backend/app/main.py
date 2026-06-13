@@ -206,6 +206,21 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     tool_registry.set_reranker(app.state.reranker)
     tool_registry.set_neo4j(app.state.neo4j)
 
+    # ─── Memory layer: Redis session history + Neo4j knowledge graph ──
+    from app.memory.graph import KnowledgeGraph
+    from app.memory.session import SessionManager
+
+    app.state.session_manager = SessionManager(redis=app.state.redis)
+    app.state.knowledge_graph = KnowledgeGraph(
+        driver=app.state.neo4j,
+        anthropic=app.state.anthropic,
+        redis=app.state.redis,
+    )
+    try:
+        await app.state.knowledge_graph.initialize()
+    except Exception as exc:  # noqa: BLE001 — graph is optional; degrade gracefully
+        logger.warning("knowledge graph init failed (memory degraded): %s", exc)
+
     # WebSocket connection manager for the reasoning panel — run_agent
     # pushes step/token events to it during a run.
     app.state.ws_manager = ConnectionManager()
@@ -245,6 +260,10 @@ logging.basicConfig(
     level=settings.LOG_LEVEL.upper(),
     format="%(asctime)s %(levelname)s %(name)s — %(message)s",
 )
+# Neo4j emits INFO/WARNING "notifications" (constraint-already-exists,
+# cartesian-product hints) on most queries — useful once, noise forever.
+# Raise its threshold so they don't flood the app log.
+logging.getLogger("neo4j.notifications").setLevel(logging.ERROR)
 
 app = FastAPI(
     title="swarajbangar.dev API",
