@@ -14,3 +14,4 @@ export { Spotlight, type SpotlightProps } from './Spotlight';
 export { Marquee, type MarqueeProps } from './Marquee';
 export { Reveal, type RevealProps } from './Reveal';
 export { ProgressiveBlur, type ProgressiveBlurProps } from './ProgressiveBlur';
+export { Avatar, type AvatarProps } from './Avatar';

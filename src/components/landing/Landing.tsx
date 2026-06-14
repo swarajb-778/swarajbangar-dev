@@ -1,7 +1,6 @@
 'use client';
 
-import { useRef } from 'react';
-import Link from 'next/link';
+import { useRef, useState } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useGSAP } from '@gsap/react';
@@ -31,6 +30,8 @@ import { ParticleField } from './ParticleField';
 import { HeroTerminal } from './HeroTerminal';
 import { ChaosMiniSim } from './ChaosMiniSim';
 import { MetricsChart } from './MetricsChart';
+import { MetricsExtra } from './MetricsExtra';
+import { LabModalHost, type LabKey } from './LabDemos';
 
 const TECH = [
   'Python', 'LangGraph', 'Claude API', 'FastAPI', 'pgvector', 'Neo4j',
@@ -46,6 +47,7 @@ const TECH = [
  */
 export function Landing() {
   const root = useRef<HTMLDivElement>(null);
+  const [lab, setLab] = useState<LabKey | null>(null);
 
   useGSAP(
     () => {
@@ -239,11 +241,11 @@ export function Landing() {
         <p className="sub gs-reveal">Don&apos;t take the resume&apos;s word for it. Kill a service. Watch the breakers trip. <span className="click-hint">Open any card for the full interactive demo.</span></p>
 
         <div className="bento">
-          {/* Chaos — interactive in place */}
-          <div className="glow-card t-coral wide gs-reveal">
+          {/* Chaos — interactive in place; the chip opens the full live demo */}
+          <div className="glow-card t-coral wide gs-reveal lab-click">
             <div className="body">
               <span className="smear" /><span className="hl top" /><span className="hl left" />
-              <Link className="expand-chip" href="/lab/backend" title="Open the full Chaos Lab"><Maximize2 /></Link>
+              <button type="button" className="expand-chip" onClick={() => setLab('chaos')} aria-label="Open the full Chaos Lab"><Maximize2 /></button>
               <div className="lab-head"><Zap /><span className="name">failure injection · live</span></div>
               <h3>Backend Chaos Lab</h3>
               <p className="desc">A real microservices mesh you&apos;re invited to break. Circuit breakers trip, dependents degrade, the system self-heals.</p>
@@ -252,7 +254,14 @@ export function Landing() {
           </div>
 
           {/* Agent */}
-          <Link className="glow-card gs-reveal" data-delay="100" href="/lab/agent">
+          <div
+            className="glow-card gs-reveal lab-click"
+            data-delay="100"
+            role="button"
+            tabIndex={0}
+            onClick={() => setLab('agent')}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setLab('agent'); } }}
+          >
             <div className="body">
               <span className="smear" /><span className="hl top" /><span className="hl left" />
               <span className="expand-chip"><Maximize2 /></span>
@@ -266,10 +275,16 @@ export function Landing() {
                 <div className="t"><b>generate</b>claude-sonnet-4 · 247 tok</div>
               </div>
             </div>
-          </Link>
+          </div>
 
           {/* RAG */}
-          <Link className="glow-card t-teal gs-reveal" href="/lab/ai">
+          <div
+            className="glow-card t-teal gs-reveal lab-click"
+            role="button"
+            tabIndex={0}
+            onClick={() => setLab('rag')}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setLab('rag'); } }}
+          >
             <div className="body">
               <span className="smear" /><span className="hl top" /><span className="hl left" />
               <span className="expand-chip"><Maximize2 /></span>
@@ -283,10 +298,17 @@ export function Landing() {
                 <div className="s"><span className="n">4</span><span className="w">Generation · 156 tok</span><span className="ms">210ms</span></div>
               </div>
             </div>
-          </Link>
+          </div>
 
           {/* Realtime */}
-          <Link className="glow-card wide gs-reveal" data-delay="100" href="/lab/fullstack">
+          <div
+            className="glow-card wide gs-reveal lab-click"
+            data-delay="100"
+            role="button"
+            tabIndex={0}
+            onClick={() => setLab('realtime')}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setLab('realtime'); } }}
+          >
             <div className="body">
               <span className="smear" /><span className="hl top" /><span className="hl left" />
               <span className="expand-chip"><Maximize2 /></span>
@@ -294,7 +316,7 @@ export function Landing() {
               <h3>Collaborative systems</h3>
               <p className="desc">Live cursors under 50ms, Redis pub/sub fan-out, presence that scales horizontally. The same patterns that ran 50M+ requests a day at Amazon, miniaturized into demos you can poke.</p>
             </div>
-          </Link>
+          </div>
         </div>
       </section>
 
@@ -310,6 +332,8 @@ export function Landing() {
             <div className="glow-card t-coral gs-reveal" data-delay="240"><div className="body kpi"><span className="smear" /><div className="v">14</div><div className="k">deploys this week</div></div></div>
           </div>
         </div>
+
+        <MetricsExtra />
       </section>
 
       {/* ── Contact ── */}
@@ -350,6 +374,8 @@ export function Landing() {
           </div>
         </div>
       </footer>
+
+      <LabModalHost openKey={lab} onClose={() => setLab(null)} />
 
       <ChatButton />
       <ChatPanel />
