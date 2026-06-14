@@ -31,7 +31,10 @@ export default async function Home() {
       <SectionDivider label="About" />
 
       {/* Section 2: About + Skills */}
-      <SectionWrapper id="about" title="Building systems that think">
+      <SectionWrapper
+        id="about"
+        title={<>Building systems that <span className="text-gradient">think</span></>}
+      >
         <AboutSection />
       </SectionWrapper>
 
@@ -52,7 +55,10 @@ export default async function Home() {
       <SectionDivider label="Deep Dives" />
 
       {/* Section 5: Case Studies */}
-      <SectionWrapper id="case-studies" title="The hard problems, dissected">
+      <SectionWrapper
+        id="case-studies"
+        title={<>The hard problems, <span className="text-gradient">dissected</span></>}
+      >
         <div className="grid md:grid-cols-3 gap-6">
           {caseStudies.map((study) => (
             <CaseStudyCard key={study.slug} study={study} />
@@ -89,7 +95,10 @@ export default async function Home() {
       <SectionDivider label="Contact" />
 
       {/* Section 8: Contact */}
-      <SectionWrapper id="contact" title="Let's build something together">
+      <SectionWrapper
+        id="contact"
+        title={<>Let&apos;s <span className="text-gradient">build something</span> together</>}
+      >
         <ContactSection />
       </SectionWrapper>
 

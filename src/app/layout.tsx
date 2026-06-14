@@ -1,13 +1,7 @@
 import type { Metadata } from 'next';
 import { Inter, JetBrains_Mono, Space_Grotesk } from 'next/font/google';
-import { Navbar } from '@/components/layout/Navbar';
 import { FloatingProvider } from '@/lib/floating-context';
-import { ChatButton } from '@/components/agent/ChatButton';
-import { ChatPanel } from '@/components/agent/ChatPanel';
-import { TerminalOverlay } from '@/components/terminal/TerminalOverlay';
-import { FloatingTerminalButton } from '@/components/terminal/FloatingTerminalButton';
-import { KeyboardShortcuts } from '@/components/layout/KeyboardShortcuts';
-import { ScrollProgress } from '@/components/layout/ScrollProgress';
+import { SiteChrome } from '@/components/layout/SiteChrome';
 import './globals.css';
 
 const inter = Inter({
@@ -80,14 +74,7 @@ export default function RootLayout({
     >
       <body className="min-h-screen antialiased" suppressHydrationWarning>
         <FloatingProvider>
-          <Navbar />
-          <main className="flex-1">{children}</main>
-          <ChatButton />
-          <ChatPanel />
-          <TerminalOverlay />
-          <FloatingTerminalButton />
-          <KeyboardShortcuts />
-          <ScrollProgress />
+          <SiteChrome>{children}</SiteChrome>
         </FloatingProvider>
       </body>
     </html>
