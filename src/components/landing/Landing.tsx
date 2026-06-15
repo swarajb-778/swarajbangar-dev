@@ -24,14 +24,13 @@ function LinkedInIcon() {
     </svg>
   );
 }
-import { ChatButton } from '@/components/agent/ChatButton';
-import { ChatPanel } from '@/components/agent/ChatPanel';
 import { ParticleField } from './ParticleField';
 import { HeroTerminal } from './HeroTerminal';
 import { ChaosMiniSim } from './ChaosMiniSim';
 import { MetricsChart } from './MetricsChart';
 import { MetricsExtra } from './MetricsExtra';
 import { LabModalHost, type LabKey } from './LabDemos';
+import { ChatDock } from './ChatDock';
 
 const TECH = [
   'Python', 'LangGraph', 'Claude API', 'FastAPI', 'pgvector', 'Neo4j',
@@ -376,9 +375,7 @@ export function Landing() {
       </footer>
 
       <LabModalHost openKey={lab} onClose={() => setLab(null)} />
-
-      <ChatButton />
-      <ChatPanel />
+      <ChatDock />
     </div>
   );
 }

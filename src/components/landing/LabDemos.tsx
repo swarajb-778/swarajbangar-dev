@@ -17,7 +17,8 @@
 // ═══════════════════════════════════════════════════════════════
 
 import { useEffect, useRef, useState, type ReactNode } from 'react';
-import { X } from 'lucide-react';
+import Link from 'next/link';
+import { X, ArrowRight } from 'lucide-react';
 import { TrendChart } from '@/components/charts/TrendChart';
 import { BarsChart } from '@/components/charts/BarsChart';
 import { DonutChart } from '@/components/charts/DonutChart';
@@ -261,11 +262,11 @@ export function RealtimeDemo() {
 
 /* ═══ Modal host (option A) ═══ */
 export type LabKey = 'chaos' | 'agent' | 'rag' | 'realtime';
-const MODALS: Record<LabKey, { title: string; tag: string; Body: () => ReactNode }> = {
-  chaos: { title: 'Backend Chaos Lab', tag: 'failure injection · live', Body: ChaosLabDemo },
-  agent: { title: 'SwarajOS', tag: 'multi-agent · LangGraph', Body: AgentDemo },
-  rag: { title: 'AI Intelligence Lab', tag: 'RAG X-ray', Body: RagDemo },
-  realtime: { title: 'Collaborative systems', tag: 'real-time · WebSocket', Body: RealtimeDemo },
+const MODALS: Record<LabKey, { title: string; tag: string; href: string; more: string; Body: () => ReactNode }> = {
+  chaos: { title: 'Backend Chaos Lab', tag: 'failure injection · live', href: '/lab/backend', more: 'Open the full Chaos Lab', Body: ChaosLabDemo },
+  agent: { title: 'SwarajOS', tag: 'multi-agent · LangGraph', href: '/lab/agent', more: 'Open the full agent playground', Body: AgentDemo },
+  rag: { title: 'AI Intelligence Lab', tag: 'RAG X-ray', href: '/lab/ai', more: 'Open the full RAG explorer', Body: RagDemo },
+  realtime: { title: 'Collaborative systems', tag: 'real-time · WebSocket', href: '/lab/fullstack', more: 'Open the full realtime demo', Body: RealtimeDemo },
 };
 
 /**
@@ -294,6 +295,13 @@ export function LabModalHost({ openKey, onClose }: { openKey: LabKey | null; onC
           <button className="close" onClick={onClose} aria-label="Close"><X size={16} /></button>
         </div>
         <Body />
+        <div className="modal-foot">
+          <span className="foot-hint">Want the full breakdown — source, architecture &amp; deeper controls?</span>
+          <Link className="btn-shimmer sm explore-more" href={m.href} onClick={onClose}>
+            <span className="spin" />
+            <span className="inner">{m.more}<span className="arrow"><ArrowRight size={14} /></span></span>
+          </Link>
+        </div>
       </div>
     </div>
   );
