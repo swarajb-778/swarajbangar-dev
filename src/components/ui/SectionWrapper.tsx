@@ -13,7 +13,7 @@ export interface SectionWrapperProps {
   readonly id?: string;
   readonly children: ReactNode;
   readonly className?: string;
-  readonly title?: string;
+  readonly title?: ReactNode;
   readonly subtitle?: string;
 }
 

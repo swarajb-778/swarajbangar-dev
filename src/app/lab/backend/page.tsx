@@ -1,24 +1,22 @@
 import Link from 'next/link';
+import { ChaosLabDemo } from '@/components/landing/LabDemos';
+import '../../landing.css';
+
+export const metadata = { title: 'Backend Chaos Lab — swarajbangar.dev' };
 
 export default function BackendLabPage() {
   return (
-    <div className="min-h-screen bg-bg-base flex items-center justify-center px-6">
-      <div className="text-center max-w-md">
-        <p className="text-xs font-semibold uppercase tracking-[2px] text-accent-teal mb-3">
-          {'// backend'}
-        </p>
-        <h1 className="text-2xl font-bold text-text-primary font-display mb-3">
-          Distributed Systems Chaos Lab
+    <div className="lp" style={{ background: 'transparent' }}>
+      <div className="section" style={{ paddingTop: 120, maxWidth: 1000, margin: '0 auto' }}>
+        <Link href="/#lab" className="kicker" style={{ textDecoration: 'none' }}>← Back to the Lab</Link>
+        <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(30px,5vw,44px)', fontWeight: 700, margin: '14px 0 8px', color: 'var(--text-primary)' }}>
+          Backend <span className="grad">Chaos Lab</span>
         </h1>
-        <p className="text-text-secondary mb-6">
-          Failure injection and chaos engineering demos coming in Phase 3.
+        <p className="sub" style={{ marginBottom: 32 }}>
+          A real microservices mesh you&apos;re invited to break. Inject faults, watch circuit breakers
+          trip, and see the live p95 / error-rate charts re-shape and self-heal.
         </p>
-        <Link
-          href="/lab"
-          className="text-sm text-accent-primary hover:text-[#7C6CF7] transition-colors"
-        >
-          &larr; Back to Lab
-        </Link>
+        <ChaosLabDemo />
       </div>
     </div>
   );
