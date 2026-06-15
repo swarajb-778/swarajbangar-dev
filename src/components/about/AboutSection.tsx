@@ -7,6 +7,7 @@
 import dynamic from 'next/dynamic';
 import { Briefcase, Zap, Building2 } from 'lucide-react';
 import { StatCard } from './StatCard';
+import { Marquee } from '@/components/ui/Marquee';
 import { ConstellationSkeleton } from '@/components/ui/Skeleton';
 
 const SkillConstellation = dynamic(
@@ -35,9 +36,16 @@ const STATS = [
   },
 ] as const;
 
+const TECH_STACK = [
+  'Python', 'TypeScript', 'FastAPI', 'LangGraph', 'LangChain', 'Next.js',
+  'React', 'PostgreSQL', 'pgvector', 'Redis', 'Neo4j', 'Kafka',
+  'Docker', 'Claude', 'Go', 'Three.js',
+] as const;
+
 export function AboutSection() {
   return (
-    <div className="grid lg:grid-cols-[55%_45%] gap-12">
+    <div className="space-y-10">
+      <div className="grid lg:grid-cols-[55%_45%] gap-12">
       {/* Left: Text + Stats */}
       <div className="space-y-5">
         <p className="text-text-secondary leading-relaxed text-lg">
@@ -79,6 +87,24 @@ export function AboutSection() {
       {/* Right: Skill Constellation */}
       <div className="min-h-[350px] rounded-lg border border-border-default bg-bg-surface p-4 relative overflow-hidden">
         <SkillConstellation />
+      </div>
+      </div>
+
+      {/* Tech-stack marquee — infinite strip of daily drivers */}
+      <div className="pt-2">
+        <p className="text-xs font-semibold uppercase tracking-[2px] text-text-muted mb-4">
+          Daily drivers
+        </p>
+        <Marquee duration={32} gap={40} className="py-1">
+          {TECH_STACK.map((tech) => (
+            <span
+              key={tech}
+              className="font-mono text-sm text-text-muted whitespace-nowrap transition-colors hover:text-accent-teal"
+            >
+              {tech}
+            </span>
+          ))}
+        </Marquee>
       </div>
     </div>
   );

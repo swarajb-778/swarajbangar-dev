@@ -8,6 +8,7 @@ import { useRef, useState, useCallback, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import { motion, AnimatePresence } from 'framer-motion';
 import { StatusSidebar } from '@/components/terminal/StatusSidebar';
+import { Spotlight } from '@/components/ui/Spotlight';
 import { useReducedMotion } from '@/lib/hooks/useReducedMotion';
 import { TerminalSkeleton } from '@/components/ui/Skeleton';
 
@@ -37,8 +38,9 @@ export function HeroSection() {
   }, []);
 
   return (
-    <section id="hero" className="relative h-screen flex flex-col justify-center px-6 pt-16 scroll-mt-16">
-      <div className="max-w-7xl mx-auto w-full flex flex-col lg:flex-row gap-6 items-stretch">
+    <section id="hero" className="relative h-screen flex flex-col justify-center scroll-mt-16">
+      <Spotlight size={680} className="w-full px-6 pt-16 pb-12">
+        <div className="max-w-7xl mx-auto w-full flex flex-col lg:flex-row gap-6 items-stretch">
         {/* Terminal — 65% on desktop, full width on mobile */}
         <motion.div
           ref={terminalContainerRef}
@@ -70,7 +72,8 @@ export function HeroSection() {
         >
           <StatusSidebar />
         </motion.div>
-      </div>
+        </div>
+      </Spotlight>
 
       {/* Scroll indicator — shows after boot, fades on scroll */}
       <AnimatePresence>

@@ -1,5 +1,6 @@
 import { Mail, FileText } from 'lucide-react';
 import { SITE_CONFIG } from '@/lib/constants';
+import { ShimmerButton } from '@/components/ui/ShimmerButton';
 
 function GitHubIcon({ size = 20 }: { readonly size?: number }) {
   return (
@@ -32,19 +33,30 @@ const CONTACT_LINKS: readonly ContactLink[] = [
 
 export function ContactSection() {
   return (
-    <div className="flex justify-center gap-4">
-      {CONTACT_LINKS.map(({ icon: Icon, href, label }) => (
-        <a
-          key={label}
-          href={href}
-          target={href.startsWith('mailto') ? undefined : '_blank'}
-          rel={href.startsWith('mailto') ? undefined : 'noopener noreferrer'}
-          aria-label={label}
-          className="flex items-center justify-center size-12 rounded-full bg-bg-surface border border-border-default text-text-muted hover:text-text-primary hover:bg-bg-elevated transition-all duration-150"
-        >
-          <Icon size={20} />
-        </a>
-      ))}
+    <div className="flex flex-col items-center gap-8">
+      <ShimmerButton
+        href={`mailto:${SITE_CONFIG.email}`}
+        size="lg"
+        arrow
+        aria-label="Get in touch via email"
+      >
+        Get in touch
+      </ShimmerButton>
+
+      <div className="flex justify-center gap-4">
+        {CONTACT_LINKS.map(({ icon: Icon, href, label }) => (
+          <a
+            key={label}
+            href={href}
+            target={href.startsWith('mailto') ? undefined : '_blank'}
+            rel={href.startsWith('mailto') ? undefined : 'noopener noreferrer'}
+            aria-label={label}
+            className="flex items-center justify-center size-12 rounded-full bg-bg-surface border border-border-default text-text-muted hover:text-text-primary hover:bg-bg-elevated transition-all duration-150"
+          >
+            <Icon size={20} />
+          </a>
+        ))}
+      </div>
     </div>
   );
 }
