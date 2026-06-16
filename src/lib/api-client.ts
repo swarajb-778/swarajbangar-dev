@@ -34,13 +34,34 @@ import { sleep } from './utils';
 
 // ─── Backend connection ──────────────────────────────────────────
 
-/** Base URL of the FastAPI backend. Empty string → mock-only mode. */
-const API_BASE_URL = (process.env.NEXT_PUBLIC_API_URL ?? '').replace(/\/$/, '');
+// The browser never calls the backend directly — it calls same-origin
+// Next.js route handlers under `/api/*`, which proxy to the FastAPI backend
+// server-side (the droplet is plain-HTTP, so a direct browser call from an
+// HTTPS page would be blocked as mixed content). When the proxy can't reach
+// the backend it returns 5xx, and each wrapper falls back to mock data.
+const API_BASE_URL = '/api';
 
-/** True when the frontend is configured to call a real backend. */
-export const isBackendConfigured = Boolean(API_BASE_URL);
+/** Always true now that calls go through the same-origin proxy. */
+export const isBackendConfigured = true;
 
 const DEFAULT_TIMEOUT_MS = 30_000;
+
+// ─── Demo-mode notification ──────────────────────────────────────
+
+// Fired once per page load the first time any backend call falls back to
+// mock data, so the UI can surface a single unobtrusive "demo mode" toast.
+let demoModeNotified = false;
+
+/** Announce that we've degraded to mock data (once per page load). */
+export function notifyDemoMode(reason: string): void {
+  if (typeof window === 'undefined' || demoModeNotified) return;
+  demoModeNotified = true;
+  window.dispatchEvent(
+    new CustomEvent('swarajos:demo-mode', { detail: { reason } })
+  );
+  // eslint-disable-next-line no-console
+  console.warn('[swarajos] demo mode — using mock data:', reason);
+}
 
 /**
  * Fetch JSON from the backend with a hard timeout.  Throws on non-2xx
@@ -84,15 +105,13 @@ async function withMockFallback<T>(
   mockCall: () => T | Promise<T>,
   label: string
 ): Promise<T> {
-  if (!API_BASE_URL) {
-    return await mockCall();
-  }
   try {
     return await realCall();
   } catch (err) {
     if (typeof console !== 'undefined') {
       console.warn(`[api-client] ${label} failed, using mock:`, err);
     }
+    notifyDemoMode(`${label} unavailable`);
     return await mockCall();
   }
 }
@@ -246,7 +265,7 @@ export async function getObservabilityMetrics(): Promise<
 export async function queryRAG(query: string): Promise<RAGResult> {
   return withMockFallback(
     async () => {
-      const res = await fetchJSON<BackendRAGQueryResponse>('/v1/rag/query', {
+      const res = await fetchJSON<BackendRAGQueryResponse>('/rag/query', {
         method: 'POST',
         body: JSON.stringify({ query, top_k: 5, show_pipeline: true }),
       });
@@ -268,7 +287,7 @@ export async function chatWithAgent(
 ): Promise<ChatMessage> {
   return withMockFallback(
     async () => {
-      const res = await fetchJSON<BackendRAGQueryResponse>('/v1/rag/query', {
+      const res = await fetchJSON<BackendRAGQueryResponse>('/rag/query', {
         method: 'POST',
         // Backend currently ignores X-Session-Id — wired now so the
         // server can group turns once session-scoped memory ships.
@@ -299,7 +318,7 @@ export async function chatWithAgent(
 export async function embedText(text: string): Promise<readonly number[]> {
   return withMockFallback(
     async () => {
-      const res = await fetchJSON<{ embedding: number[] }>('/v1/rag/embed', {
+      const res = await fetchJSON<{ embedding: number[] }>('/rag/embed', {
         method: 'POST',
         body: JSON.stringify({ text }),
       });
@@ -321,7 +340,7 @@ export async function getEmbeddings3D(): Promise<readonly EmbeddingPoint[]> {
   return withMockFallback(
     async () => {
       const res = await fetchJSON<BackendEmbed3DResponse>(
-        '/v1/rag/embeddings/3d'
+        '/rag/embeddings-3d'
       );
       return res.points.map(toEmbeddingPoint);
     },
@@ -343,7 +362,7 @@ export interface DocumentsSummary {
 export async function getDocumentsBreakdown(): Promise<DocumentsSummary> {
   return withMockFallback(
     async () => {
-      const res = await fetchJSON<BackendDocumentsResponse>('/v1/rag/documents');
+      const res = await fetchJSON<BackendDocumentsResponse>('/rag/documents');
       return {
         documents: res.documents,
         total_chunks: res.total_chunks,
