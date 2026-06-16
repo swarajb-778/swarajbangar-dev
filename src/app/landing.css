@@ -372,6 +372,13 @@
 /* ── Metrics / chart ── */
 .lp .metrics-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 18px; margin-top: 44px; }
 .lp .chart-panel { padding: 24px 24px 16px; }
+
+/* live / demo status badge for the observability section */
+.lp .metrics-status { display: inline-flex; align-items: center; gap: 8px; margin-top: 14px; font-family: var(--font-mono); font-size: 12px; color: var(--text-secondary); }
+.lp .metrics-status .ms-dot { width: 7px; height: 7px; border-radius: 50%; }
+.lp .metrics-status .ms-dot.live { background: var(--accent-emerald); box-shadow: 0 0 8px var(--accent-emerald); animation: pulse-dot 2s infinite; }
+.lp .metrics-status .ms-dot.demo { background: var(--accent-gold); box-shadow: 0 0 8px var(--accent-gold); }
+.lp .metrics-status .ms-ago { color: var(--text-muted); }
 .lp .chart-panel .ttl { display: flex; justify-content: space-between; align-items: baseline; }
 .lp .chart-panel .ttl .t { font-size: 14px; font-weight: 600; color: var(--text-primary); }
 .lp .chart-panel .ttl .live { display: inline-flex; align-items: center; gap: 7px; font-family: var(--font-mono); font-size: 11px; color: var(--accent-emerald); }

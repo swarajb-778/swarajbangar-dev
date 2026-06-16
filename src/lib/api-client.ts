@@ -18,9 +18,12 @@ import type {
   ChatMessage,
   EmbeddingPoint,
   ExperienceEntry,
+  IntentCount,
   MetricCard,
   RAGResult,
   SkillNode,
+  StatsSnapshot,
+  StatsTimeseriesPoint,
   StepStatus,
 } from './types';
 import {
@@ -32,9 +35,12 @@ import {
   getMockChatResponse,
   getMockEmbeddingPoints,
   getMockExperience,
+  getMockIntents,
   getMockObservabilityMetrics,
   getMockRAGResult,
   getMockSkills,
+  getMockStats,
+  getMockStatsTimeseries,
 } from './mock-data';
 import { sleep } from './utils';
 
@@ -259,6 +265,65 @@ export async function getObservabilityMetrics(): Promise<
 > {
   await sleep(300);
   return getMockObservabilityMetrics();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ── Live stats (returns a live/mock flag for the UI badge) ──
+// ═══════════════════════════════════════════════════════════════
+
+/**
+ * Like withMockFallback, but also reports whether the data came from the
+ * backend (`live: true`) or a mock fallback — the metrics UI uses this to
+ * render a "live" vs "demo mode" badge.
+ */
+async function liveOrMock<T>(
+  realCall: () => Promise<T>,
+  mockCall: () => T,
+  label: string
+): Promise<{ data: T; live: boolean }> {
+  try {
+    return { data: await realCall(), live: true };
+  } catch (err) {
+    console.warn(`[api-client] ${label} failed, using mock:`, err);
+    notifyDemoMode(`${label} unavailable`);
+    return { data: mockCall(), live: false };
+  }
+}
+
+/** Live service snapshot for the observability KPIs. */
+export function getStats(): Promise<{ data: StatsSnapshot; live: boolean }> {
+  return liveOrMock(
+    () => fetchJSON<StatsSnapshot>('/stats'),
+    getMockStats,
+    'getStats'
+  );
+}
+
+/** Rolling p50/p95/request history for the timeseries chart. */
+export function getStatsTimeseries(): Promise<{
+  data: StatsTimeseriesPoint[];
+  live: boolean;
+}> {
+  return liveOrMock(
+    async () =>
+      (await fetchJSON<{ points: StatsTimeseriesPoint[] }>('/stats/timeseries'))
+        .points,
+    getMockStatsTimeseries,
+    'getStatsTimeseries'
+  );
+}
+
+/** Agent interaction counts grouped by classified intent (donut source). */
+export function getIntentDistribution(): Promise<{
+  data: IntentCount[];
+  live: boolean;
+}> {
+  return liveOrMock(
+    async () =>
+      (await fetchJSON<{ intents: IntentCount[] }>('/stats/intents')).intents,
+    getMockIntents,
+    'getIntentDistribution'
+  );
 }
 
 // ─── RAG (real backend) ───────────────────────────────────────────

@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useGSAP } from '@gsap/react';
@@ -8,6 +8,7 @@ import {
   ArrowRight, GitBranch, Zap, Bot, Brain, Users, Maximize2, FileText,
 } from 'lucide-react';
 import { SITE_CONFIG } from '@/lib/constants';
+import { useLiveStats } from '@/lib/hooks/useLiveStats';
 
 function GitHubIcon() {
   return (
@@ -37,6 +38,26 @@ const TECH = [
   'React', 'Next.js', 'TypeScript', 'AWS', 'Kubernetes', 'Redis',
 ];
 
+/** Live/demo badge + "updated Xs ago" for the observability section. */
+function MetricsStatus({ isLive, lastUpdated }: { isLive: boolean; lastUpdated: number | null }) {
+  // `now` is sampled from a timer callback (never during render) so the
+  // "Xs ago" stays fresh without calling Date.now() impurely in render.
+  const [now, setNow] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, []);
+  if (lastUpdated === null) return null;
+  const ago = now ? Math.max(0, Math.round((now - lastUpdated) / 1000)) : 0;
+  return (
+    <div className="metrics-status">
+      <span className={`ms-dot ${isLive ? 'live' : 'demo'}`} />
+      <span>{isLive ? 'live' : 'demo mode'}</span>
+      <span className="ms-ago">· updated {ago}s ago</span>
+    </div>
+  );
+}
+
 /**
  * Landing — the awwwards-style single-page landing at `/`.
  * Ported from templates/landing: Three.js particle field, GSAP scroll
@@ -47,6 +68,12 @@ const TECH = [
 export function Landing() {
   const root = useRef<HTMLDivElement>(null);
   const [lab, setLab] = useState<LabKey | null>(null);
+  // Single observability poller; fans out to the KPI cards, the requests
+  // timeseries chart, and the intent donut below.
+  const live = useLiveStats();
+  const reqSeries = live.timeseries.map((p) => p.requests);
+  const p95 = live.stats ? Math.round(live.stats.p95_latency_ms) : 142;
+  const agentToday = live.stats ? live.stats.agent_interactions_today : 847;
 
   useGSAP(
     () => {
@@ -323,16 +350,17 @@ export function Landing() {
       <section className="section" id="metrics">
         <span className="kicker gs-reveal">Observability</span>
         <h2 className="gs-reveal">This site <span className="grad">monitors itself</span>.</h2>
+        <MetricsStatus isLive={live.isLive} lastUpdated={live.lastUpdated} />
         <div className="metrics-grid">
-          <MetricsChart />
+          <MetricsChart data={reqSeries} />
           <div className="kpis">
-            <div className="glow-card t-teal gs-reveal" data-delay="80"><div className="body kpi"><span className="smear" /><div className="v">142ms</div><div className="k">p95 API latency</div></div></div>
-            <div className="glow-card gs-reveal" data-delay="160"><div className="body kpi"><span className="smear" /><div className="v">847</div><div className="k">agent chats today</div></div></div>
+            <div className="glow-card t-teal gs-reveal" data-delay="80"><div className="body kpi"><span className="smear" /><div className="v">{p95}ms</div><div className="k">p95 API latency</div></div></div>
+            <div className="glow-card gs-reveal" data-delay="160"><div className="body kpi"><span className="smear" /><div className="v">{agentToday.toLocaleString()}</div><div className="k">agent chats today</div></div></div>
             <div className="glow-card t-coral gs-reveal" data-delay="240"><div className="body kpi"><span className="smear" /><div className="v">14</div><div className="k">deploys this week</div></div></div>
           </div>
         </div>
 
-        <MetricsExtra />
+        <MetricsExtra timeseries={live.timeseries} intents={live.intents} />
       </section>
 
       {/* ── Contact ── */}

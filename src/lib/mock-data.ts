@@ -12,10 +12,13 @@ import type {
   ChatMessage,
   EmbeddingPoint,
   ExperienceEntry,
+  IntentCount,
   MetricCard,
   ModelComparison,
   RAGResult,
   SkillNode,
+  StatsSnapshot,
+  StatsTimeseriesPoint,
 } from './types';
 import { EXPERIENCE_DATA, SKILLS_DATA } from './constants';
 
@@ -419,5 +422,48 @@ export function getMockObservabilityMetrics(): readonly MetricCard[] {
       trend: 'up',
       sparklineData: [2, 3, 1, 2, 3, 1, 2],
     },
+  ];
+}
+
+// ── Live stats (offline fallbacks for /v1/stats and friends) ──
+
+export function getMockStats(): StatsSnapshot {
+  return {
+    total_requests: 18_432,
+    requests_today: 1_247,
+    p95_latency_ms: 142,
+    p50_latency_ms: 41,
+    error_rate: 0.0021,
+    uptime_seconds: 1_893_600,
+    uptime_percent: 99.97,
+    agent_interactions_today: 847,
+    active_sessions: 3,
+    cache_hit_rate: 0.78,
+  };
+}
+
+const MOCK_REQ_SERIES = [
+  12, 18, 14, 22, 19, 26, 31, 28, 35, 30, 38, 34,
+  41, 37, 44, 40, 33, 29, 36, 42, 39, 45, 43, 48,
+];
+
+export function getMockStatsTimeseries(): StatsTimeseriesPoint[] {
+  const now = Math.floor(Date.now() / 1000);
+  return MOCK_REQ_SERIES.map((requests, i) => ({
+    ts: now - (MOCK_REQ_SERIES.length - i) * 60,
+    requests,
+    p50: 38 + Math.round(Math.sin(i / 2) * 6),
+    p95: 132 + Math.round(Math.cos(i / 3) * 18),
+    error_rate: 0.002,
+  }));
+}
+
+export function getMockIntents(): IntentCount[] {
+  return [
+    { name: 'experience_query', value: 412 },
+    { name: 'project_query', value: 268 },
+    { name: 'skills_query', value: 121 },
+    { name: 'general_chat', value: 97 },
+    { name: 'meta_question', value: 70 },
   ];
 }

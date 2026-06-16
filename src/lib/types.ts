@@ -183,3 +183,34 @@ export interface MetricCard {
   readonly trend?: MetricTrend;
   readonly sparklineData?: readonly number[];
 }
+
+// ── Live service stats (GET /v1/stats and friends) ──
+
+/** Snapshot from `/v1/stats`. Mirrors the FastAPI stats router. */
+export interface StatsSnapshot {
+  readonly total_requests: number;
+  readonly requests_today: number;
+  readonly p95_latency_ms: number;
+  readonly p50_latency_ms: number;
+  readonly error_rate: number;
+  readonly uptime_seconds: number;
+  readonly uptime_percent: number;
+  readonly agent_interactions_today: number;
+  readonly active_sessions: number;
+  readonly cache_hit_rate: number;
+}
+
+/** One rolling sample from `/v1/stats/timeseries`. */
+export interface StatsTimeseriesPoint {
+  readonly ts: number;
+  readonly requests: number;
+  readonly p50: number;
+  readonly p95: number;
+  readonly error_rate: number;
+}
+
+/** One slice from `/v1/stats/intents`. */
+export interface IntentCount {
+  readonly name: string;
+  readonly value: number;
+}
