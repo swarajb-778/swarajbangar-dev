@@ -11,6 +11,7 @@ Responsibilities:
 from __future__ import annotations
 
 import asyncio
+import json
 import logging
 import time
 from contextlib import asynccontextmanager
@@ -27,43 +28,88 @@ from app.routers.ws import ConnectionManager
 
 logger = logging.getLogger("swarajbangar.api")
 
-# Redis keys for the latency p95 pipeline (sorted set of recent samples →
-# a scalar p95 recomputed periodically by a background task).
+# Redis keys for the latency percentile pipeline (sorted set of recent
+# samples → scalar p50/p95 recomputed periodically by a background task).
 _LATENCY_SAMPLES_KEY = "latency:samples"
 _LATENCY_P95_KEY = "latency:p95"
+_LATENCY_P50_KEY = "latency:p50"
 _LATENCY_MAX_SAMPLES = 1000
 _P95_REFRESH_SECONDS = 60
 
+# Rolling per-sample history for the metrics timeseries chart (capped list).
+_STATS_HISTORY_KEY = "stats:history"
+_STATS_HISTORY_MAX = 60  # ~1h at the 60s sample cadence
 
-async def _recompute_p95_loop(app: FastAPI) -> None:
-    """Background task: derive p95 from the latency-sample sorted set.
+
+def _safe_int(value: object) -> int:
+    """Parse a Redis string counter to int, tolerating None / garbage."""
+    try:
+        return int(value)  # type: ignore[arg-type]
+    except (TypeError, ValueError):
+        return 0
+
+
+def _percentile_index(count: int, pct: float) -> int:
+    """Index of the ``pct`` percentile member in an ascending-by-score set."""
+    return max(0, int(count * pct) - 1)
+
+
+async def _stats_sampler_loop(app: FastAPI) -> None:
+    """Background task: derive p50/p95 and append a rolling history sample.
 
     Runs every ``_P95_REFRESH_SECONDS``.  The middleware records each
-    request's latency as a sorted-set member scored by its duration; here
-    we read the 95th-percentile member and store it as a scalar the stats
-    endpoint can fetch in O(1).
+    request's latency as a sorted-set member scored by its duration; here we
+    read the 50th/95th-percentile members and store them as scalars the stats
+    endpoint can fetch in O(1), then push a ``{ts, requests, p50, p95,
+    error_rate}`` snapshot onto a capped Redis list that feeds the metrics
+    timeseries chart.
     """
+    last_total: int | None = None
     while True:
         try:
             await asyncio.sleep(_P95_REFRESH_SECONDS)
             redis = getattr(app.state, "redis", None)
             if redis is None:
                 continue
+
+            # ─── p50 / p95 from the latency sample set ──
+            p50 = p95 = 0.0
             count = await redis.zcard(_LATENCY_SAMPLES_KEY)
-            if not count:
-                continue
-            # 95th-percentile index into the ascending-by-score set.
-            idx = max(0, int(count * 0.95) - 1)
-            sample = await redis.zrange(
-                _LATENCY_SAMPLES_KEY, idx, idx, withscores=True
+            if count:
+                i95 = _percentile_index(count, 0.95)
+                i50 = _percentile_index(count, 0.50)
+                s95 = await redis.zrange(_LATENCY_SAMPLES_KEY, i95, i95, withscores=True)
+                s50 = await redis.zrange(_LATENCY_SAMPLES_KEY, i50, i50, withscores=True)
+                if s95:
+                    p95 = round(float(s95[0][1]), 1)
+                    await redis.set(_LATENCY_P95_KEY, p95)
+                if s50:
+                    p50 = round(float(s50[0][1]), 1)
+                    await redis.set(_LATENCY_P50_KEY, p50)
+
+            # ─── rolling history sample for the timeseries chart ──
+            total = _safe_int(await redis.get("requests:total"))
+            requests_delta = 0 if last_total is None else max(0, total - last_total)
+            last_total = total
+            today = _safe_int(await redis.get("requests:today"))
+            errors = _safe_int(await redis.get("requests:errors"))
+            error_rate = round(errors / max(today, 1), 4)
+
+            sample = json.dumps(
+                {
+                    "ts": int(time.time()),
+                    "requests": requests_delta,
+                    "p50": p50,
+                    "p95": p95,
+                    "error_rate": error_rate,
+                }
             )
-            if sample:
-                _, score = sample[0]
-                await redis.set(_LATENCY_P95_KEY, round(float(score), 1))
+            await redis.rpush(_STATS_HISTORY_KEY, sample)
+            await redis.ltrim(_STATS_HISTORY_KEY, -_STATS_HISTORY_MAX, -1)
         except asyncio.CancelledError:
             raise
         except Exception as exc:  # noqa: BLE001 — never let the loop die
-            logger.warning("p95 recompute failed: %s", exc)
+            logger.warning("stats sampler failed: %s", exc)
 
 
 def _sanitize_dsn(dsn: str) -> str:
@@ -210,8 +256,8 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     # pushes step/token events to it during a run.
     app.state.ws_manager = ConnectionManager()
 
-    # Background task: periodically recompute the p95 latency scalar.
-    app.state.p95_task = asyncio.create_task(_recompute_p95_loop(app))
+    # Background task: periodically recompute p50/p95 + append history samples.
+    app.state.p95_task = asyncio.create_task(_stats_sampler_loop(app))
 
     logger.info("backend ready in %.1fs", time.monotonic() - boot_start)
 

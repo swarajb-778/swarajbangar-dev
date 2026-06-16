@@ -20,6 +20,17 @@ import httpx
 from fastapi import APIRouter, Request
 
 from app.dependencies import SettingsDep
+from app.models import (
+    IntentCount,
+    IntentDistributionResponse,
+    StatsTimeseriesPoint,
+    StatsTimeseriesResponse,
+)
+
+# Redis keys owned by the stats sampler loop / agent router (see main.py,
+# routers/agent.py). Kept in sync with those producers.
+_STATS_HISTORY_KEY = "stats:history"
+_INTENTS_HASH_KEY = "agent:intents"
 
 logger = logging.getLogger(__name__)
 
@@ -57,7 +68,7 @@ async def stats(request: Request) -> dict[str, float | int]:
 
     total = today = errors_today = agent_today = 0
     cache_hits = cache_misses = 0
-    p95 = 0.0
+    p95 = p50 = 0.0
 
     if redis is not None:
         try:
@@ -69,6 +80,7 @@ async def stats(request: Request) -> dict[str, float | int]:
                 pipe.get("latency:p95")
                 pipe.get("cache:hits:today")
                 pipe.get("cache:misses:today")
+                pipe.get("latency:p50")
                 results = await pipe.execute()
             total = _as_int(results[0])
             today = _as_int(results[1])
@@ -77,6 +89,7 @@ async def stats(request: Request) -> dict[str, float | int]:
             p95 = float(results[4]) if results[4] else 0.0
             cache_hits = _as_int(results[5])
             cache_misses = _as_int(results[6])
+            p50 = float(results[7]) if results[7] else 0.0
         except Exception as exc:  # noqa: BLE001 — degrade to zeros on Redis error
             logger.warning("stats Redis read failed: %s", exc)
 
@@ -88,6 +101,7 @@ async def stats(request: Request) -> dict[str, float | int]:
         "total_requests": total,
         "requests_today": today,
         "p95_latency_ms": round(p95, 1),
+        "p50_latency_ms": round(p50, 1),
         "error_rate": round(errors_today / max(today, 1), 4),
         "uptime_seconds": round(uptime, 1),
         "uptime_percent": 100.0,  # placeholder until incident tracking lands
@@ -147,3 +161,48 @@ async def github_stats(request: Request, settings: SettingsDep) -> dict:
             logger.warning("github stats cache write failed: %s", exc)
 
     return data
+
+
+@router.get("/timeseries", response_model=StatsTimeseriesResponse)
+async def stats_timeseries(request: Request) -> StatsTimeseriesResponse:
+    """Rolling p50/p95/request history for the metrics timeseries chart.
+
+    Reads the capped ``stats:history`` list maintained by the background
+    sampler in main.py.  Returns an empty list (not an error) when Redis is
+    unavailable or no samples have been recorded yet.
+    """
+    redis = getattr(request.app.state, "redis", None)
+    points: list[StatsTimeseriesPoint] = []
+    if redis is not None:
+        try:
+            raw = await redis.lrange(_STATS_HISTORY_KEY, 0, -1)
+        except Exception as exc:  # noqa: BLE001
+            logger.warning("stats history read failed: %s", exc)
+            raw = []
+        for item in raw:
+            try:
+                points.append(StatsTimeseriesPoint(**json.loads(item)))
+            except Exception as exc:  # noqa: BLE001 — skip a malformed sample
+                logger.debug("skipping malformed history sample: %s", exc)
+    return StatsTimeseriesResponse(points=points)
+
+
+@router.get("/intents", response_model=IntentDistributionResponse)
+async def stats_intents(request: Request) -> IntentDistributionResponse:
+    """Agent interactions grouped by classified intent (donut source).
+
+    Reads the ``agent:intents`` hash incremented by the agent router on each
+    completed ``classify`` step.  Sorted descending; zero-safe.
+    """
+    redis = getattr(request.app.state, "redis", None)
+    intents: list[IntentCount] = []
+    if redis is not None:
+        try:
+            raw = await redis.hgetall(_INTENTS_HASH_KEY)
+        except Exception as exc:  # noqa: BLE001
+            logger.warning("intents read failed: %s", exc)
+            raw = {}
+        intents = [IntentCount(name=k, value=_as_int(v)) for k, v in raw.items()]
+        intents.sort(key=lambda i: i.value, reverse=True)
+    total = sum(i.value for i in intents)
+    return IntentDistributionResponse(intents=intents, total=total)

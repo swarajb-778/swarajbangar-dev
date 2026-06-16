@@ -62,6 +62,7 @@ async def orchestrate(req: AgentChatRequest, request: Request) -> EventSourceRes
     """Stream a SwarajOS agent run as Server-Sent Events."""
     deps = _build_deps(request)
     session_id = str(req.session_id)
+    redis = deps.get("redis")
 
     async def event_generator():
         try:
@@ -69,6 +70,20 @@ async def orchestrate(req: AgentChatRequest, request: Request) -> EventSourceRes
                 req.message, session_id, deps, context=req.context
             ):
                 if isinstance(event, AgentStepEvent):
+                    # Tally intent distribution for the observability donut as
+                    # soon as classification completes (best-effort; never
+                    # blocks or breaks the stream).
+                    if (
+                        redis is not None
+                        and event.type == "classify"
+                        and event.status == "complete"
+                    ):
+                        intent = event.data.get("intent")
+                        if intent:
+                            try:
+                                await redis.hincrby("agent:intents", intent, 1)
+                            except Exception as exc:  # noqa: BLE001
+                                logger.debug("intent counter failed: %s", exc)
                     yield {"event": "step", "data": event.model_dump_json()}
                 elif isinstance(event, AgentTokenEvent):
                     yield {"event": "token", "data": json.dumps({"text": event.text})}
