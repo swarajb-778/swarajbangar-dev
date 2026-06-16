@@ -1,10 +1,10 @@
 // ═══════════════════════════════════════════════════════════════
 // swarajbangar.dev — API Client
-// Typed async wrappers. Each function tries the real backend first
-// (when NEXT_PUBLIC_API_URL is set), then falls back to mock data on
-// any failure. That way:
-//   - Local dev with the FastAPI backend running → real data.
-//   - Preview/prod without a backend yet         → mock data, no crash.
+// Typed async wrappers. Each function calls the same-origin `/api/*`
+// proxy (which forwards to the backend server-side), then falls back to
+// mock data on any failure. That way:
+//   - Backend reachable (BACKEND_ORIGIN set, server up) → real data.
+//   - Backend offline / not configured                  → mock data, no crash.
 // Components import from here, never from mock-data.ts directly.
 // ═══════════════════════════════════════════════════════════════
 
@@ -80,9 +80,6 @@ export function notifyDemoMode(reason: string): void {
  * mocks (so we never silently mask a real production bug).
  */
 async function fetchJSON<T>(path: string, init?: RequestInit): Promise<T> {
-  if (!API_BASE_URL) {
-    throw new Error('NEXT_PUBLIC_API_URL not configured');
-  }
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), DEFAULT_TIMEOUT_MS);
   try {

@@ -495,3 +495,58 @@ Phase 6 (toast) [needs Phase 1's demo-mode event]
 Phase 7 (deploy+verify) [needs all]
 ```
 Phases 3, 4, 5, 6 are independent of each other once 1–2 land and can be done in any order or parallel.
+
+---
+
+## AS-BUILT (implemented) & deployment
+
+All phases shipped on `feat/design-system`. Notable as-built decisions vs. the original draft:
+
+- **Transport:** browser → same-origin Next.js Route Handlers under `src/app/api/*` → backend.
+  Backend origin is the **server-only** `BACKEND_ORIGIN` env (never `NEXT_PUBLIC_*`). Helpers live in
+  `src/lib/server/{backend,proxy}.ts`. The agent stream proxy (`/api/agent`) runs on the **Node runtime**
+  (`maxDuration = 30`) and pipes the upstream SSE body straight through.
+- **Reasoning trace** is driven entirely from the SSE `step` events — no browser WebSocket in production.
+- **Backend additions:** `GET /v1/stats/timeseries` + `/v1/stats/intents`, `p50_latency_ms` on `/v1/stats`,
+  a `stats:history` sampler in the 60s loop, and per-intent counters (`agent:intents` hash).
+- **Dropped:** `getGitHubStats` / `/api/stats/github` (no consumer on the new landing).
+- **Graceful degradation everywhere:** every call falls back to mock; the first fallback fires
+  `swarajos:demo-mode`, surfaced once by `DemoModeToast` (mounted in `app/layout.tsx`). Charts with no
+  backend history self-animate synthetically and badge "demo mode".
+
+### Local dev
+
+```bash
+# 1. backend
+cd backend && cp .env.example .env   # fill creds
+uvicorn app.main:app --reload        # or: docker compose up -d   → :8000
+
+# 2. frontend
+echo 'BACKEND_ORIGIN=http://localhost:8000' > .env.local
+npm run dev                          # → http://localhost:3000
+```
+
+Without `.env.local` the proxies return 503 and the whole site runs on mock data (demo mode) — useful
+for frontend-only work.
+
+### Production (Vercel)
+
+1. Vercel → Project → Settings → Environment Variables → **Production**:
+   `BACKEND_ORIGIN = http://<DROPLET_IP>:8000` (server-only; this is why a plain-HTTP droplet works
+   behind the HTTPS site — the fetch happens server-side, no mixed content).
+2. Redeploy the **backend** (droplet) so the new `/v1/stats/*` endpoints + intent counters are live.
+3. Push `feat/design-system` → Vercel auto-builds.
+4. **Risk to watch:** Vercel Hobby caps function duration ~10s; agent runs are ~2–6s. If a slow Sonnet
+   call truncates, raise the plan or `maxDuration`. Optional hardening: put the droplet behind the
+   existing Caddyfile with TLS and switch `BACKEND_ORIGIN` to `https://…`.
+
+### Verification status
+
+- `npm run build` ✓ (all 8 `/api/*` routes registered as dynamic functions; static pages prerender).
+- `npx tsc --noEmit` ✓ · ESLint ✓ for all changed files.
+- In-browser (offline / mock path): ChatDock streams + live trace + `[Source:]` pills + demo footer;
+  AgentDemo + RagDemo wired; metrics show mock values + "demo mode" badge; demo toast fires once.
+- **Pending live check:** end-to-end against the running backend (started in this session against mocks
+  only) — run the full loop in the Verification section above once the droplet is reachable.
+- **Pre-existing (out of scope):** `src/components/ui/Reveal.tsx` trips `react-hooks/set-state-in-effect`
+  (from commit 16cd0f5, unrelated to this work).
