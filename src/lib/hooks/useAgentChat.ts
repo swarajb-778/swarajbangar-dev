@@ -12,7 +12,7 @@
 // frame sets `error`.
 // ═══════════════════════════════════════════════════════════════
 
-import { useCallback, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { streamAgent } from '@/lib/api-client';
 import type { AgentStep, ChatMessage } from '@/lib/types';
 
@@ -42,11 +42,15 @@ export function useAgentChat(initialMessages: ChatMessage[] = []): UseAgentChat 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [sessionId] = useState<string>(newSessionId);
+  // Synchronous re-entrancy lock — the isLoading state update is async, so a
+  // rapid second call could slip past it and fire a duplicate agent run.
+  const inFlight = useRef(false);
 
   const sendMessage = useCallback(
     async (text: string) => {
       const trimmed = text.trim();
-      if (!trimmed || isLoading) return;
+      if (!trimmed || inFlight.current) return;
+      inFlight.current = true;
 
       setError(null);
       setIsLoading(true);
@@ -87,9 +91,10 @@ export function useAgentChat(initialMessages: ChatMessage[] = []): UseAgentChat 
         // Ensure the bubble never stays stuck in the streaming state.
         patchAssistant({ streaming: false });
         setIsLoading(false);
+        inFlight.current = false;
       }
     },
-    [isLoading, sessionId]
+    [sessionId]
   );
 
   const clearHistory = useCallback(() => {
