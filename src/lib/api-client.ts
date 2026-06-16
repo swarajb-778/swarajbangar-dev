@@ -9,6 +9,9 @@
 // ═══════════════════════════════════════════════════════════════
 
 import type {
+  AgentEvent,
+  AgentStep,
+  AgentStepType,
   BlogPost,
   CaseStudy,
   ChaosMetrics,
@@ -18,8 +21,11 @@ import type {
   MetricCard,
   RAGResult,
   SkillNode,
+  StepStatus,
 } from './types';
 import {
+  getMockAgentAnswer,
+  getMockAgentSteps,
   getMockBlogPosts,
   getMockCaseStudies,
   getMockChaosMetrics,
@@ -59,7 +65,6 @@ export function notifyDemoMode(reason: string): void {
   window.dispatchEvent(
     new CustomEvent('swarajos:demo-mode', { detail: { reason } })
   );
-  // eslint-disable-next-line no-console
   console.warn('[swarajos] demo mode — using mock data:', reason);
 }
 
@@ -309,6 +314,153 @@ export async function chatWithAgent(
     },
     'chatWithAgent'
   );
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ── Agent (streaming SSE) ──
+// ═══════════════════════════════════════════════════════════════
+
+/** Map one backend AgentStepEvent → frontend AgentStep (defensive). */
+function toAgentStep(raw: Record<string, unknown>): AgentStep {
+  const type = String(raw.type ?? 'generate') as AgentStepType;
+  const ts = String(raw.timestamp ?? new Date().toISOString());
+  return {
+    id: `${type}-${ts}-${Math.random().toString(36).slice(2, 8)}`,
+    type,
+    status: String(raw.status ?? 'complete') as StepStatus,
+    data: (raw.data as Record<string, unknown>) ?? {},
+    latency_ms: typeof raw.latency_ms === 'number' ? raw.latency_ms : undefined,
+    timestamp: ts,
+  };
+}
+
+/** Map a parsed SSE (event, json) pair → an AgentEvent, or null to skip. */
+function toAgentEvent(event: string, payload: unknown): AgentEvent | null {
+  const data = (payload ?? {}) as Record<string, unknown>;
+  switch (event) {
+    case 'step':
+      return { type: 'step', data: toAgentStep(data) };
+    case 'token':
+      return { type: 'token', data: { text: String(data.text ?? '') } };
+    case 'done':
+      return {
+        type: 'done',
+        data: {
+          total_latency_ms: Number(data.total_latency_ms ?? 0),
+          tokens_used: Number(data.tokens_used ?? 0),
+          model: String(data.model ?? ''),
+        },
+      };
+    case 'error':
+      return {
+        type: 'error',
+        data: {
+          message: String(data.message ?? 'Unknown agent error'),
+          code: data.code != null ? String(data.code) : undefined,
+        },
+      };
+    default:
+      return null;
+  }
+}
+
+/**
+ * Offline fallback: replay a few canned reasoning steps, then stream a
+ * canned on-topic answer as fragments, then a synthetic `done`. Keeps the
+ * full streaming UX (trace + typing) when the backend is unreachable.
+ */
+async function* streamAgentMock(message: string): AsyncGenerator<AgentEvent> {
+  for (const step of getMockAgentSteps()) {
+    await sleep(180);
+    yield {
+      type: 'step',
+      data: { ...step, id: `${step.id}-${Math.random().toString(36).slice(2, 7)}` },
+    };
+  }
+  const answer = getMockAgentAnswer(message);
+  for (let i = 0; i < answer.length; i += 18) {
+    await sleep(22);
+    yield { type: 'token', data: { text: answer.slice(i, i + 18) } };
+  }
+  yield {
+    type: 'done',
+    data: { total_latency_ms: 1400, tokens_used: 0, model: 'demo-mock' },
+  };
+}
+
+/**
+ * Stream a SwarajOS agent run as a sequence of AgentEvents.
+ *
+ * POSTs to the same-origin `/api/agent` proxy (Node-runtime SSE
+ * pass-through to the backend's `/v1/agent/orchestrate`). The backend
+ * streams the reasoning trace (`step`), the answer in fragments (`token`),
+ * a final `done`, and an optional terminal `error`.
+ *
+ * On any transport failure it emits the `swarajos:demo-mode` event and
+ * yields the canned mock stream instead — it never throws to the caller.
+ */
+export async function* streamAgent(
+  message: string,
+  sessionId: string
+): AsyncGenerator<AgentEvent, void, unknown> {
+  let res: Response;
+  try {
+    res = await fetch(`${API_BASE_URL}/agent`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'text/event-stream',
+      },
+      body: JSON.stringify({ message, session_id: sessionId }),
+    });
+    if (!res.ok || !res.body) throw new Error(`agent ${res.status}`);
+  } catch (err) {
+    console.warn('[api-client] streamAgent failed, using mock:', err);
+    notifyDemoMode('Agent backend unavailable');
+    yield* streamAgentMock(message);
+    return;
+  }
+
+  const reader = res.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = '';
+  let currentEvent = '';
+
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n');
+      // Keep the trailing partial line in the buffer for the next chunk.
+      buffer = lines.pop() ?? '';
+      for (const rawLine of lines) {
+        const line = rawLine.replace(/\r$/, '');
+        if (line.startsWith('event:')) {
+          currentEvent = line.slice(6).trim();
+        } else if (line.startsWith('data:')) {
+          const payload = line.slice(5).trim();
+          if (!payload) continue;
+          let parsed: unknown;
+          try {
+            parsed = JSON.parse(payload);
+          } catch {
+            continue; // skip a malformed frame rather than aborting the stream
+          }
+          const mapped = toAgentEvent(currentEvent, parsed);
+          if (mapped) yield mapped;
+        }
+      }
+    }
+  } catch (err) {
+    // Mid-stream transport drop — degrade to the mock tail rather than
+    // leaving the UI stuck on a half-finished answer.
+    console.warn('[api-client] streamAgent interrupted, using mock:', err);
+    notifyDemoMode('Agent stream interrupted');
+    yield* streamAgentMock(message);
+  } finally {
+    reader.releaseLock();
+  }
 }
 
 /**

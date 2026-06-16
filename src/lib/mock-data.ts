@@ -77,6 +77,25 @@ export function getMockAgentSteps(): readonly AgentStep[] {
   ];
 }
 
+// Canned agent answers keyed by topic — used by the streaming mock
+// fallback so the chat stays useful (and on-message) when the backend is
+// offline. Mirrors the topics the real Experience Navigator covers.
+const MOCK_AGENT_REPLIES: ReadonlyArray<readonly [RegExp, string]> = [
+  [/amazon/i, 'At Amazon, Swaraj built payment infrastructure handling 50M+ daily transactions — an event-driven migration from monolith to microservices with circuit breakers and idempotent consumers, shipped with zero downtime and saving ~$320K/yr at a 45ms p95. [Source: resume]'],
+  [/meshi/i, 'At Meshi.io, Swaraj ships multi-agent orchestration and production RAG for 1.8K+ enterprises — LangGraph workflows with live reasoning traces, a hybrid-search pipeline tuned to 94% retrieval accuracy, and Neo4j knowledge-graph memory. [Source: resume]'],
+  [/open|hir|avail|role|job/i, "Yes — Swaraj is actively open to senior / staff roles, Bay Area or remote. The fastest path is the “Hire me” button up top, or swarajbangar778@gmail.com."],
+  [/stack|tech|skill|language|tool/i, 'Core stack: Python · LangGraph · FastAPI · Claude API · pgvector / Neo4j on the AI side; React · Next.js · TypeScript on the front; AWS · Kubernetes · Redis for infra. [Source: GitHub]'],
+  [/lab|demo|chaos|rag/i, 'The Lab has four live demos — open any card for the full interactive version. The Chaos Lab is the fun one: kill a service and watch the circuit breakers trip and the mesh self-heal.'],
+];
+
+/** A canned, on-topic agent answer for the offline streaming fallback. */
+export function getMockAgentAnswer(query: string): string {
+  for (const [re, text] of MOCK_AGENT_REPLIES) {
+    if (re.test(query)) return text;
+  }
+  return "Good question — ask about Swaraj's work at Amazon or Meshi.io, his stack, or whether he's open to work. You can also poke the live demos in the Lab.";
+}
+
 // ── Chaos Lab ──
 
 export function getMockChaosMetrics(): ChaosMetrics {
