@@ -14,7 +14,7 @@
 
 import { useCallback, useRef, useState } from 'react';
 import { streamAgent } from '@/lib/api-client';
-import type { AgentStep, ChatMessage } from '@/lib/types';
+import type { AgentEvent, AgentStep, ChatMessage } from '@/lib/types';
 
 export interface UseAgentChat {
   readonly messages: ChatMessage[];
@@ -35,8 +35,14 @@ function newSessionId(): string {
 
 /**
  * @param initialMessages optional seed messages (e.g. a greeting bubble).
+ * @param onEvent optional per-frame callback (e.g. to react to the live
+ *   classify intent). Must be stable (wrap in useCallback) or it will
+ *   re-create sendMessage on every render.
  */
-export function useAgentChat(initialMessages: ChatMessage[] = []): UseAgentChat {
+export function useAgentChat(
+  initialMessages: ChatMessage[] = [],
+  onEvent?: (event: AgentEvent) => void
+): UseAgentChat {
   const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
   const [agentSteps, setAgentSteps] = useState<AgentStep[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -73,6 +79,7 @@ export function useAgentChat(initialMessages: ChatMessage[] = []): UseAgentChat 
       let answer = '';
       try {
         for await (const event of streamAgent(trimmed, sessionId)) {
+          onEvent?.(event);
           if (event.type === 'step') {
             setAgentSteps((s) => [...s, event.data]);
           } else if (event.type === 'token') {
@@ -94,7 +101,7 @@ export function useAgentChat(initialMessages: ChatMessage[] = []): UseAgentChat 
         inFlight.current = false;
       }
     },
-    [sessionId]
+    [sessionId, onEvent]
   );
 
   const clearHistory = useCallback(() => {

@@ -10,11 +10,12 @@
 // fires elsewhere — the chat never shows a broken state.
 // ═══════════════════════════════════════════════════════════════
 
-import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Sparkles, X, ArrowRight, Minus } from 'lucide-react';
 import { Avatar } from '@/components/ui/Avatar';
 import { useAgentChat } from '@/lib/hooks/useAgentChat';
-import type { AgentStep, ChatMessage } from '@/lib/types';
+import type { ChatMessage } from '@/lib/types';
+import { renderWithSources, stepLabel } from './agentFormat';
 
 const SUGGESTIONS = [
   'What did he build at Amazon?',
@@ -30,50 +31,6 @@ const GREETING: ChatMessage = {
     "Hey — I'm SwarajOS, Swaraj's portfolio agent. Ask me anything about his work, or try a prompt below.",
   timestamp: new Date(0).toISOString(),
 };
-
-/** Render assistant text, turning [Source: x] markers into accent pills. */
-function renderWithSources(text: string): ReactNode {
-  const parts = text.split(/(\[Source:[^\]]+\])/g);
-  return parts.map((part, i) => {
-    const m = part.match(/^\[Source:\s*([^\]]+)\]$/);
-    if (m) {
-      return (
-        <span key={i} className="src-pill">
-          {m[1].trim()}
-        </span>
-      );
-    }
-    return <span key={i}>{part}</span>;
-  });
-}
-
-/** Compact label + detail for one reasoning step, tolerant of missing data. */
-function stepLabel(step: AgentStep): { label: string; detail: string } {
-  const d = step.data as Record<string, unknown>;
-  const ms = step.latency_ms ? ` · ${Math.round(step.latency_ms)}ms` : '';
-  switch (step.type) {
-    case 'classify': {
-      const conf = typeof d.confidence === 'number' ? ` · ${d.confidence.toFixed(2)}` : '';
-      return { label: 'classify', detail: `${String(d.intent ?? 'intent')}${conf}` };
-    }
-    case 'route':
-      return { label: 'route', detail: String(d.selected_agent ?? d.agent ?? d.node ?? '') };
-    case 'tool_call':
-      return { label: 'tool_call', detail: `${String(d.tool ?? 'tool')}${ms}` };
-    case 'retrieve':
-      return { label: 'retrieve', detail: `${Number(d.chunk_count ?? d.chunks_retrieved ?? 0)} chunks` };
-    case 'generate': {
-      const tok = d.output_tokens ?? d.tokens;
-      return { label: 'generate', detail: `${String(d.model ?? 'model')}${tok ? ` · ${tok} tok` : ''}` };
-    }
-    case 'synthesize':
-      return { label: 'synthesize', detail: String(d.agent ?? '') };
-    case 'memory':
-      return { label: 'memory', detail: d.persisted ? 'persisted' : 'noted' };
-    default:
-      return { label: step.type, detail: '' };
-  }
-}
 
 export function ChatDock() {
   const [open, setOpen] = useState(false);
