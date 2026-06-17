@@ -1,33 +1,57 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
-const DATA = [12, 18, 14, 22, 19, 26, 31, 28, 35, 30, 38, 34, 41, 37, 44, 40, 33, 29, 36, 42, 39, 45, 43, 48];
-const W = 720, H = 240, PX = 6, PT = 14, PB = 24, MAX = 50, MIN = 8;
+const W = 720, H = 240, PX = 6, PT = 14, PB = 24;
 const GRID = [0.25, 0.5, 0.75];
 
-const xOf = (i: number) => PX + (i / (DATA.length - 1)) * (W - PX * 2);
-const yOf = (v: number) => PT + (1 - (v - MIN) / (MAX - MIN)) * (H - PT - PB);
+// Fallback series (also the visual when the backend is offline / has no
+// history yet) — the original synthetic "requests / min" curve.
+const FALLBACK = [
+  12, 18, 14, 22, 19, 26, 31, 28, 35, 30, 38, 34,
+  41, 37, 44, 40, 33, 29, 36, 42, 39, 45, 43, 48,
+];
 
-// smooth path (catmull-rom-ish via quadratic midpoints)
-const D = (() => {
-  let d = `M ${xOf(0)} ${yOf(DATA[0])}`;
-  for (let i = 1; i < DATA.length; i++) {
+/** Build the smooth line + area paths and the scale helpers for a series. */
+function buildPaths(series: number[]) {
+  const max = Math.max(...series);
+  const min = Math.min(...series);
+  const pad = (max - min) * 0.15 || 1;
+  const MAX = max + pad;
+  const MIN = Math.max(0, min - pad);
+  const n = series.length;
+  const xOf = (i: number) => PX + (i / (n - 1)) * (W - PX * 2);
+  const yOf = (v: number) => PT + (1 - (v - MIN) / (MAX - MIN || 1)) * (H - PT - PB);
+
+  let d = `M ${xOf(0)} ${yOf(series[0])}`;
+  for (let i = 1; i < n; i++) {
     const xm = (xOf(i - 1) + xOf(i)) / 2;
-    d += ` Q ${xm} ${yOf(DATA[i - 1])}, ${xm} ${(yOf(DATA[i - 1]) + yOf(DATA[i])) / 2} T ${xOf(i)} ${yOf(DATA[i])}`;
+    d += ` Q ${xm} ${yOf(series[i - 1])}, ${xm} ${(yOf(series[i - 1]) + yOf(series[i])) / 2} T ${xOf(i)} ${yOf(series[i])}`;
   }
-  return d;
-})();
-const AREA = `${D} L ${xOf(DATA.length - 1)} ${H - PB} L ${xOf(0)} ${H - PB} Z`;
+  const area = `${d} L ${xOf(n - 1)} ${H - PB} L ${xOf(0)} ${H - PB} Z`;
+  return { d, area, xOf, yOf };
+}
+
+interface MetricsChartProps {
+  /** Requests-per-sample series. Falls back to a synthetic curve when empty. */
+  data?: readonly number[];
+}
 
 /**
  * MetricsChart — interactive area chart for the observability section.
  * The line draws in on scroll (GSAP) and a crosshair tooltip follows the
- * pointer. Ported from the SVG chart IIFE in landing.js.
+ * pointer. Accepts a live request series; redraws reactively as it updates
+ * (the draw-in animation only plays once).
  */
-export function MetricsChart() {
+export function MetricsChart({ data }: MetricsChartProps) {
+  const series = useMemo<number[]>(
+    () => (data && data.length > 1 ? [...data] : FALLBACK),
+    [data]
+  );
+  const { d: D, area: AREA, xOf, yOf } = useMemo(() => buildPaths(series), [series]);
+
   const svgRef = useRef<SVGSVGElement>(null);
   const lineRef = useRef<SVGPathElement>(null);
   const fillRef = useRef<SVGPathElement>(null);
@@ -35,15 +59,20 @@ export function MetricsChart() {
   const vlineRef = useRef<SVGLineElement>(null);
   const dotRef = useRef<SVGCircleElement>(null);
   const tipRef = useRef<HTMLDivElement>(null);
+  const drawnRef = useRef(false);
 
+  // Draw-in animation — runs once; later data updates just re-path.
   useEffect(() => {
-    const svg = svgRef.current, line = lineRef.current, fill = fillRef.current;
-    const cross = crossRef.current, vline = vlineRef.current, dot = dotRef.current, tip = tipRef.current;
-    if (!svg || !line || !fill || !cross || !vline || !dot || !tip) return;
+    const line = lineRef.current, fill = fillRef.current;
+    if (!line || !fill) return;
+    if (drawnRef.current) {
+      line.style.strokeDasharray = 'none';
+      return;
+    }
+    drawnRef.current = true;
 
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     gsap.registerPlugin(ScrollTrigger);
-
     const len = line.getTotalLength();
     line.style.strokeDasharray = String(len);
     line.style.strokeDashoffset = reduced ? '0' : String(len);
@@ -52,24 +81,34 @@ export function MetricsChart() {
     if (!reduced) {
       const t1 = gsap.to(line, {
         strokeDashoffset: 0, duration: 1.8, ease: 'power2.inOut',
-        scrollTrigger: { trigger: svg, start: 'top 85%', once: true },
+        scrollTrigger: { trigger: svgRef.current, start: 'top 85%', once: true },
+        onComplete: () => { line.style.strokeDasharray = 'none'; },
       });
       const t2 = gsap.to(fill, {
         opacity: 1, duration: 1.0, delay: 0.9,
-        scrollTrigger: { trigger: svg, start: 'top 85%', once: true },
+        scrollTrigger: { trigger: svgRef.current, start: 'top 85%', once: true },
       });
       if (t1.scrollTrigger) triggers.push(t1.scrollTrigger);
       if (t2.scrollTrigger) triggers.push(t2.scrollTrigger);
     } else {
       fill.style.opacity = '1';
     }
+    return () => triggers.forEach((t) => t.kill());
+  }, [series]);
 
+  // Crosshair tooltip — re-bound when the series changes.
+  useEffect(() => {
+    const svg = svgRef.current, cross = crossRef.current;
+    const vline = vlineRef.current, dot = dotRef.current, tip = tipRef.current;
+    if (!svg || !cross || !vline || !dot || !tip) return;
     const wrap = svg.parentElement as HTMLElement;
+    const n = series.length;
+
     const onMove = (e: PointerEvent) => {
       const r = svg.getBoundingClientRect();
       const px = ((e.clientX - r.left) / r.width) * W;
-      const i = Math.max(0, Math.min(DATA.length - 1, Math.round(((px - PX) / (W - PX * 2)) * (DATA.length - 1))));
-      const cx = xOf(i), cy = yOf(DATA[i]);
+      const i = Math.max(0, Math.min(n - 1, Math.round(((px - PX) / (W - PX * 2)) * (n - 1))));
+      const cx = xOf(i), cy = yOf(series[i]);
       vline.setAttribute('x1', String(cx)); vline.setAttribute('x2', String(cx));
       dot.setAttribute('cx', String(cx)); dot.setAttribute('cy', String(cy));
       cross.style.opacity = '1';
@@ -77,18 +116,17 @@ export function MetricsChart() {
       tip.style.left = `${r.left - wr.left + (cx / W) * r.width}px`;
       tip.style.top = `${r.top - wr.top + (cy / H) * r.height}px`;
       tip.style.opacity = '1';
-      tip.innerHTML = `${DATA[i]}k req/min<small>${String(i).padStart(2, '0')}:00</small>`;
+      const agoMin = n - 1 - i;
+      tip.innerHTML = `${series[i]} req/min<small>${agoMin === 0 ? 'now' : `${agoMin}m ago`}</small>`;
     };
     const onLeave = () => { cross.style.opacity = '0'; tip.style.opacity = '0'; };
     svg.addEventListener('pointermove', onMove);
     svg.addEventListener('pointerleave', onLeave);
-
     return () => {
       svg.removeEventListener('pointermove', onMove);
       svg.removeEventListener('pointerleave', onLeave);
-      triggers.forEach((t) => t.kill());
     };
-  }, []);
+  }, [series, xOf, yOf]);
 
   return (
     <div className="glow-card gs-reveal">

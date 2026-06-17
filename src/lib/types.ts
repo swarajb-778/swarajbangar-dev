@@ -10,14 +10,24 @@ export interface ChatMessage {
   readonly role: 'user' | 'assistant';
   readonly content: string;
   readonly timestamp: string;
+  /** True while the assistant answer is still streaming in. */
+  readonly streaming?: boolean;
+  /** Final accounting from the agent `done` event. */
+  readonly metadata?: AgentDoneMeta;
 }
 
+// All seven step types the backend orchestrator can emit. `retrieve` is
+// currently folded into a `tool_call` (vector_search) and rarely surfaces,
+// but is kept for forward-compatibility. Unknown types must be rendered
+// defensively so a new backend step never breaks the trace UI.
 export type AgentStepType =
   | 'classify'
   | 'route'
   | 'tool_call'
   | 'retrieve'
-  | 'generate';
+  | 'generate'
+  | 'synthesize'
+  | 'memory';
 
 export type StepStatus = 'pending' | 'active' | 'complete' | 'error';
 
@@ -29,6 +39,20 @@ export interface AgentStep {
   readonly latency_ms?: number;
   readonly timestamp: string;
 }
+
+/** Final accounting frame from the agent SSE `done` event. */
+export interface AgentDoneMeta {
+  readonly total_latency_ms: number;
+  readonly tokens_used: number;
+  readonly model: string;
+}
+
+/** A single frame from the agent orchestrate SSE stream. */
+export type AgentEvent =
+  | { readonly type: 'step'; readonly data: AgentStep }
+  | { readonly type: 'token'; readonly data: { readonly text: string } }
+  | { readonly type: 'done'; readonly data: AgentDoneMeta }
+  | { readonly type: 'error'; readonly data: { readonly message: string; readonly code?: string } };
 
 // ── Chaos Lab ──
 
@@ -158,4 +182,35 @@ export interface MetricCard {
   readonly unit?: string;
   readonly trend?: MetricTrend;
   readonly sparklineData?: readonly number[];
+}
+
+// ── Live service stats (GET /v1/stats and friends) ──
+
+/** Snapshot from `/v1/stats`. Mirrors the FastAPI stats router. */
+export interface StatsSnapshot {
+  readonly total_requests: number;
+  readonly requests_today: number;
+  readonly p95_latency_ms: number;
+  readonly p50_latency_ms: number;
+  readonly error_rate: number;
+  readonly uptime_seconds: number;
+  readonly uptime_percent: number;
+  readonly agent_interactions_today: number;
+  readonly active_sessions: number;
+  readonly cache_hit_rate: number;
+}
+
+/** One rolling sample from `/v1/stats/timeseries`. */
+export interface StatsTimeseriesPoint {
+  readonly ts: number;
+  readonly requests: number;
+  readonly p50: number;
+  readonly p95: number;
+  readonly error_rate: number;
+}
+
+/** One slice from `/v1/stats/intents`. */
+export interface IntentCount {
+  readonly name: string;
+  readonly value: number;
 }
