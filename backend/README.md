@@ -63,3 +63,25 @@ make clean         # nuke volumes (DESTRUCTIVE)
 - **No** `openai` or `litellm` in requirements — Anthropic SDK only.
 - x86_64-compatible Docker images (DigitalOcean default).
 - All LLM calls must check the daily token budget via Redis before firing.
+
+## Deploying on a small (1 GB) host
+
+The API loads torch + a `~450 MB` embedding/reranker model **per uvicorn worker**, so on a 1 GB
+droplet it OOM-crashes with the default settings. Two host-level steps make a fresh deploy succeed:
+
+- **Keep `WEB_CONCURRENCY=1`** (the Docker default). One worker uses ~650 MB and fits in 1 GB.
+  Only raise it on a box with more RAM. The frontend proxies it server-side, so 1 worker is plenty.
+- **Add swap as a safety margin** (1 GB hosts ship with none):
+  ```bash
+  fallocate -l 2G /swapfile && chmod 600 /swapfile && mkswap /swapfile && swapon /swapfile
+  echo '/swapfile none swap sw 0 0' >> /etc/fstab    # persist across reboots
+  ```
+
+To expose the API directly on `:8000` (instead of behind Caddy), add a `docker-compose.override.yml`:
+```yaml
+services:
+  api:
+    ports: ["8000:8000"]
+```
+then `docker compose up -d --build api redis` and open the port (`ufw allow 8000/tcp`). Point the
+frontend's `BACKEND_ORIGIN` at `http://<DROPLET_IP>:8000`.
