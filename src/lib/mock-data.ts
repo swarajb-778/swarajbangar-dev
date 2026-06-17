@@ -12,10 +12,13 @@ import type {
   ChatMessage,
   EmbeddingPoint,
   ExperienceEntry,
+  IntentCount,
   MetricCard,
   ModelComparison,
   RAGResult,
   SkillNode,
+  StatsSnapshot,
+  StatsTimeseriesPoint,
 } from './types';
 import { EXPERIENCE_DATA, SKILLS_DATA } from './constants';
 
@@ -75,6 +78,25 @@ export function getMockAgentSteps(): readonly AgentStep[] {
       timestamp: new Date(base + 103).toISOString(),
     },
   ];
+}
+
+// Canned agent answers keyed by topic — used by the streaming mock
+// fallback so the chat stays useful (and on-message) when the backend is
+// offline. Mirrors the topics the real Experience Navigator covers.
+const MOCK_AGENT_REPLIES: ReadonlyArray<readonly [RegExp, string]> = [
+  [/amazon/i, 'At Amazon, Swaraj built payment infrastructure handling 50M+ daily transactions — an event-driven migration from monolith to microservices with circuit breakers and idempotent consumers, shipped with zero downtime and saving ~$320K/yr at a 45ms p95. [Source: resume]'],
+  [/meshi/i, 'At Meshi.io, Swaraj ships multi-agent orchestration and production RAG for 1.8K+ enterprises — LangGraph workflows with live reasoning traces, a hybrid-search pipeline tuned to 94% retrieval accuracy, and Neo4j knowledge-graph memory. [Source: resume]'],
+  [/open|hir|avail|role|job/i, "Yes — Swaraj is actively open to senior / staff roles, Bay Area or remote. The fastest path is the “Hire me” button up top, or swarajbangar778@gmail.com."],
+  [/stack|tech|skill|language|tool/i, 'Core stack: Python · LangGraph · FastAPI · Claude API · pgvector / Neo4j on the AI side; React · Next.js · TypeScript on the front; AWS · Kubernetes · Redis for infra. [Source: GitHub]'],
+  [/lab|demo|chaos|rag/i, 'The Lab has four live demos — open any card for the full interactive version. The Chaos Lab is the fun one: kill a service and watch the circuit breakers trip and the mesh self-heal.'],
+];
+
+/** A canned, on-topic agent answer for the offline streaming fallback. */
+export function getMockAgentAnswer(query: string): string {
+  for (const [re, text] of MOCK_AGENT_REPLIES) {
+    if (re.test(query)) return text;
+  }
+  return "Good question — ask about Swaraj's work at Amazon or Meshi.io, his stack, or whether he's open to work. You can also poke the live demos in the Lab.";
 }
 
 // ── Chaos Lab ──
@@ -400,5 +422,48 @@ export function getMockObservabilityMetrics(): readonly MetricCard[] {
       trend: 'up',
       sparklineData: [2, 3, 1, 2, 3, 1, 2],
     },
+  ];
+}
+
+// ── Live stats (offline fallbacks for /v1/stats and friends) ──
+
+export function getMockStats(): StatsSnapshot {
+  return {
+    total_requests: 18_432,
+    requests_today: 1_247,
+    p95_latency_ms: 142,
+    p50_latency_ms: 41,
+    error_rate: 0.0021,
+    uptime_seconds: 1_893_600,
+    uptime_percent: 99.97,
+    agent_interactions_today: 847,
+    active_sessions: 3,
+    cache_hit_rate: 0.78,
+  };
+}
+
+const MOCK_REQ_SERIES = [
+  12, 18, 14, 22, 19, 26, 31, 28, 35, 30, 38, 34,
+  41, 37, 44, 40, 33, 29, 36, 42, 39, 45, 43, 48,
+];
+
+export function getMockStatsTimeseries(): StatsTimeseriesPoint[] {
+  const now = Math.floor(Date.now() / 1000);
+  return MOCK_REQ_SERIES.map((requests, i) => ({
+    ts: now - (MOCK_REQ_SERIES.length - i) * 60,
+    requests,
+    p50: 38 + Math.round(Math.sin(i / 2) * 6),
+    p95: 132 + Math.round(Math.cos(i / 3) * 18),
+    error_rate: 0.002,
+  }));
+}
+
+export function getMockIntents(): IntentCount[] {
+  return [
+    { name: 'experience_query', value: 412 },
+    { name: 'project_query', value: 268 },
+    { name: 'skills_query', value: 121 },
+    { name: 'general_chat', value: 97 },
+    { name: 'meta_question', value: 70 },
   ];
 }

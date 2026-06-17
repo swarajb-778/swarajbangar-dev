@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState, type HTMLAttributes, type ReactNode } from 'react';
+import { useReducedMotion } from '@/lib/hooks/useReducedMotion';
 
 export interface RevealProps extends HTMLAttributes<HTMLDivElement> {
   /** Stagger offset in ms (80ms per sibling is the house rhythm). @default 0 */
@@ -28,15 +29,14 @@ export function Reveal({
   ...props
 }: RevealProps) {
   const ref = useRef<HTMLDivElement>(null);
+  const reduced = useReducedMotion();
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
     const el = ref.current;
-    if (!el) return;
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      setVisible(true);
-      return;
-    }
+    // Reduced motion: shown instantly by the render logic below — no
+    // observer, and crucially no synchronous setState in the effect body.
+    if (!el || reduced) return;
     const obs = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
@@ -50,15 +50,19 @@ export function Reveal({
     );
     obs.observe(el);
     return () => obs.disconnect();
-  }, [once]);
+  }, [once, reduced]);
+
+  const shown = visible || reduced;
 
   return (
     <div
       ref={ref}
       style={{
-        opacity: visible ? 1 : 0,
-        transform: visible ? 'translateY(0)' : `translateY(${y}px)`,
-        transition: `opacity ${duration}ms cubic-bezier(0.4,0,0.2,1) ${delay}ms, transform ${duration}ms cubic-bezier(0.4,0,0.2,1) ${delay}ms`,
+        opacity: shown ? 1 : 0,
+        transform: shown ? 'translateY(0)' : `translateY(${y}px)`,
+        transition: reduced
+          ? 'none'
+          : `opacity ${duration}ms cubic-bezier(0.4,0,0.2,1) ${delay}ms, transform ${duration}ms cubic-bezier(0.4,0,0.2,1) ${delay}ms`,
         ...style,
       }}
       {...props}

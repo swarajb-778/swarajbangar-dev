@@ -333,3 +333,54 @@ class ReadyResponse(BaseModel):
 
     status: Literal["ready", "degraded"]
     dependencies: dict[str, bool]
+
+
+# ════════════════════════════════════════════════════════════════════
+# ── Stats timeseries + intent distribution (Observability Wall) ──
+# ════════════════════════════════════════════════════════════════════
+
+
+class StatsTimeseriesPoint(BaseModel):
+    """One rolling sample for the metrics timeseries chart."""
+
+    model_config = ConfigDict(
+        json_schema_extra={
+            "example": {
+                "ts": 1747000000,
+                "requests": 42,
+                "p50": 38.0,
+                "p95": 142.0,
+                "error_rate": 0.0021,
+            }
+        }
+    )
+
+    ts: int
+    requests: int
+    p50: float
+    p95: float
+    error_rate: float
+
+
+class StatsTimeseriesResponse(BaseModel):
+    """GET /v1/stats/timeseries response — capped rolling history."""
+
+    points: list[StatsTimeseriesPoint] = Field(default_factory=list)
+
+
+class IntentCount(BaseModel):
+    """One slice of the agent intent-distribution donut."""
+
+    model_config = ConfigDict(
+        json_schema_extra={"example": {"name": "experience_query", "value": 412}}
+    )
+
+    name: str
+    value: int
+
+
+class IntentDistributionResponse(BaseModel):
+    """GET /v1/stats/intents response — agent interactions grouped by intent."""
+
+    intents: list[IntentCount] = Field(default_factory=list)
+    total: int = 0
