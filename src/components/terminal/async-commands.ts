@@ -2,7 +2,15 @@
 // Async Commands — Terminal commands that stream output over time
 // ═══════════════════════════════════════════════════════════════
 
-import type { TerminalHandle } from './Terminal';
+/**
+ * Minimal surface the streaming easter-egg commands need to emit output.
+ * `TerminalHandle` (xterm) structurally satisfies this, and so does the
+ * landing's CSS terminal adapter — letting both reuse these runners.
+ */
+export interface TerminalWriter {
+  writeln(data: string): void;
+  prompt(): void;
+}
 
 /** Sleep utility that respects AbortSignal */
 function sleepAsync(ms: number, signal: AbortSignal): Promise<void> {
@@ -37,7 +45,7 @@ const C = {
 } as const;
 
 /** Fake ping command — 4 replies with delays */
-export async function runPing(term: TerminalHandle, signal: AbortSignal): Promise<void> {
+export async function runPing(term: TerminalWriter, signal: AbortSignal): Promise<void> {
   try {
     term.writeln('');
     term.writeln(`  ${C.muted}PING google.com (142.250.80.46): 56 data bytes${C.reset}`);
@@ -64,7 +72,7 @@ export async function runPing(term: TerminalHandle, signal: AbortSignal): Promis
 }
 
 /** rm -rf / — fake glitch then recovery */
-export async function runRmRf(term: TerminalHandle, signal: AbortSignal): Promise<void> {
+export async function runRmRf(term: TerminalWriter, signal: AbortSignal): Promise<void> {
   try {
     term.writeln('');
     term.writeln(`  ${C.pink}rm: destroying filesystem...${C.reset}`);
@@ -96,7 +104,7 @@ export async function runRmRf(term: TerminalHandle, signal: AbortSignal): Promis
 }
 
 /** Matrix rain effect — green characters for 3 seconds */
-export async function runMatrix(term: TerminalHandle, signal: AbortSignal): Promise<void> {
+export async function runMatrix(term: TerminalWriter, signal: AbortSignal): Promise<void> {
   const katakana = 'ァアィイゥウェエォオカガキギクグケゲコゴサザシジスズセゼソゾタダ';
   const chars = katakana + '0123456789ABCDEF';
 
@@ -136,7 +144,7 @@ export async function runMatrix(term: TerminalHandle, signal: AbortSignal): Prom
 }
 
 /** sudo hire swaraj — with verification delay */
-export async function runSudoHire(term: TerminalHandle, signal: AbortSignal): Promise<void> {
+export async function runSudoHire(term: TerminalWriter, signal: AbortSignal): Promise<void> {
   try {
     term.writeln('');
     term.writeln(`  ${C.gold}🔐 Verifying credentials...${C.reset}`);
@@ -170,7 +178,7 @@ export async function runSudoHire(term: TerminalHandle, signal: AbortSignal): Pr
 }
 
 /** Registry of async command names to their runner functions */
-export type AsyncRunner = (term: TerminalHandle, signal: AbortSignal) => Promise<void>;
+export type AsyncRunner = (term: TerminalWriter, signal: AbortSignal) => Promise<void>;
 
 export function getAsyncCommand(input: string): AsyncRunner | null {
   const trimmed = input.trim().toLowerCase();
