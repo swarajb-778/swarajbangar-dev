@@ -367,18 +367,8 @@ export function Landing() {
       <section className="section contact" id="contact">
         <span className="kicker gs-reveal" style={{ justifyContent: 'center' }}>Contact</span>
         <h2 className="gs-reveal">Ready when <span className="grad">you are</span>.</h2>
-        <div className="term-wrap gs-reveal" data-delay="120">
-          <div className="term">
-            <div className="term-bar">
-              <span className="dots"><i style={{ background: '#FF5F57' }} /><i style={{ background: '#FEBC2E' }} /><i style={{ background: '#28C840' }} /></span>
-              <span className="title">terminal — contact</span>
-            </div>
-            <div className="term-body">
-              <div className="ln"><span className="p">$</span><span className="c-gold">sudo hire swaraj</span></div>
-              <div className="ln"><span className="p">→</span><span className="c-emerald">great choice. opening channel...</span></div>
-              <div className="ln"><span className="p">→</span><span className="c-text">{SITE_CONFIG.email}</span><span className="cursor" /></div>
-            </div>
-          </div>
+        <div className="gs-reveal" data-delay="120">
+          <HeroTerminal title="terminal — contact" autoFocusOnBoot={false} />
           <div className="cta-row" style={{ marginTop: 32 }}>
             <a className="btn-shimmer" href={`mailto:${SITE_CONFIG.email}`}>
               <span className="spin" />
