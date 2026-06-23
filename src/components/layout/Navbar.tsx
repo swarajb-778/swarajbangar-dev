@@ -43,7 +43,7 @@ export function Navbar() {
       >
         <div className="glass-nav flex items-center gap-1 rounded-full border border-white/[0.08] py-2 pl-[18px] pr-2 shadow-[0_8px_32px_rgba(0,0,0,0.35)]">
           {/* Logo / wordmark */}
-          <Link href="/portfolio" className="group mr-3 flex items-center gap-2">
+          <Link href="/" className="group mr-3 flex items-center gap-2">
             <span className="font-display text-[19px] font-bold leading-none tracking-tight text-accent-primary transition-colors group-hover:text-[#7C6CF7]">
               SB
             </span>
