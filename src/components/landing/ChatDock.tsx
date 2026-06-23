@@ -50,6 +50,14 @@ export function ChatDock() {
     return () => window.removeEventListener('swarajos:demo-mode', onDemo);
   }, []);
 
+  // Let other surfaces (e.g. the hero terminal `agent`/`chat` command) open
+  // the dock without prop-drilling shared state.
+  useEffect(() => {
+    const onOpen = () => setOpen(true);
+    window.addEventListener('swarajos:open-chat', onOpen);
+    return () => window.removeEventListener('swarajos:open-chat', onOpen);
+  }, []);
+
   const ask = (q: string) => {
     const text = q.trim();
     if (!text || isLoading) return;
