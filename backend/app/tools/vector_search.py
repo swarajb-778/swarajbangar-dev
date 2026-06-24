@@ -6,14 +6,14 @@ This tool runs a higher-recall retrieval than the bare
   1. Dense vector search (pgvector cosine) AND lexical search in parallel.
   2. Lexical search uses an **OR-joined** ``to_tsquery`` rather than
      ``plainto_tsquery``.  plainto ANDs every term, so a natural-language
-     question like "What did Swaraj build at Amazon?" becomes
+     question like "What did Swaraj build at McKinsey?" becomes
      ``swaraj & build & amazon`` — which matches no single chunk (the
      corpus rarely contains all three) and silently returns nothing.
      OR semantics let a strong keyword ("amazon") pull its chunk in.
   3. Reciprocal Rank Fusion merges the two ranked lists.
   4. A cross-encoder reranker (when registered) re-scores the fused pool.
      This is what rescues large, embedding-diluted chunks (e.g. the whole
-     Amazon role section) that rank low on raw cosine but are clearly the
+     McKinsey role section) that rank low on raw cosine but are clearly the
      best answer once query+doc are scored together.
 
 Resources (db pool, embedder, reranker) come from the global tool

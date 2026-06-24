@@ -25,7 +25,7 @@ class AgentChatRequest(BaseModel):
     model_config = ConfigDict(
         json_schema_extra={
             "example": {
-                "message": "Tell me about Swaraj's experience at Amazon",
+                "message": "Tell me about Swaraj's experience at McKinsey",
                 "session_id": "8c39ec3e-b2a8-4f3e-9c2a-2b7e9f1e8c3d",
                 "context": {"source": "chat-widget"},
             }

@@ -1,92 +1,26 @@
 # Notable Projects
 
-## Collaborito — Real-time collaborative notepad with CRDT sync
+## Flagship — GenAI-Powered Treasury & Credit-Risk Intelligence Platform (McKinsey & Company)
 
-A production-grade collaborative document editor built end-to-end as a
-demonstration of a low-latency, conflict-free multi-user system.  Lives
-under `/lab/fullstack` on this site.
+Current role. Swaraj architected the backend, built the React dashboards, and built the GenAI intelligence layer on top.
 
-- **Why it's interesting.** Most "Google Docs clone" demos cheat by
-  using operational transformation (OT) on the server; Collaborito uses
-  Yjs CRDTs end-to-end so the client model and server model are the
-  same data structure.  Adding a third backend (or zero backends, in
-  peer-to-peer mode) is a configuration change.
-- **Stack.** Next.js 14 (App Router) on the frontend with a custom
-  Yjs binding.  A FastAPI WebSocket gateway in front of a Postgres
-  `documents` table that stores the Y.Doc binary state + a circular
-  buffer of recent updates for fast late-joiner sync.  Redis Streams
-  for the per-document presence channel.  Hetzner CX31 deploy with
-  Caddy fronting two app containers behind a sticky-session load balancer.
-- **Hard parts.** Awareness state (cursors, selections, names) had to
-  ride a different channel from the document updates to keep the
-  presence ticker from drowning the persistence pipeline.  Late-joiner
-  sync is two-phase: snapshot of the current Y.Doc state, then a
-  catch-up replay of any updates that landed during the snapshot
-  transfer.
-- **Results.** 50ms median sync latency in same-region clients; 180ms
-  cross-continent.  Zero divergence events across 14 days of automated
-  chaos testing that injected packet loss, connection resets, and
-  clock skew.
+**The problem:** Treasury and credit-risk teams were drowning in data but starved of insight — 15,000+ transactions a day, liquidity to monitor, credit exposure to assess, most of it done by hand. In a domain where a late or wrong read on risk has real financial consequences, that lag was a genuine business problem. The goal was to turn a pile of transactions into fast, trustworthy, decision-ready intelligence.
 
-## RapidOrch — Self-hosted workflow orchestrator
+**The approach (in layers):**
 
-A lightweight Airflow alternative for teams that want declarative
-pipelines without the operational burden of running a full Airflow
-deployment.  Built when Softgenio's data team had three
-Airflow-on-Kubernetes outages in two months.
+1. **Cloud-native backend foundation** — microservices in Python/FastAPI (treasury management, liquidity monitoring, credit-exposure analytics), backed by PostgreSQL + Redis, exposed via GraphQL and REST. Independent services → ~42% better backend scalability.
+2. **Real-time event processing** — Kafka-driven event processing and server-side analytics so transactions are handled as events, not nightly batches → 35% faster visibility, ~45% less manual effort; new consumers (alerting, analytics) added without touching producers.
+3. **React analytics dashboards** — React/TypeScript dashboards that surface liquidity, exposure, and risk across 15,000+ daily transactions; TypeScript keeps the financial data correctly typed end to end.
+4. **GenAI financial-intelligence layer** — retrieval-augmented generation: data embedded into Pinecone, orchestrated with LangChain, LLMs answering analyst questions behind secure APIs, grounded in retrieved facts. Cut analyst research effort ~40%.
+5. **ML forecasting & risk reporting** — predictive models tracked with MLflow → forecasting/risk accuracy from 82% to 96%.
+6. **Security & production hardening** — Docker, Kubernetes, Terraform, OAuth 2.0, CI/CD, CloudWatch on AWS → production incidents down ~25%.
 
-- **Why it's interesting.** Single binary, SQLite or Postgres backend,
-  no Celery / no Redis required.  Pipelines defined in YAML and version-
-  controlled with the application code.  Backfill, retry-with-backoff,
-  and dependency-aware scheduling all behave the same locally and in
-  production.
-- **Stack.** Go binary with Bubble Tea TUI for the operator console.
-  Embedded BadgerDB for state, with Postgres as an optional adapter
-  for HA deploys.  Goroutine-pool task runner with structured logging
-  to stderr and JSON-line emission to a configurable sink.
-- **Hard parts.** Getting time-based scheduling right across DST
-  transitions and timezone changes — the kind of bug you only see
-  twice a year and that has eaten months of senior engineers' time
-  at other companies.  Designed catch-up semantics around explicit
-  "as of" timestamps stored alongside every run record.
-- **Results.** Replaced 11 internal cron-based and Airflow-based
-  workflows at Softgenio.  ~2K lines of Go.  Open-source on GitHub
-  with 380 stars at the time of this writing; one external contributor
-  has shipped a Slack notification adapter.
+**Hardest problem:** making the GenAI safe. The naive approach is to just call an LLM, but in a financial product you cannot have it inventing numbers about liquidity or credit exposure. Grounding every answer in retrieval (RAG), constraining prompts, validating outputs, and keeping a human in the loop is what made it shippable. The lesson: in finance, the value of AI isn't fluency — it's how reliably grounded it is.
 
-## SwarajOS — Multi-agent orchestration playground
+**Why RAG over fine-tuning:** the data changes constantly (new transactions/reports daily), so RAG just updates the vector store instead of retraining; it grounds each answer in specific, citable sources (critical when an analyst needs to verify); and it avoids baking sensitive data into model weights.
 
-A tabbed lab for trying out agent topologies (planner/executor,
-debate, hierarchical) against a fixed set of tasks (file Q/A,
-math word problems, code generation).  Lives under `/lab/agent`
-on this site.  Open-source on GitHub.
+**STAR:** *Situation* — analysts manually making sense of 15K+ daily transactions, slow and risky. *Task* — build a platform turning that into fast, trustworthy intelligence (backend, dashboards, GenAI). *Action* — Python/FastAPI microservices, Kafka real-time monitoring, React dashboards, a RAG/LangChain/Pinecone GenAI layer, ML forecasting with MLflow, hardened on AWS. *Result* — scalability +42%, risk visibility +35% with 45% less manual effort, analyst effort −40%, forecasting 82%→96%, incidents −25%.
 
-- Implements four agent patterns on top of LangGraph: ReAct,
-  Plan-and-Execute, Reflexion-style self-critique, and a hierarchical
-  "manager + workers" pattern.  Each runs on the same task set so
-  you can see the latency / cost / accuracy trade-offs side by side.
-- All agent state is streamed to the frontend over Server-Sent Events
-  so users can watch the planning, tool calls, and intermediate
-  reasoning in real time rather than waiting for a single batched
-  response.
-- Cost guardrails baked in: per-conversation token cap, per-day
-  spend cap, and a kill-switch the operator can flip to force-route
-  everything to Haiku.
+## ThoughtWorks — Fintech Reconciliation Platform (84% → 97%)
 
-## Chaos Lab — Failure injection visualizer
-
-The `/lab/backend/chaos` demo on this site.  A toy distributed system
-(3 services, 1 database, 1 cache) that the visitor can deliberately
-break — kill a service, slow the database, partition the network — and
-watch the system's behavior in a live request-flow visualization.
-
-- Demonstrates load-shedding, circuit-breaking, retry-with-backoff,
-  and graceful degradation patterns in a way that doesn't require
-  the visitor to set up a Kubernetes cluster.
-- The entire thing runs in the browser: each "service" is a Web Worker
-  with simulated latency and failure modes, the "network" is a
-  pub/sub channel between workers, and the "database" is a simple
-  in-memory store with configurable consistency knobs.
-- Used during system-design interview prep with two coworkers; both
-  reported it helped them articulate trade-offs they had been
-  taking for granted.
+Lending and payment-reconciliation platforms processing 500K+ transactions/month at 99.8% accuracy. The headline win: reconciliation matching was relying on logic that missed edge cases, so a meaningful share of transactions needed manual intervention. Swaraj built automated matching engines with more robust rules, event-driven validation so records were checked as they flowed through, data-validation frameworks to catch bad records early, and optimized the PostgreSQL queries the matching ran on — taking matched-correctly from 84% to 97% and removing most manual cleanup downstream. Also cut onboarding time 34%, loan-processing time 38% (Redis caching + async), and accelerated exception detection/settlement 45% with Pandas/Kafka ETL. Tech: Python, REST APIs, PostgreSQL, MongoDB, Redis, Kafka, microservices, Azure, Docker, Jenkins, CI/CD, OAuth 2.0/JWT.
