@@ -1,39 +1,29 @@
-# About
+# About Swaraj Bangar
 
-I'm Swaraj Bangar — an AI engineer who likes the boring, load-bearing
-parts of agent systems.  The retrieval pipeline that actually finds
-the right paragraph.  The memory layer that doesn't drift.  The
-tool-call sandbox that fails closed.  The cost guardrail that keeps
-a runaway agent from spending the company's quarterly budget in an
-afternoon.
+**One-line pitch:** Full-stack engineer who has spent his whole career building financial systems people trust — and who now layers GenAI and ML on top of solid Python / React / AWS foundations.
 
-I'm currently a Senior AI Engineer at Meshi.io (MyAscend AI), where I
-own the multi-agent platform that serves our enterprise customers
-in healthcare, fintech, and logistics — a LangGraph runtime with a
-pgvector + Neo4j retrieval and memory stack, multi-model routing
-through LiteLLM, and streaming SSE / WebSocket interfaces that show
-users what the agent is doing in real time.
+## Who he is
 
-Before Meshi, I spent two years at Amazon as an SDE II on the
-payment-authorization team, where I led the carve-out of three
-services from a 12-year-old Java monolith handling 50M+ daily auth
-requests.  That work is where I learned that the interesting
-problems in distributed systems are almost never the textbook ones
-— they're the ones about feature flags, shadow traffic, and how to
-roll back without anyone noticing.
+Swaraj is a full-stack engineer who has spent his whole career so far inside financial software — the kind of systems where a bug doesn't just annoy a user, it can misreport money. He started at ThoughtWorks in India building fintech lending and payment-reconciliation platforms that moved half a million transactions a month, learning early how to make money systems correct, fast, and trustworthy. He then moved to the United States for a Master's in Computer Science, and now works at McKinsey & Company building treasury and credit-risk software that surfaces insight across thousands of daily transactions.
 
-I have an MS in Computer Science from Cal State East Bay (2024), a
-research project on agent memory under Prof. Levent Ertöz that
-seeded the Neo4j layer I now run in production, and a BE in IT
-from the University of Mumbai (2018).  I live in the San Francisco
-Bay Area and care about the intersection of distributed systems
-and agentic AI — the place where the patterns from one feed the
-constraints of the other.
+What makes his profile current rather than just solid is the AI layer. He doesn't only build the backend and the React dashboard on top of it — he wires in Generative AI: retrieval-augmented generation, LangChain, vector search with Pinecone, and large language models behind secure APIs, so that analysts get answers instead of raw data. He pairs that with real machine-learning practice — predictive models, MLflow for tracking, forecasting — and runs it all on cloud-native infrastructure with Docker, Kubernetes, Terraform, and CI/CD. So in one person you get the frontend, the backend, the data, the AI, and the deployment.
 
-This site is the working version of my résumé.  Most pages have a
-live demo, not just a description.  The terminal at the top runs
-real commands.  The lab demos run real code.  The chat in the
-corner is a small instance of the same retrieval pipeline I ship
-at Meshi, scoped to this site's content.  If you came here looking
-for the kind of engineer who can ship an agent system into
-production and keep it there, you're in the right place.
+The through-theme is trust. Every system he names — reconciliation engines, onboarding workflows, risk analytics, treasury forecasting — is something a business has to rely on with money on the line. He has built for correctness and security from day one: OAuth 2.0, JWT, secrets management, monitoring, incident remediation. The story isn't "I know a long list of tools" — it's "I build financial systems people trust, and I keep making them smarter."
+
+## At a glance
+
+- ~3 years 9 months of professional software engineering, all in financial services / fintech.
+- 2 companies, 2 countries: ThoughtWorks (India) → McKinsey & Company (USA).
+- Domains: treasury & credit-risk management, lending & payment reconciliation, Generative-AI/LLM applications, cloud-native distributed systems.
+- Full stack + GenAI + cloud + DevOps in one engineer.
+- US Master's in Computer Science (California State University) on top of a B.S. in CS from Pune University.
+
+## Tell me about yourself (short)
+
+I'm a full-stack developer, and almost everything I've built has been financial software — the kind where being wrong actually costs money. Right now I'm at McKinsey building treasury and credit-risk platforms: Python and FastAPI on the backend, React dashboards on the front, and a GenAI layer on top so analysts can ask questions and get grounded answers instead of digging through data. Before that I spent over three years at ThoughtWorks in India building lending and payment-reconciliation systems handling more than half a million transactions a month — that's where I really learned to make money systems correct and fast under load. In between I came to the US for my Master's in Computer Science. What I enjoy most is owning a problem end to end — the frontend, the backend, the data, the AI, and getting it safely into production.
+
+## Why now
+
+He's looking for a role where he can keep owning systems end to end and keep going deeper on the GenAI-plus-solid-engineering combination he's been building at McKinsey. The core of what he's after is scope: build the whole thing, own it in production, and work with people he learns from. He is based in San Francisco and open to relocate, and open to software engineering roles.
+
+Contact: swarajbangar778@gmail.com.

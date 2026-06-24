@@ -29,7 +29,7 @@ export function getMockChatResponse(): ChatMessage {
     id: `msg-${Date.now()}`,
     role: 'assistant',
     content:
-      "Hey! I'm SwarajOS — Swaraj's portfolio agent. I can tell you about his experience building multi-agent systems at Meshi.io, scaling payment infrastructure at Amazon (50M+ req/day), or walk you through any of the live demos in the Lab. Try asking me to 'design a URL shortener' or 'review this code snippet'!",
+      "Hey! I'm SwarajOS — Swaraj's portfolio agent. I can tell you about his GenAI/treasury work at McKinsey, the fintech platforms he built at ThoughtWorks (500K+ txns/month), his stack, or walk you through any of the live demos in the Lab. Try asking me to 'design a URL shortener' or 'review this code snippet'!",
     timestamp: new Date().toISOString(),
   };
 }
@@ -84,10 +84,10 @@ export function getMockAgentSteps(): readonly AgentStep[] {
 // fallback so the chat stays useful (and on-message) when the backend is
 // offline. Mirrors the topics the real Experience Navigator covers.
 const MOCK_AGENT_REPLIES: ReadonlyArray<readonly [RegExp, string]> = [
-  [/amazon/i, 'At Amazon, Swaraj built payment infrastructure handling 50M+ daily transactions — an event-driven migration from monolith to microservices with circuit breakers and idempotent consumers, shipped with zero downtime and saving ~$320K/yr at a 45ms p95. [Source: resume]'],
-  [/meshi/i, 'At Meshi.io, Swaraj ships multi-agent orchestration and production RAG for 1.8K+ enterprises — LangGraph workflows with live reasoning traces, a hybrid-search pipeline tuned to 94% retrieval accuracy, and Neo4j knowledge-graph memory. [Source: resume]'],
-  [/open|hir|avail|role|job/i, "Yes — Swaraj is actively open to senior / staff roles, Bay Area or remote. The fastest path is the “Hire me” button up top, or swarajbangar778@gmail.com."],
-  [/stack|tech|skill|language|tool/i, 'Core stack: Python · LangGraph · FastAPI · Claude API · pgvector / Neo4j on the AI side; React · Next.js · TypeScript on the front; AWS · Kubernetes · Redis for infra. [Source: GitHub]'],
+  [/mckinsey|treasury|credit|genai|rag|current/i, 'At McKinsey, Swaraj builds a treasury & credit-risk intelligence platform — Python/FastAPI microservices over 15K+ daily transactions (+42% scalability), React dashboards, Kafka real-time monitoring, and a RAG/LangChain/Pinecone GenAI layer that cut analyst research effort ~40%. ML forecasting lifted accuracy 82%→96%. [Source: resume]'],
+  [/thoughtworks|reconcil|lending|payment|fintech|india/i, 'At ThoughtWorks (Full Stack → Senior, 2021–2024), Swaraj built fintech lending & payment-reconciliation platforms at 500K+ txns/month, 99.8% accuracy — taking reconciliation from 84% to 97%, cutting onboarding 34% and loan processing 38%, and lifting availability 32% through incident ownership. [Source: resume]'],
+  [/open|hir|avail|role|job/i, "Yes — Swaraj is open to software engineering roles, based in San Francisco and open to relocate. The fastest path is the “Hire me” button up top, or swarajbangar778@gmail.com."],
+  [/stack|tech|skill|language|tool/i, 'Core stack: Python · TypeScript · FastAPI · React/Next.js on the build side; RAG · LangChain · Pinecone · LLMs · MLflow for GenAI/ML; PostgreSQL · MongoDB · Redis · Kafka for data; AWS · Azure · Docker · Kubernetes · Terraform for infra. [Source: resume]'],
   [/lab|demo|chaos|rag/i, 'The Lab has four live demos — open any card for the full interactive version. The Chaos Lab is the fun one: kill a service and watch the circuit breakers trip and the mesh self-heal.'],
 ];
 
@@ -96,7 +96,7 @@ export function getMockAgentAnswer(query: string): string {
   for (const [re, text] of MOCK_AGENT_REPLIES) {
     if (re.test(query)) return text;
   }
-  return "Good question — ask about Swaraj's work at Amazon or Meshi.io, his stack, or whether he's open to work. You can also poke the live demos in the Lab.";
+  return "Good question — ask about Swaraj's work at McKinsey or ThoughtWorks, his stack, or whether he's open to work. You can also poke the live demos in the Lab.";
 }
 
 // ── Chaos Lab ──
@@ -309,7 +309,7 @@ export function getMockBlogPosts(): readonly BlogPost[] {
   return [
     {
       slug: 'production-rag-pipelines',
-      title: 'Building Production RAG Pipelines: Lessons from 1.8K Enterprises',
+      title: 'Building Production RAG Pipelines: Grounding LLMs in Financial Data',
       description:
         'What I learned building RAG systems that actually work in production — chunking strategies, reranking, and the metrics that matter.',
       date: '2024-03-10',
@@ -320,7 +320,7 @@ export function getMockBlogPosts(): readonly BlogPost[] {
       slug: 'rest-to-event-sourcing',
       title: 'Why I Left REST for Event Sourcing',
       description:
-        'After building payment systems at Amazon handling 50M+ daily requests, here\'s why event sourcing changed how I think about distributed state.',
+        'After building payment-reconciliation systems at ThoughtWorks handling 500K+ monthly transactions, here\'s why event sourcing changed how I think about distributed state.',
       date: '2024-02-18',
       readingTime: '9 min read',
       tags: ['Event Sourcing', 'Distributed Systems', 'Architecture'],
@@ -345,15 +345,15 @@ export function getMockCaseStudies(): readonly CaseStudy[] {
       slug: 'multi-agent-orchestration',
       title: 'Multi-Agent Orchestration at Scale',
       headline:
-        'How we built a 12-agent system serving 1.8K enterprises with 94% RAG accuracy and sub-300ms orchestration latency.',
+        'How SwarajOS — this site\'s own agent — routes questions through a LangGraph multi-agent pipeline with hybrid RAG, reranking, and a live reasoning trace.',
       techFocus: ['LangGraph', 'Claude API', 'Neo4j', 'Redis Streams'],
     },
     {
-      slug: 'amazon-event-migration',
-      title: 'Event-Driven Migration at Amazon',
+      slug: 'fintech-reconciliation',
+      title: 'Reconciliation Accuracy: 84% → 97%',
       headline:
-        'Migrating a monolithic payment system to event-driven microservices while maintaining 50M+ daily transactions and 99.99% uptime.',
-      techFocus: ['AWS', 'DynamoDB', 'SQS', 'Event Sourcing'],
+        'Replacing brittle matching logic with automated matching engines and event-driven validation on a 500K-txn/month fintech platform at ThoughtWorks.',
+      techFocus: ['Python', 'PostgreSQL', 'Kafka', 'Event-Driven'],
     },
     {
       slug: 'rag-pipeline-tuning',

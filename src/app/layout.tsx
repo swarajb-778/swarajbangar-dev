@@ -30,7 +30,7 @@ export const metadata: Metadata = {
     template: '%s | Swaraj Bangar',
   },
   description:
-    'AI Engineer building production agent systems, distributed backends, and interactive demos. Previously Amazon, currently exploring the frontier of agentic AI.',
+    'Full-stack engineer building financial systems people trust — Python/FastAPI/React/AWS with GenAI & ML. Currently at McKinsey; previously ThoughtWorks.',
   openGraph: {
     title: 'Swaraj Bangar — AI Engineer',
     description:
