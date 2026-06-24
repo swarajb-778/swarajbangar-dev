@@ -10,8 +10,8 @@ Strategy:
 Resume special case:
   When source type is ``resume``, split by H2 (``## Role — Company``) and
   keep each role as ONE chunk — even if it exceeds the soft size cap.  A
-  hiring manager asking "what did Swaraj do at Amazon?" must retrieve the
-  whole Amazon section, not half of it.
+  hiring manager asking "what did Swaraj do at McKinsey?" must retrieve the
+  whole McKinsey section, not half of it.
 
 List handling:
   Adjacent bullets (``- item`` / ``* item``) inside a paragraph are kept

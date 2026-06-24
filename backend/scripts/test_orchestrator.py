@@ -2,8 +2,8 @@
 
 Usage:
     python -m scripts.test_orchestrator "Hi there"
-    python -m scripts.test_orchestrator "What did Swaraj build at Amazon?"
-    python -m scripts.test_orchestrator --rag "Tell me about Meshi.io"
+    python -m scripts.test_orchestrator "What did Swaraj build at McKinsey?"
+    python -m scripts.test_orchestrator --rag "Tell me about ThoughtWorks"
 
 Builds the deps the orchestrator needs (Anthropic client, optional Redis,
 settings), runs ``run_agent``, and pretty-prints every event it yields:
@@ -113,7 +113,7 @@ async def _register_retriever(settings):
     retriever = HybridRetriever(pool, embedder, settings)
     tool_registry.set_retriever(retriever)
 
-    # Reranker is what surfaces embedding-diluted chunks (e.g. the Amazon
+    # Reranker is what surfaces embedding-diluted chunks (e.g. the McKinsey
     # role) for the vector_search tool.
     from app.rag.reranker import CrossEncoderReranker
 

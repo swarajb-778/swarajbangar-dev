@@ -3,7 +3,7 @@ fused via Reciprocal Rank Fusion.
 
 Why hybrid:
   Dense embedding search captures semantic matches ("AI engineer" ≈
-  "machine learning person") but misses literal entity names ("Amazon",
+  "machine learning person") but misses literal entity names ("McKinsey",
   "LangGraph", "RAG") when they tokenize into rare or unseen sub-words.
   Lexical search is the opposite — strong on literal matches, weak on
   paraphrase.  RRF fuses both ranked lists without needing to calibrate
