@@ -18,8 +18,8 @@ import type { ChatMessage } from '@/lib/types';
 import { renderWithSources, stepLabel } from './agentFormat';
 
 const SUGGESTIONS = [
-  'What did he build at Amazon?',
-  'Tell me about Meshi.io',
+  'What did he build at McKinsey?',
+  'Tell me about ThoughtWorks',
   'Is he open to work?',
   "What's his stack?",
 ];
