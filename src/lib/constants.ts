@@ -8,9 +8,9 @@ import type { ExperienceEntry, SkillNode } from './types';
 
 export const SITE_CONFIG = {
   name: 'Swaraj Bangar',
-  title: 'AI Engineer',
+  title: 'Full Stack Developer',
   description:
-    'AI Engineer building production agent systems, distributed backends, and interactive demos. Previously Amazon, currently exploring the frontier of agentic AI.',
+    'Full-stack engineer building financial systems people trust — Python/FastAPI/React/AWS with GenAI & ML. Currently at McKinsey; previously ThoughtWorks.',
   url: 'https://swarajbangar.dev',
   github: 'https://github.com/swarajb-778',
   linkedin: 'https://www.linkedin.com/in/swarajb778/',
@@ -29,11 +29,11 @@ export const TERMINAL_CONFIG = {
       color: 'emerald',
     },
     {
-      text: '$ connecting to: meshi.io | amazon | csu_east_bay',
+      text: '$ connecting to: mckinsey | thoughtworks | cal_state',
       color: 'gold',
     },
     {
-      text: '$ status: open_to_senior_roles | bay_area',
+      text: '$ status: open_to_software_engineering_roles | san_francisco | open_to_relocate',
       color: 'emerald',
     },
     {
@@ -68,88 +68,70 @@ export const NAV_ITEMS: readonly NavItem[] = [
 
 export const EXPERIENCE_DATA: readonly ExperienceEntry[] = [
   {
-    company: 'Meshi.io',
-    title: 'AI Engineer',
-    dates: 'Sep 2025 – Present',
-    description:
-      'Building multi-agent orchestration systems and production RAG pipelines for enterprise AI applications. Designing LangGraph-based agent workflows with real-time reasoning visibility.',
-    metrics: [
-      { label: 'Agents in production', value: '12+' },
-      { label: 'RAG accuracy', value: '94%' },
-      { label: 'Enterprises served', value: '1.8K+' },
-    ],
-    technologies: [
-      'Python',
-      'LangGraph',
-      'LangChain',
-      'Claude API',
-      'FastAPI',
-      'PostgreSQL',
-      'pgvector',
-      'Redis',
-      'Neo4j',
-    ],
-  },
-  {
-    company: 'Amazon',
-    title: 'Software Development Engineer',
-    dates: 'Jun 2023 – Sep 2024',
-    description:
-      'Built and maintained high-throughput payment infrastructure handling 50M+ daily transactions. Designed event-driven microservices with circuit breakers and chaos engineering practices.',
-    metrics: [
-      { label: 'Daily requests', value: '50M+' },
-      { label: 'Cost saved', value: '$320K' },
-      { label: 'P95 latency', value: '45ms' },
-    ],
-    technologies: [
-      'Java',
-      'AWS',
-      'DynamoDB',
-      'SQS',
-      'Lambda',
-      'CloudFormation',
-      'Go',
-      'Redis',
-    ],
-  },
-  {
-    company: 'Softgenio',
+    company: 'McKinsey & Company',
     title: 'Full Stack Developer',
-    dates: 'Aug 2023 – Mar 2024',
+    dates: 'Jan 2026 – Present',
     description:
-      'Developed end-to-end web applications for enterprise clients. Led migration from monolith to microservices architecture, improving deployment frequency by 4x.',
+      'Building a treasury & credit-risk intelligence platform: cloud-native Python/FastAPI microservices over 15K+ daily transactions, React dashboards, Kafka real-time monitoring, and a RAG/LangChain/Pinecone GenAI layer so analysts get grounded answers instead of raw tables. Brought ML forecasting (MLflow) into risk reporting and hardened it all with Docker/Kubernetes/Terraform/CI-CD on AWS.',
     metrics: [
-      { label: 'Deploy frequency', value: '4x' },
-      { label: 'API response time', value: '-60%' },
-      { label: 'Client retention', value: '95%' },
-    ],
-    technologies: [
-      'React',
-      'Node.js',
-      'TypeScript',
-      'PostgreSQL',
-      'Docker',
-      'Kubernetes',
-    ],
-  },
-  {
-    company: 'Black Box',
-    title: 'Software Engineer',
-    dates: 'Dec 2021 – Jun 2023',
-    description:
-      'Built data pipeline and analytics dashboards for network infrastructure monitoring. Implemented real-time alerting system processing thousands of events per second.',
-    metrics: [
-      { label: 'Events processed', value: '10K/s' },
-      { label: 'Alert accuracy', value: '99.2%' },
-      { label: 'Dashboard users', value: '500+' },
+      { label: 'Backend scalability', value: '+42%' },
+      { label: 'Analyst research effort', value: '-40%' },
+      { label: 'Forecast accuracy', value: '82→96%' },
     ],
     technologies: [
       'Python',
+      'FastAPI',
       'React',
-      'Elasticsearch',
+      'GraphQL',
       'Kafka',
-      'Grafana',
+      'RAG',
+      'LangChain',
+      'Pinecone',
+      'AWS',
+    ],
+  },
+  {
+    company: 'ThoughtWorks',
+    title: 'Senior Full Stack Software Engineer',
+    dates: 'Dec 2023 – Sep 2024',
+    description:
+      'Promoted to Senior on the fintech lending & payment platforms. Cut loan-application processing time 38% with workflow automation, Redis caching and backend tuning; modernized deployment automation and platform security (Docker, Jenkins, CI/CD, OAuth 2.0, JWT) for +30% stability; and owned production reliability — remediating critical incidents to lift availability 32% and cut resolution time 27%.',
+    metrics: [
+      { label: 'System availability', value: '+32%' },
+      { label: 'Loan processing time', value: '-38%' },
+      { label: 'Platform stability', value: '+30%' },
+    ],
+    technologies: [
+      'Python',
+      'Redis',
       'Docker',
+      'Jenkins',
+      'CI/CD',
+      'OAuth 2.0',
+      'JWT',
+      'Microservices',
+    ],
+  },
+  {
+    company: 'ThoughtWorks',
+    title: 'Full Stack Software Engineer',
+    dates: 'May 2021 – Dec 2023',
+    description:
+      'Built fintech lending & payment-reconciliation platforms processing 500K+ monthly transactions at 99.8% accuracy. Took reconciliation accuracy from 84% to 97% with automated matching engines, event-driven validation and PostgreSQL query optimization; established secure onboarding/transaction-validation workflows (-34% onboarding time); and accelerated exception detection & settlement tracking 45% with Pandas/Kafka ETL pipelines.',
+    metrics: [
+      { label: 'Reconciliation accuracy', value: '84→97%' },
+      { label: 'Monthly transactions', value: '500K+' },
+      { label: 'Onboarding time', value: '-34%' },
+    ],
+    technologies: [
+      'Python',
+      'PostgreSQL',
+      'MongoDB',
+      'Redis',
+      'Kafka',
+      'Pandas',
+      'Azure',
+      'REST APIs',
     ],
   },
 ] as const;

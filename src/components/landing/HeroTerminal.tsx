@@ -12,8 +12,8 @@ const PROMPT = 'visitor@swarajbangar.dev:~$';
 // Boot lines, typed out char-by-char on load (instant under reduced motion).
 const BOOT: ReadonlyArray<{ readonly cls: string; readonly text: string }> = [
   { cls: 'c-teal', text: 'initializing swaraj_bangar.dev...' },
-  { cls: 'c-emerald', text: 'loading modules: [ai_engineering, distributed_systems, full_stack]' },
-  { cls: 'c-gold', text: 'status: open_to_senior_roles | bay_area' },
+  { cls: 'c-emerald', text: 'loading modules: [full_stack, genai, distributed_systems, fintech]' },
+  { cls: 'c-gold', text: 'status: open_to_software_engineering_roles | san_francisco | open_to_relocate' },
   { cls: 'c-text', text: "system ready. type 'help' to explore — or just start typing." },
 ];
 

@@ -17,17 +17,13 @@ export interface ExperienceCardProps {
 }
 
 const COMPANY_COLORS: Record<string, string> = {
-  'Meshi.io': 'var(--accent-primary)',
-  Amazon: 'var(--accent-gold)',
-  Softgenio: 'var(--accent-teal)',
-  'Black Box': 'var(--accent-coral)',
+  'McKinsey & Company': 'var(--accent-primary)',
+  ThoughtWorks: 'var(--accent-teal)',
 } as const;
 
 const COMPANY_LINKS: Record<string, string> = {
-  'Meshi.io': '/lab/ai',
-  Amazon: '/lab/backend',
-  Softgenio: '/lab/fullstack',
-  'Black Box': '/lab/backend',
+  'McKinsey & Company': '/lab/ai',
+  ThoughtWorks: '/lab/backend',
 } as const;
 
 const METRIC_COLORS = [

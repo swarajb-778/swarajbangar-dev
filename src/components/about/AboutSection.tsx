@@ -23,14 +23,14 @@ const STATS = [
     color: 'var(--accent-primary)',
   },
   {
-    label: 'Requests/Day',
-    value: '50M+',
+    label: 'Txns/Month',
+    value: '500K+',
     icon: Zap,
     color: 'var(--accent-teal)',
   },
   {
-    label: 'Enterprises',
-    value: '1.8K+',
+    label: 'Reconciliation',
+    value: '97%',
     icon: Building2,
     color: 'var(--accent-emerald)',
   },
@@ -49,17 +49,17 @@ export function AboutSection() {
       {/* Left: Text + Stats */}
       <div className="space-y-5">
         <p className="text-text-secondary leading-relaxed text-lg">
-          AI engineer who builds production agent systems — not demos, not
-          prototypes, but systems that serve{' '}
-          <span className="text-accent-emerald font-medium">1.8K+ enterprises</span>{' '}
-          daily.
+          Full-stack engineer who builds financial systems people trust — not
+          demos, but money-critical systems that serve{' '}
+          <span className="text-accent-emerald font-medium">15K+ daily transactions</span>{' '}
+          at McKinsey.
         </p>
         <p className="text-text-secondary leading-relaxed">
           Previously at{' '}
-          <span className="text-accent-gold font-medium">Amazon</span> building
-          payment infrastructure processing 50M+ requests/day. Currently
-          exploring the frontier of agentic AI: multi-agent orchestration, RAG
-          pipeline optimization, and making LLMs actually reliable in production.
+          <span className="text-accent-gold font-medium">ThoughtWorks</span> building
+          fintech lending &amp; payment-reconciliation platforms (500K+ txns/month).
+          Now layering GenAI and ML — RAG, LangChain, Pinecone — on solid
+          Python/React/AWS foundations.
         </p>
         <p className="text-text-secondary leading-relaxed">
           I believe the best way to prove engineering skills is to{' '}
