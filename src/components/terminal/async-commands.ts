@@ -160,8 +160,8 @@ export async function runSudoHire(term: TerminalWriter, signal: AbortSignal): Pr
     term.writeln(`  ${C.muted}║${C.reset}  ${C.teal}💻${C.reset} github.com/swarajb-778                   ${C.muted}║${C.reset}`);
     term.writeln(`  ${C.muted}║${C.reset}  ${C.teal}📍${C.reset} San Francisco Bay Area                   ${C.muted}║${C.reset}`);
     term.writeln(`  ${C.muted}║${C.reset}                                              ${C.muted}║${C.reset}`);
-    term.writeln(`  ${C.muted}║${C.reset}  ${C.gold}Current:${C.reset}  AI Engineer @ Meshi.io           ${C.muted}║${C.reset}`);
-    term.writeln(`  ${C.muted}║${C.reset}  ${C.gold}Previous:${C.reset} SDE @ Amazon                     ${C.muted}║${C.reset}`);
+    term.writeln(`  ${C.muted}║${C.reset}  ${C.gold}Current:${C.reset}  Full-Stack Dev @ McKinsey         ${C.muted}║${C.reset}`);
+    term.writeln(`  ${C.muted}║${C.reset}  ${C.gold}Previous:${C.reset} Sr FSE @ ThoughtWorks             ${C.muted}║${C.reset}`);
     term.writeln(`  ${C.muted}║${C.reset}                                              ${C.muted}║${C.reset}`);
     term.writeln(`  ${C.muted}║${C.reset}  ${C.muted}Superpower: Building AI systems that${C.reset}       ${C.muted}║${C.reset}`);
     term.writeln(`  ${C.muted}║${C.reset}  ${C.muted}actually work in production.${C.reset}               ${C.muted}║${C.reset}`);

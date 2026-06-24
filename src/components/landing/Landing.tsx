@@ -34,8 +34,10 @@ import { LabModalHost, type LabKey } from './LabDemos';
 import { ChatDock } from './ChatDock';
 
 const TECH = [
-  'Python', 'LangGraph', 'Claude API', 'FastAPI', 'pgvector', 'Neo4j',
-  'React', 'Next.js', 'TypeScript', 'AWS', 'Kubernetes', 'Redis',
+  'Python', 'TypeScript', 'JavaScript', 'React', 'Next.js', 'FastAPI',
+  'Django', 'Node.js', 'GraphQL', 'REST APIs', 'PostgreSQL', 'MongoDB',
+  'Redis', 'Kafka', 'RAG', 'LangChain', 'Pinecone', 'LLMs', 'MLflow',
+  'AWS', 'Azure', 'Docker', 'Kubernetes', 'Terraform',
 ];
 
 /** Live/demo badge + "updated Xs ago" for the observability section. */
@@ -173,11 +175,11 @@ export function Landing() {
 
       {/* ── Hero ── */}
       <header className="hero" id="top">
-        <span className="hero-pill"><span className="dot" />open_to_senior_roles · bay_area</span>
+        <span className="hero-pill"><span className="dot" />open_to_software_engineering_roles · san_francisco · open_to_relocate</span>
         <h1>Systems that<br /><span className="grad">prove themselves.</span></h1>
         <p className="lede">
-          AI engineer building production agent systems and distributed backends.
-          Every section below is a <code>working demo</code> — not a bullet point.
+          Full-stack engineer building financial systems people trust — now layering
+          GenAI and ML on Python · React · AWS. Every section below is a <code>working demo</code> — not a bullet point.
         </p>
         <div className="cta-row">
           <a className="btn-shimmer" href="#lab">
@@ -203,9 +205,9 @@ export function Landing() {
       {/* ── Stats ── */}
       <section className="section" id="stats">
         <div className="stats">
-          <div className="stat gs-reveal" data-tint="purple"><div className="num"><em data-count="4">0</em>+ yrs</div><div className="lbl">Shipping production systems</div></div>
-          <div className="stat gs-reveal" data-delay="80" data-tint="teal"><div className="num"><em data-count="50">0</em>M+</div><div className="lbl">Daily requests at Amazon</div></div>
-          <div className="stat gs-reveal" data-delay="160" data-tint="emerald"><div className="num"><em data-count="1800">0</em>+</div><div className="lbl">Enterprises on Meshi agents</div></div>
+          <div className="stat gs-reveal" data-tint="purple"><div className="num"><em data-count="4">0</em>+ yrs</div><div className="lbl">Building production fintech</div></div>
+          <div className="stat gs-reveal" data-delay="80" data-tint="teal"><div className="num"><em data-count="500">0</em>K+</div><div className="lbl">Monthly transactions, ThoughtWorks</div></div>
+          <div className="stat gs-reveal" data-delay="160" data-tint="emerald"><div className="num"><em data-count="15">0</em>K+</div><div className="lbl">Daily transactions, McKinsey</div></div>
           <div className="stat gs-reveal" data-delay="240" data-tint="gold"><div className="num"><em data-count="99.97" data-dec="1">0</em>%</div><div className="lbl">This site&apos;s uptime</div></div>
         </div>
       </section>
@@ -219,13 +221,13 @@ export function Landing() {
             <div className="body">
               <span className="smear" /><span className="hl top" /><span className="hl left" />
               <div className="exp">
-                <div className="when">Sep 2025 — Now</div>
+                <div className="when">Jan 2026 — Now</div>
                 <div className="card-body">
-                  <h3>Meshi.io <span>· AI Engineer</span></h3>
-                  <p>Multi-agent orchestration and production RAG for 1.8K+ enterprises — LangGraph workflows with live reasoning traces, hybrid-search pipeline tuned to 94% accuracy, Neo4j knowledge-graph memory.</p>
-                  <div className="tags"><i>Python</i><i>LangGraph</i><i>Claude API</i><i>pgvector</i><i>Neo4j</i></div>
+                  <h3>McKinsey &amp; Company <span>· Full Stack Developer</span></h3>
+                  <p>Treasury &amp; credit-risk intelligence platform — cloud-native Python/FastAPI microservices over 15K+ daily transactions, React dashboards, Kafka real-time monitoring, and a RAG/LangChain/Pinecone GenAI layer so analysts get grounded answers, not raw tables.</p>
+                  <div className="tags"><i>Python</i><i>FastAPI</i><i>React</i><i>Kafka</i><i>RAG</i><i>AWS</i></div>
                 </div>
-                <div className="metric"><div className="v" style={{ color: 'var(--accent-primary)' }}>94%</div><div className="k">RAG accuracy</div></div>
+                <div className="metric"><div className="v" style={{ color: 'var(--accent-primary)' }}>+42%</div><div className="k">scalability</div></div>
               </div>
             </div>
           </div>
@@ -233,13 +235,13 @@ export function Landing() {
             <div className="body">
               <span className="smear" /><span className="hl top" /><span className="hl left" />
               <div className="exp">
-                <div className="when">Jun 2023 — Sep 2024</div>
+                <div className="when">Dec 2023 — Sep 2024</div>
                 <div className="card-body">
-                  <h3>Amazon <span>· Software Development Engineer</span></h3>
-                  <p>Payment infrastructure at 50M+ daily transactions — event-driven migration from monolith to microservices with circuit breakers and idempotent consumers, zero downtime, $320K/yr saved.</p>
-                  <div className="tags"><i>Java</i><i>AWS</i><i>DynamoDB</i><i>SQS</i><i>Go</i></div>
+                  <h3>ThoughtWorks <span>· Senior Full Stack Software Engineer</span></h3>
+                  <p>Promoted to Senior on the lending &amp; payment platforms — Redis caching and backend tuning cut loan processing 38%, Docker/Jenkins/CI-CD hardening lifted stability 30%, and incident remediation raised availability 32%.</p>
+                  <div className="tags"><i>Python</i><i>Redis</i><i>Docker</i><i>Jenkins</i><i>CI/CD</i><i>OAuth 2.0</i></div>
                 </div>
-                <div className="metric"><div className="v" style={{ color: 'var(--accent-teal)' }}>45ms</div><div className="k">p95 latency</div></div>
+                <div className="metric"><div className="v" style={{ color: 'var(--accent-teal)' }}>+32%</div><div className="k">availability</div></div>
               </div>
             </div>
           </div>
@@ -247,13 +249,13 @@ export function Landing() {
             <div className="body">
               <span className="smear" /><span className="hl top" /><span className="hl left" />
               <div className="exp">
-                <div className="when">Aug 2023 — Mar 2024</div>
+                <div className="when">May 2021 — Dec 2023</div>
                 <div className="card-body">
-                  <h3>Softgenio <span>· Full Stack Developer</span></h3>
-                  <p>End-to-end web apps; led the monolith → microservices migration that 4x&apos;d deployment frequency and cut API response time 60%.</p>
-                  <div className="tags"><i>React</i><i>Node.js</i><i>TypeScript</i><i>Docker</i><i>Kubernetes</i></div>
+                  <h3>ThoughtWorks <span>· Full Stack Software Engineer</span></h3>
+                  <p>Built fintech lending &amp; payment-reconciliation platforms at 500K+ transactions/month, 99.8% accuracy. Automated matching engines and event-driven validation took reconciliation from 84% to 97%; secure onboarding cut onboarding time 34%.</p>
+                  <div className="tags"><i>Python</i><i>PostgreSQL</i><i>MongoDB</i><i>Kafka</i><i>Azure</i><i>REST</i></div>
                 </div>
-                <div className="metric"><div className="v" style={{ color: 'var(--accent-coral)' }}>4×</div><div className="k">deploy freq</div></div>
+                <div className="metric"><div className="v" style={{ color: 'var(--accent-coral)' }}>84→97%</div><div className="k">reconciliation</div></div>
               </div>
             </div>
           </div>
@@ -340,7 +342,7 @@ export function Landing() {
               <span className="expand-chip"><Maximize2 /></span>
               <div className="lab-head"><Users /><span className="name">real-time · WebSocket</span></div>
               <h3>Collaborative systems</h3>
-              <p className="desc">Live cursors under 50ms, Redis pub/sub fan-out, presence that scales horizontally. The same patterns that ran 50M+ requests a day at Amazon, miniaturized into demos you can poke.</p>
+              <p className="desc">Live cursors under 50ms, Redis pub/sub fan-out, presence that scales horizontally. The same event-driven patterns behind real-time payment monitoring at McKinsey, miniaturized into demos you can poke.</p>
             </div>
           </div>
         </div>

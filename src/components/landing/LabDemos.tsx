@@ -141,7 +141,7 @@ const AGENT_GREETING: ChatMessage = {
   id: 'ad-greeting',
   role: 'assistant',
   content:
-    "Hey — I'm SwarajOS. Ask what Swaraj built at Amazon or Meshi.io, and watch the intent classifier and reasoning trace update live.",
+    "Hey — I'm SwarajOS. Ask what Swaraj built at McKinsey or ThoughtWorks, and watch the intent classifier and reasoning trace update live.",
   timestamp: new Date(0).toISOString(),
 };
 
