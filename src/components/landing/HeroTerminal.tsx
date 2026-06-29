@@ -156,6 +156,9 @@ export function HeroTerminal({
           case 'open_chat':
             window.dispatchEvent(new CustomEvent('swarajos:open-chat'));
             break;
+          case 'open_resume':
+            window.dispatchEvent(new CustomEvent('swarajos:open-resume'));
+            break;
           case 'copy':
             if (result.copyText) navigator.clipboard?.writeText(result.copyText).catch(() => {});
             break;
