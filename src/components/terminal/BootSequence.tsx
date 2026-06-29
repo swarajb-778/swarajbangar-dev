@@ -94,6 +94,9 @@ export function BootSequence({ onBootComplete, className }: BootSequenceProps) {
           case 'open_chat':
             actions.openChat();
             break;
+          case 'open_resume':
+            window.dispatchEvent(new CustomEvent('swarajos:open-resume'));
+            break;
           case 'copy':
             if (result.copyText) actions.copyToClipboard(result.copyText);
             break;

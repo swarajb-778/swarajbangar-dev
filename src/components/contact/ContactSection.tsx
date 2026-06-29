@@ -1,3 +1,5 @@
+'use client';
+
 import { Mail, FileText } from 'lucide-react';
 import { SITE_CONFIG } from '@/lib/constants';
 import { ShimmerButton } from '@/components/ui/ShimmerButton';
@@ -44,18 +46,30 @@ export function ContactSection() {
       </ShimmerButton>
 
       <div className="flex justify-center gap-4">
-        {CONTACT_LINKS.map(({ icon: Icon, href, label }) => (
-          <a
-            key={label}
-            href={href}
-            target={href.startsWith('mailto') ? undefined : '_blank'}
-            rel={href.startsWith('mailto') ? undefined : 'noopener noreferrer'}
-            aria-label={label}
-            className="flex items-center justify-center size-12 rounded-full bg-bg-surface border border-border-default text-text-muted hover:text-text-primary hover:bg-bg-elevated transition-all duration-150"
-          >
-            <Icon size={20} />
-          </a>
-        ))}
+        {CONTACT_LINKS.map(({ icon: Icon, href, label }) =>
+          label === 'Resume' ? (
+            <button
+              key={label}
+              type="button"
+              onClick={() => window.dispatchEvent(new CustomEvent('swarajos:open-resume'))}
+              aria-label="Open contact form"
+              className="flex items-center justify-center size-12 rounded-full bg-bg-surface border border-border-default text-text-muted hover:text-text-primary hover:bg-bg-elevated transition-all duration-150"
+            >
+              <Icon size={20} />
+            </button>
+          ) : (
+            <a
+              key={label}
+              href={href}
+              target={href.startsWith('mailto') ? undefined : '_blank'}
+              rel={href.startsWith('mailto') ? undefined : 'noopener noreferrer'}
+              aria-label={label}
+              className="flex items-center justify-center size-12 rounded-full bg-bg-surface border border-border-default text-text-muted hover:text-text-primary hover:bg-bg-elevated transition-all duration-150"
+            >
+              <Icon size={20} />
+            </a>
+          )
+        )}
       </div>
     </div>
   );

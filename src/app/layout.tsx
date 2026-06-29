@@ -3,6 +3,7 @@ import { Inter, JetBrains_Mono, Space_Grotesk } from 'next/font/google';
 import { FloatingProvider } from '@/lib/floating-context';
 import { SiteChrome } from '@/components/layout/SiteChrome';
 import { DemoModeToast } from '@/components/ui/DemoModeToast';
+import { ResumeModalHost } from '@/components/contact/ResumeModalHost';
 import './globals.css';
 
 const inter = Inter({
@@ -77,6 +78,7 @@ export default function RootLayout({
         <FloatingProvider>
           <SiteChrome>{children}</SiteChrome>
           <DemoModeToast />
+          <ResumeModalHost />
         </FloatingProvider>
       </body>
     </html>
