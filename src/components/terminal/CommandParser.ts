@@ -7,7 +7,7 @@ import { isSoundEnabled, setSoundEnabled } from '@/lib/hooks/useSoundEffects';
 
 export interface CommandResult {
   readonly output: readonly string[];
-  readonly action?: 'scroll_to' | 'navigate' | 'open_url' | 'clear' | 'open_chat' | 'copy';
+  readonly action?: 'scroll_to' | 'navigate' | 'open_url' | 'clear' | 'open_chat' | 'open_resume' | 'copy';
   readonly target?: string;
   readonly copyText?: string;
 }
@@ -292,9 +292,8 @@ export function parseCommand(input: string): CommandResult {
 
     case 'resume':
       return {
-        output: [`  ${C.emerald}→ Opening resume...${C.reset}`, ''],
-        action: 'open_url',
-        target: SITE_CONFIG.resume,
+        output: [`  ${C.emerald}→ Opening contact form...${C.reset}`, ''],
+        action: 'open_resume',
       };
 
     case 'contact':
