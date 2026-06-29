@@ -378,7 +378,7 @@ export function Landing() {
                 <span className="arrow"><ArrowRight size={14} /></span>
               </span>
             </a>
-            <a className="btn-ghost" href={SITE_CONFIG.resume} target="_blank" rel="noopener noreferrer"><FileText size={16} />Resume</a>
+            <button type="button" className="btn-ghost" onClick={() => window.dispatchEvent(new CustomEvent('swarajos:open-resume'))}><FileText size={16} />Resume</button>
           </div>
         </div>
       </section>
@@ -386,7 +386,7 @@ export function Landing() {
       <footer className="site">
         <div className="in">
           <a className="nav-logo" href="#top"><b>SB</b><span>swarajbangar<i>.dev</i></span></a>
-          <span className="tag">Built with Next.js, FastAPI, LangGraph, Claude, and too much coffee.</span>
+          <span className="tag">Built in SFO ❤️ with Next.js, FastAPI, LangGraph, Claude and too much coffee</span>
           <div className="links">
             <a href={SITE_CONFIG.github} target="_blank" rel="noopener noreferrer"><GitHubIcon />GitHub</a>
             <a href={SITE_CONFIG.linkedin} target="_blank" rel="noopener noreferrer"><LinkedInIcon />LinkedIn</a>
