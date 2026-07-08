@@ -37,6 +37,16 @@ class AgentChatRequest(BaseModel):
     context: dict[str, Any] | None = None
 
 
+class TTSRequest(BaseModel):
+    """POST /v1/tts — text to synthesize (capped to bound per-call cost)."""
+
+    model_config = ConfigDict(
+        json_schema_extra={"example": {"text": "Swaraj built AI systems at McKinsey."}}
+    )
+
+    text: str = Field(..., min_length=1, max_length=1_500)
+
+
 class RAGQueryRequest(BaseModel):
     """POST /v1/rag/query body."""
 

@@ -23,7 +23,7 @@ from fastapi.responses import JSONResponse
 
 from app import __version__
 from app.config import get_settings
-from app.routers import agent, health, rag, stats, ws
+from app.routers import agent, health, rag, stats, tts, ws
 from app.routers.ws import ConnectionManager
 
 logger = logging.getLogger("swarajbangar.api")
@@ -418,6 +418,7 @@ app.include_router(rag.router, prefix="/v1/rag", tags=["rag"])
 app.include_router(agent.router, prefix="/v1/agent", tags=["agent"])
 app.include_router(ws.router, prefix="/v1", tags=["ws"])
 app.include_router(stats.router, prefix="/v1/stats", tags=["stats"])
+app.include_router(tts.router, prefix="/v1/tts", tags=["tts"])
 
 
 # ════════════════════════════════════════════════════════════════════
