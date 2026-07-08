@@ -213,7 +213,7 @@ export function AgentDemo() {
               <div className="t"><b>classify</b>intent router</div>
               <div className="t"><b>route</b>experience_navigator</div>
               <div className="t"><b>tool_call</b>vector_search</div>
-              <div className="t"><b>generate</b>claude-sonnet-4</div>
+              <div className="t"><b>generate</b>gpt-4.1-mini</div>
             </>
           ) : (
             agentSteps.map((s) => {
