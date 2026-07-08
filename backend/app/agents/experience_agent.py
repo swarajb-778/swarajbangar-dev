@@ -5,7 +5,7 @@ Pipeline within the node:
      the query is about projects/tech/skills; graph_traverse on follow-ups).
   2. Run them in parallel.
   3. Fold the results into a single context block.
-  4. Generate a grounded, cited answer with Sonnet.
+  4. Generate a grounded, cited answer with the OpenAI answer model.
 
 Each tool call and the generation are recorded as pipeline steps so the
 frontend X-ray panel can show the full reasoning trace.
@@ -25,14 +25,15 @@ from app.agents.budget import (
     budget_available,
     record_tokens,
 )
+from app.agents.prompts import EXPERIENCE_SYSTEM_PROMPT
 from app.agents.state import AgentState, append_step
+from app.llm import chat_completion
 from app.tools.github_search import github_search
 from app.tools.graph_traverse import graph_traverse
 from app.tools.vector_search import vector_search
 
 logger = logging.getLogger(__name__)
 
-_SONNET_MODEL = "claude-sonnet-4-5"
 _MAX_TOKENS = 800
 _TEMPERATURE = 0.2
 
@@ -51,17 +52,6 @@ _PROJECT_SIGNALS = {
     "repo", "repos", "repository", "code", "tool", "tools", "open-source",
     "opensource", "github", "use", "uses", "using", "work", "worked",
 }
-
-SYSTEM_PROMPT = (
-    "You are the Experience Navigator, a specialized agent within SwarajOS. "
-    "Answer questions about Swaraj Bangar's professional experience, skills, "
-    "and projects. Use ONLY the provided context. Always cite sources using "
-    "[Source: type] format (e.g., [Source: resume], [Source: GitHub]). Be "
-    "specific with numbers, dates, and technical details. If the context "
-    "doesn't cover the question, say so honestly and suggest what the user "
-    "could ask instead."
-)
-
 
 def _wants_github(query: str, intent: str | None) -> bool:
     """Decide whether to also run github_search for this query."""
@@ -119,10 +109,11 @@ def _result_count(result: Any) -> int:
 
 
 async def execute_experience(state: AgentState, deps: dict[str, Any]) -> AgentState:
-    """Answer an experience/skills/project query with tools + Sonnet."""
-    anthropic = deps["anthropic"]
+    """Answer an experience/skills/project query with tools + the LLM."""
+    openai = deps["openai"]
     redis = deps.get("redis")
     settings = deps["settings"]
+    model = settings.OPENAI_MODEL
     query = state["current_message"]
     intent = state.get("intent")
 
@@ -195,34 +186,36 @@ async def execute_experience(state: AgentState, deps: dict[str, Any]) -> AgentSt
 
     context_text = "\n\n".join(context_parts) if context_parts else "(no context retrieved)"
 
-    # ─── 4. Generate response with Sonnet (budget-guarded) ──
+    # ─── 4. Generate response with the OpenAI model (budget-guarded) ──
     if not await budget_available(redis, settings):
         state["agent_response"] = BUDGET_EXCEEDED_MESSAGE
         append_step(
             state,
             "generate",
             "complete",
-            {"model": _SONNET_MODEL, "method": "budget_fallback"},
+            {"model": model, "method": "budget_fallback"},
             0.0,
         )
         return state
 
     user_msg = f"Context:\n{context_text}\n\nQuestion: {query}"
+    history = [
+        {"role": m["role"], "content": m["content"]}
+        for m in state.get("messages", [])
+    ]
     t0 = time.perf_counter()
     try:
-        response = await anthropic.messages.create(
-            model=_SONNET_MODEL,
+        answer, total = await chat_completion(
+            openai,
+            model=model,
+            system=EXPERIENCE_SYSTEM_PROMPT,
+            history=history,
+            user=user_msg,
             max_tokens=_MAX_TOKENS,
             temperature=_TEMPERATURE,
-            system=SYSTEM_PROMPT,
-            messages=[{"role": "user", "content": user_msg}],
         )
         gen_ms = (time.perf_counter() - t0) * 1000
-        state["agent_response"] = "".join(
-            b.text for b in response.content if getattr(b, "type", None) == "text"
-        ).strip()
-        usage = response.usage
-        total = usage.input_tokens + usage.output_tokens
+        state["agent_response"] = answer
         state.setdefault("metadata", {})["total_tokens"] = (
             state.get("metadata", {}).get("total_tokens", 0) + total
         )
@@ -231,11 +224,7 @@ async def execute_experience(state: AgentState, deps: dict[str, Any]) -> AgentSt
             state,
             "generate",
             "complete",
-            {
-                "model": response.model,
-                "input_tokens": usage.input_tokens,
-                "output_tokens": usage.output_tokens,
-            },
+            {"model": model, "tokens": total},
             gen_ms,
         )
     except Exception as exc:  # noqa: BLE001
@@ -249,7 +238,7 @@ async def execute_experience(state: AgentState, deps: dict[str, Any]) -> AgentSt
             state,
             "generate",
             "error",
-            {"model": _SONNET_MODEL, "error": str(exc)},
+            {"model": model, "error": str(exc)},
             (time.perf_counter() - t0) * 1000,
         )
 
