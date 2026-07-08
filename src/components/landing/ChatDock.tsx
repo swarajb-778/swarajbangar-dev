@@ -15,7 +15,7 @@ import { Sparkles, X, ArrowRight, Minus } from 'lucide-react';
 import { Avatar } from '@/components/ui/Avatar';
 import { useAgentChat } from '@/lib/hooks/useAgentChat';
 import type { ChatMessage } from '@/lib/types';
-import { renderWithSources, stepLabel } from './agentFormat';
+import { renderAssistantMarkdown, stepLabel } from './agentFormat';
 
 const SUGGESTIONS = [
   'What did he build at McKinsey?',
@@ -98,7 +98,7 @@ export function ChatDock() {
                     <div className="bubble assistant typing-bubble"><span /><span /><span /></div>
                   ) : (
                     <div className={`bubble ${m.role}`}>
-                      {m.role === 'assistant' ? renderWithSources(m.content) : m.content}
+                      {m.role === 'assistant' ? renderAssistantMarkdown(m.content) : m.content}
                     </div>
                   )}
                 </div>
