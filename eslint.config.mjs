@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Python backend (incl. its .venv with bundled JS) is not lint territory.
+    "backend/**",
   ]),
 ]);
 

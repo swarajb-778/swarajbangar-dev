@@ -1,7 +1,7 @@
 """Application configuration loaded from environment via pydantic-settings.
 
 Reads .env at process start. All env vars are typed fields with sensible
-defaults where safe. Critical secrets (ANTHROPIC_API_KEY, DATABASE_URL)
+defaults where safe. Critical secrets (OPENAI_API_KEY, DATABASE_URL)
 are validated at import time — startup fails fast with a helpful message
 if they're missing.
 """
@@ -26,10 +26,26 @@ class Settings(BaseSettings):
         env_ignore_empty=True,
     )
 
-    # ─── Anthropic ────────────────────────────────────────────────────
-    ANTHROPIC_API_KEY: str = Field(
+    # ─── OpenAI ───────────────────────────────────────────────────────
+    OPENAI_API_KEY: str = Field(
         default="",
-        description="Anthropic API key. Get one at https://console.anthropic.com",
+        description="OpenAI API key. Get one at https://platform.openai.com",
+    )
+    OPENAI_MODEL: str = Field(
+        default="gpt-4.1-mini",
+        description="Model for answer generation.",
+    )
+    OPENAI_CLASSIFIER_MODEL: str = Field(
+        default="gpt-4.1-nano",
+        description="Cheap model for intent classification.",
+    )
+    OPENAI_TTS_MODEL: str = Field(
+        default="gpt-4o-mini-tts",
+        description="Text-to-speech model.",
+    )
+    OPENAI_TTS_VOICE: str = Field(
+        default="onyx",
+        description="TTS voice (alloy/echo/fable/onyx/nova/shimmer/...).",
     )
 
     # ─── Database ─────────────────────────────────────────────────────
@@ -73,7 +89,7 @@ class Settings(BaseSettings):
     DAILY_TOKEN_BUDGET: int = Field(
         default=100_000,
         ge=0,
-        description="Soft daily cap on Anthropic tokens (enforced via Redis).",
+        description="Soft daily cap on OpenAI tokens (enforced via Redis).",
     )
 
     # ─── Optional ─────────────────────────────────────────────────────
@@ -125,9 +141,9 @@ def get_settings() -> Settings:
     """
     settings = Settings()
 
-    if not settings.ANTHROPIC_API_KEY:
+    if not settings.OPENAI_API_KEY:
         raise RuntimeError(
-            "ANTHROPIC_API_KEY is empty. Set it in backend/.env "
+            "OPENAI_API_KEY is empty. Set it in backend/.env "
             "(see backend/.env.example for format)."
         )
     if not settings.DATABASE_URL:

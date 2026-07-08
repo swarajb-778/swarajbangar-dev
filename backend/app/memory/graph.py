@@ -11,9 +11,10 @@ And the edges that make it useful:
   - ``(Entity)-[:RELATED_TO]->(Entity)`` — co-occurrence within a turn,
     plus the seeded domain relationships (USED_AT / IMPLEMENTS / …).
 
-Entity extraction uses Haiku with a strict JSON contract, cached by text
-hash in Redis (1h).  If the LLM is unavailable or returns garbage, a
-keyword fallback keeps memory working with zero API dependency.
+Entity extraction uses the cheap OpenAI classifier model with a strict
+JSON contract, cached by text hash in Redis (1h).  If the LLM is
+unavailable or returns garbage, a keyword fallback keeps memory working
+with zero API dependency.
 
 Every method is defensive: a Neo4j outage degrades to empty results /
 no-ops rather than raising, so the agent keeps answering even when its
@@ -25,17 +26,17 @@ from __future__ import annotations
 import hashlib
 import json
 import logging
-import re
 from typing import TYPE_CHECKING, Any
+
+from app.llm import chat_completion
 
 if TYPE_CHECKING:
     import neo4j
     import redis.asyncio as aioredis
-    from anthropic import AsyncAnthropic
+    from openai import AsyncOpenAI
 
 logger = logging.getLogger(__name__)
 
-_EXTRACT_MODEL = "claude-haiku-4-5-20251001"
 _ENTITY_CACHE_TTL = 3600  # 1 hour
 _VALID_TYPES = {"technology", "company", "concept", "person", "project"}
 
@@ -49,8 +50,8 @@ _KNOWN_ENTITIES: dict[str, str] = {
     "pgvector": "technology", "Neo4j": "technology", "PyTorch": "technology",
     "React": "technology", "Next.js": "technology", "FastAPI": "technology",
     "Apache Spark": "technology", "Spring Boot": "technology",
-    "Amazon": "company", "Meshi.io": "company", "Softgenio": "company",
-    "Softgenio Technology": "company", "Black Box Corporation": "company",
+    "McKinsey": "company", "McKinsey & Company": "company",
+    "ThoughtWorks": "company",
     "Collaborito": "project", "RapidOrch": "project", "SwarajOS": "project",
     "RAG": "concept", "CQRS": "concept", "Event Sourcing": "concept",
     "RAG Pipeline": "concept", "Event-Driven Architecture": "concept",
@@ -75,12 +76,14 @@ class KnowledgeGraph:
     def __init__(
         self,
         driver: "neo4j.AsyncDriver",
-        anthropic: "AsyncAnthropic",
+        openai: "AsyncOpenAI",
         redis: "aioredis.Redis | None",
+        model: str = "gpt-4.1-nano",
     ) -> None:
         self.driver = driver
-        self.anthropic = anthropic
+        self.openai = openai
         self.redis = redis
+        self.model = model
 
     # ─── Schema ──────────────────────────────────────────────────────
 
@@ -102,7 +105,7 @@ class KnowledgeGraph:
     # ─── Entity extraction ───────────────────────────────────────────
 
     async def extract_entities(self, text: str) -> list[dict[str, str]]:
-        """Extract named entities from ``text`` (Haiku + cache + fallback)."""
+        """Extract named entities from ``text`` (cheap LLM + cache + fallback)."""
         cache_key = f"entities:v1:{hashlib.sha256(text.encode()).hexdigest()[:16]}"
         if self.redis is not None:
             try:
@@ -115,7 +118,7 @@ class KnowledgeGraph:
         prompt = (
             "Extract named entities from this text. Return ONLY valid JSON, "
             "no markdown fences. Format:\n"
-            '[{"name": "...", "type": "..."}]\n\n'
+            '{"entities": [{"name": "...", "type": "..."}]}\n\n'
             "Valid types: technology, company, concept, person, project.\n"
             "Only include entities clearly named. Skip pronouns and generic terms.\n\n"
             f"Text: {text[:2000]}"
@@ -123,18 +126,17 @@ class KnowledgeGraph:
 
         entities: list[dict[str, str]]
         try:
-            response = await self.anthropic.messages.create(
-                model=_EXTRACT_MODEL,
+            body, _tokens = await chat_completion(
+                self.openai,
+                model=self.model,
+                user=prompt,
                 max_tokens=400,
-                temperature=0,
-                messages=[{"role": "user", "content": prompt}],
+                temperature=0.0,
+                json_mode=True,
             )
-            body = re.sub(
-                r"^```(?:json)?\s*|\s*```$",
-                "",
-                response.content[0].text.strip(),
-            ).strip()
             parsed = json.loads(body)
+            if isinstance(parsed, dict):
+                parsed = parsed.get("entities", [])
             entities = parsed if isinstance(parsed, list) else []
             # Validate + normalize: keep only well-formed, typed entries.
             entities = [

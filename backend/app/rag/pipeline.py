@@ -2,7 +2,7 @@
 
 The pipeline owns the orchestration of the three RAG stages but does NOT
 own the resources — it takes the retriever, reranker, settings, and
-Anthropic client at construction time so the lifespan manager can keep
+OpenAI client at construction time so the lifespan manager can keep
 the single source of truth for shared state.
 
 Why a class (vs. a free function):
@@ -18,6 +18,8 @@ import logging
 import time
 from typing import TYPE_CHECKING, Any
 
+from app.agents.prompts import RAG_SYSTEM_PROMPT
+from app.llm import chat_completion
 from app.models import (
     RAGChunk,
     RAGPipelineStep,
@@ -25,7 +27,7 @@ from app.models import (
 )
 
 if TYPE_CHECKING:
-    from anthropic import AsyncAnthropic
+    from openai import AsyncOpenAI
 
     from app.config import Settings
     from app.rag.reranker import CrossEncoderReranker
@@ -33,22 +35,10 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
-# Sane default — overridable via settings.ANTHROPIC_MODEL when we add
-# that field.  Keep aligned with the project's preferred model.
-_DEFAULT_MODEL = "claude-sonnet-4-5"
 _MAX_TOKENS = 1024
 _TEMPERATURE = 0.3
 _CHUNK_PREVIEW_CHARS = 500
 _CANDIDATE_POOL = 10  # how many hits per retriever before fusion
-
-
-SYSTEM_PROMPT = (
-    "You are SwarajOS, an AI assistant for Swaraj Bangar's portfolio. "
-    "Answer questions about Swaraj's experience, skills, and projects "
-    "based ONLY on the provided context. If the context doesn't contain "
-    "the answer, say so honestly. Cite specific sources using "
-    "[Source: type/title] format. Be conversational and concise."
-)
 
 
 class RAGPipeline:
@@ -59,14 +49,13 @@ class RAGPipeline:
         retriever: "HybridRetriever",
         reranker: "CrossEncoderReranker",
         settings: "Settings",
-        anthropic_client: "AsyncAnthropic",
-        model: str = _DEFAULT_MODEL,
+        openai_client: "AsyncOpenAI",
     ) -> None:
         self.retriever = retriever
         self.reranker = reranker
         self.settings = settings
-        self.anthropic = anthropic_client
-        self.model = model
+        self.openai = openai_client
+        self.model = settings.OPENAI_MODEL
 
     async def query(
         self,
@@ -149,23 +138,15 @@ class RAGPipeline:
         user_msg = f"Context:\n{context}\n\nQuestion: {query}"
 
         t0 = time.perf_counter()
-        response = await self.anthropic.messages.create(
+        answer, tokens = await chat_completion(
+            self.openai,
             model=self.model,
+            system=RAG_SYSTEM_PROMPT,
+            user=user_msg,
             max_tokens=_MAX_TOKENS,
             temperature=_TEMPERATURE,
-            system=SYSTEM_PROMPT,
-            messages=[{"role": "user", "content": user_msg}],
         )
         gen_ms = (time.perf_counter() - t0) * 1000
-
-        # Anthropic SDK responses can have multiple content blocks (e.g.
-        # tool_use, thinking).  We only want the assistant text.
-        answer_parts: list[str] = []
-        for block in response.content:
-            block_type = getattr(block, "type", None)
-            if block_type == "text":
-                answer_parts.append(block.text)
-        answer = "".join(answer_parts).strip()
 
         if show_pipeline:
             pipeline_steps.append(
@@ -173,10 +154,8 @@ class RAGPipeline:
                     step="generate",
                     status="complete",
                     data={
-                        "model": response.model,
-                        "input_tokens": response.usage.input_tokens,
-                        "output_tokens": response.usage.output_tokens,
-                        "stop_reason": response.stop_reason,
+                        "model": self.model,
+                        "tokens": tokens,
                     },
                     latency_ms=gen_ms,
                 )

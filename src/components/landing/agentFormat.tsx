@@ -7,20 +7,83 @@
 import type { ReactNode } from 'react';
 import type { AgentStep } from '@/lib/types';
 
-/** Render assistant text, turning `[Source: x]` markers into accent pills. */
-export function renderWithSources(text: string): ReactNode {
-  const parts = text.split(/(\[Source:[^\]]+\])/g);
+/** Inline formatting: [Source: x] pills, **bold**, `code`. */
+function renderInline(text: string, keyPrefix: string): ReactNode[] {
+  const parts = text.split(/(\[Source:[^\]]+\]|\*\*[^*]+\*\*|`[^`]+`)/g);
   return parts.map((part, i) => {
-    const m = part.match(/^\[Source:\s*([^\]]+)\]$/);
-    if (m) {
+    const src = part.match(/^\[Source:\s*([^\]]+)\]$/);
+    if (src) {
       return (
-        <span key={i} className="src-pill">
-          {m[1].trim()}
+        <span key={`${keyPrefix}-${i}`} className="src-pill">
+          {src[1].trim()}
         </span>
       );
     }
-    return <span key={i}>{part}</span>;
+    const bold = part.match(/^\*\*([^*]+)\*\*$/);
+    if (bold) return <strong key={`${keyPrefix}-${i}`}>{bold[1]}</strong>;
+    const code = part.match(/^`([^`]+)`$/);
+    if (code) {
+      return (
+        <code key={`${keyPrefix}-${i}`} className="md-code">
+          {code[1]}
+        </code>
+      );
+    }
+    return <span key={`${keyPrefix}-${i}`}>{part}</span>;
   });
+}
+
+/**
+ * Render assistant text as the mini-markdown subset the agent's prompts
+ * enforce: short paragraphs, '- ' bullet lists, bold, inline code, and
+ * [Source: x] citation pills. Tolerates partial markup mid-stream (an
+ * unclosed ** simply renders as plain text).
+ */
+export function renderAssistantMarkdown(text: string): ReactNode {
+  const blocks: ReactNode[] = [];
+  let list: string[] = [];
+  const lines = text.split('\n');
+
+  const flushList = (idx: number) => {
+    if (list.length === 0) return;
+    blocks.push(
+      <ul key={`ul-${idx}`} className="md-list">
+        {list.map((item, j) => (
+          <li key={j}>{renderInline(item, `li-${idx}-${j}`)}</li>
+        ))}
+      </ul>
+    );
+    list = [];
+  };
+
+  lines.forEach((line, i) => {
+    const bullet = line.match(/^\s*[-*]\s+(.*)$/);
+    if (bullet) {
+      list = [...list, bullet[1]];
+      return;
+    }
+    flushList(i);
+    if (line.trim()) {
+      blocks.push(
+        <p key={`p-${i}`} className="md-p">
+          {renderInline(line, `p-${i}`)}
+        </p>
+      );
+    }
+  });
+  flushList(lines.length);
+  return blocks;
+}
+
+/** Plain-text version of an answer for TTS: strip citations + markdown. */
+export function speechText(text: string): string {
+  return text
+    .replace(/\[Source:[^\]]+\]/g, '')
+    .replace(/\*\*([^*]+)\*\*/g, '$1')
+    .replace(/`([^`]+)`/g, '$1')
+    .replace(/^\s*[-*]\s+/gm, '')
+    .replace(/[ \t]{2,}/g, ' ')
+    .trim();
 }
 
 /** Compact label + detail for one reasoning step, tolerant of missing data. */

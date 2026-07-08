@@ -5,7 +5,7 @@ Usage:
     python -m scripts.test_orchestrator "What did Swaraj build at McKinsey?"
     python -m scripts.test_orchestrator --rag "Tell me about ThoughtWorks"
 
-Builds the deps the orchestrator needs (Anthropic client, optional Redis,
+Builds the deps the orchestrator needs (OpenAI client, optional Redis,
 settings), runs ``run_agent``, and pretty-prints every event it yields:
 reasoning steps, streamed token chunks, and the final accounting.
 
@@ -47,12 +47,12 @@ async def _build_deps(skip_retriever: bool) -> tuple[dict, Any]:
     agent-tools global registry, since the Experience Navigator reaches it
     via the ``vector_search`` tool rather than through ``deps``.
     """
-    from anthropic import AsyncAnthropic
+    from openai import AsyncOpenAI
 
     settings = get_settings()
     deps: dict = {
         "settings": settings,
-        "anthropic": AsyncAnthropic(api_key=settings.ANTHROPIC_API_KEY),
+        "openai": AsyncOpenAI(api_key=settings.OPENAI_API_KEY),
         "redis": None,
         "ws_manager": None,
     }
@@ -96,7 +96,12 @@ async def _build_deps(skip_retriever: bool) -> tuple[dict, Any]:
         await driver.verify_connectivity()
         tool_registry.set_neo4j(driver)
 
-        kg = KnowledgeGraph(driver=driver, anthropic=deps["anthropic"], redis=deps["redis"])
+        kg = KnowledgeGraph(
+            driver=driver,
+            openai=deps["openai"],
+            redis=deps["redis"],
+            model=settings.OPENAI_CLASSIFIER_MODEL,
+        )
         await kg.initialize()
         deps["knowledge_graph"] = kg
         deps["neo4j"] = driver

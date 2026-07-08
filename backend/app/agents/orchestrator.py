@@ -8,6 +8,7 @@ Flow:
                   ├─ experience_query/skills_query/project_query ─> execute_experience
                   ├─ code_review                                  ─> execute_code_review
                   ├─ system_design                                ─> execute_system_design
+                  ├─ off_topic                                    ─> execute_off_topic (guardrail)
                   └─ general_chat/meta_question/(default)         ─> execute_general
                         └─> synthesize  (finalize + metadata)
                               └─> store_memory  (persist; stub for now)
@@ -16,7 +17,7 @@ Flow:
 Dependency injection:
   Node functions are pure w.r.t. the graph — they receive ``(state, config)``
   and pull runtime clients from ``config["configurable"]["deps"]``.  This
-  keeps non-serializable clients (Anthropic, Redis, …) out of the state and
+  keeps non-serializable clients (OpenAI, Redis, …) out of the state and
   lets us compile the graph once at import time.
 
 Streaming:
@@ -24,7 +25,7 @@ Streaming:
   Pipeline steps stream live as nodes complete (the reasoning trace the
   frontend X-ray renders).  The final answer is then chunked into
   ``AgentTokenEvent``s with a small inter-chunk delay to produce a typing
-  effect — true token-level streaming from Anthropic is a later prompt.
+  effect — true token-level streaming from OpenAI is a later prompt.
 """
 
 from __future__ import annotations
@@ -44,13 +45,18 @@ from app.agents.budget import (
 )
 from app.agents.experience_agent import execute_experience
 from app.agents.intent_classifier import classify_intent
+from app.agents.prompts import (
+    GENERAL_SYSTEM_PROMPT,
+    META_SYSTEM_PROMPT,
+    OFF_TOPIC_MESSAGE,
+)
 from app.agents.response_formatter import synthesize_response
 from app.agents.state import AgentState, append_step
+from app.llm import chat_completion
 from app.models import AgentDoneEvent, AgentStepEvent, AgentTokenEvent
 
 logger = logging.getLogger(__name__)
 
-_SONNET_MODEL = "claude-sonnet-4-5"
 _GENERATE_MAX_TOKENS = 1024
 _GENERATE_TEMPERATURE = 0.4
 
@@ -63,6 +69,7 @@ _INTENT_TO_NODE: dict[str, str] = {
     "system_design": "execute_system_design",
     "general_chat": "execute_general",
     "meta_question": "execute_general",
+    "off_topic": "execute_off_topic",
 }
 _DEFAULT_NODE = "execute_general"
 
@@ -89,7 +96,7 @@ async def _classify_node(state: AgentState, config: "RunnableConfig") -> AgentSt
     deps = _deps_from_config(config)
     return await classify_intent(
         state,
-        anthropic=deps["anthropic"],
+        openai=deps["openai"],
         redis=deps.get("redis"),
         settings=deps["settings"],
     )
@@ -106,6 +113,7 @@ async def _route_node(state: AgentState, config: "RunnableConfig") -> AgentState
         "execute_code_review": "Code Reviewer",
         "execute_system_design": "System Designer",
         "execute_general": "Conversational Agent",
+        "execute_off_topic": "Guardrail",
     }[target]
     state["selected_agent"] = agent_label
     append_step(
@@ -144,72 +152,55 @@ async def _execute_experience_node(
 async def _execute_general_node(
     state: AgentState, config: "RunnableConfig"
 ) -> AgentState:
-    """Handle general_chat and meta_question with Sonnet."""
+    """Handle general_chat and meta_question with the OpenAI answer model."""
     t0 = time.perf_counter()
     deps = _deps_from_config(config)
-    anthropic = deps["anthropic"]
+    openai = deps["openai"]
     redis = deps.get("redis")
     settings = deps["settings"]
+    model = settings.OPENAI_MODEL
     intent = state.get("intent") or "general_chat"
 
-    # Budget guard before the (paid) Sonnet call.
+    # Budget guard before the (paid) generation call.
     if not await budget_available(redis, settings):
         state["agent_response"] = BUDGET_EXCEEDED_MESSAGE
         append_step(
             state,
             "generate",
             "complete",
-            {"model": _SONNET_MODEL, "method": "budget_fallback"},
+            {"model": model, "method": "budget_fallback"},
             (time.perf_counter() - t0) * 1000,
         )
         return state
 
-    if intent == "meta_question":
-        system_prompt = (
-            "You are SwarajOS, the AI agent embedded in Swaraj Bangar's "
-            "portfolio. When asked how you work, explain — conversationally "
-            "and concisely — that you're a multi-agent system built on "
-            "LangGraph: an intent classifier routes each message to a "
-            "specialist (experience navigator, code reviewer, system "
-            "designer, or this conversational agent), grounded answers come "
-            "from a hybrid RAG pipeline (pgvector + BM25 + cross-encoder "
-            "rerank) over Swaraj's real documents, and conversation memory "
-            "lives in a Neo4j knowledge graph. Be proud but not boastful."
-        )
-    else:
-        system_prompt = (
-            "You are SwarajOS, the friendly AI agent on Swaraj Bangar's "
-            "portfolio. Keep replies warm and concise. If a question is "
-            "off-topic, gently steer the user toward something useful — "
-            "suggest a terminal command (like `help`, `projects`, or "
-            "`experience`) or a portfolio section (the Lab, Case Studies, "
-            "or the chat itself) that might help."
-        )
+    system_prompt = (
+        META_SYSTEM_PROMPT if intent == "meta_question" else GENERAL_SYSTEM_PROMPT
+    )
 
+    history = [
+        {"role": m["role"], "content": m["content"]}
+        for m in state.get("messages", [])
+    ]
     answer = ""
     try:
-        response = await anthropic.messages.create(
-            model=_SONNET_MODEL,
+        answer, tokens = await chat_completion(
+            openai,
+            model=model,
+            system=system_prompt,
+            history=history,
+            user=state["current_message"],
             max_tokens=_GENERATE_MAX_TOKENS,
             temperature=_GENERATE_TEMPERATURE,
-            system=system_prompt,
-            messages=[{"role": "user", "content": state["current_message"]}],
         )
-        answer = "".join(
-            block.text for block in response.content if getattr(block, "type", None) == "text"
-        ).strip()
         try:
-            usage = response.usage
-            await record_tokens(redis, settings, usage.input_tokens + usage.output_tokens)
+            await record_tokens(redis, settings, tokens)
             state.setdefault("metadata", {})["total_tokens"] = (
-                state.get("metadata", {}).get("total_tokens", 0)
-                + usage.input_tokens
-                + usage.output_tokens
+                state.get("metadata", {}).get("total_tokens", 0) + tokens
             )
         except Exception:  # noqa: BLE001
             pass
     except Exception as exc:  # noqa: BLE001
-        logger.warning("general node Sonnet call failed: %s", exc)
+        logger.warning("general node LLM call failed: %s", exc)
         answer = (
             "I hit a snag reaching my language model just now. Try again in "
             "a moment, or explore the Lab while I recover."
@@ -220,7 +211,23 @@ async def _execute_general_node(
         state,
         "generate",
         "complete",
-        {"model": _SONNET_MODEL, "intent": intent, "chars": len(answer)},
+        {"model": model, "intent": intent, "chars": len(answer)},
+        (time.perf_counter() - t0) * 1000,
+    )
+    return state
+
+
+async def _execute_off_topic_node(
+    state: AgentState, config: "RunnableConfig"
+) -> AgentState:
+    """Guardrail: templated refusal for off-topic questions — zero LLM cost."""
+    t0 = time.perf_counter()
+    state["agent_response"] = OFF_TOPIC_MESSAGE
+    append_step(
+        state,
+        "generate",
+        "complete",
+        {"model": "guardrail", "method": "off_topic_refusal"},
         (time.perf_counter() - t0) * 1000,
     )
     return state
@@ -337,6 +344,7 @@ def _build_graph():
     graph.add_node("route", _route_node)
     graph.add_node("execute_experience", _execute_experience_node)
     graph.add_node("execute_general", _execute_general_node)
+    graph.add_node("execute_off_topic", _execute_off_topic_node)
     graph.add_node("execute_code_review", _execute_code_review_node)
     graph.add_node("execute_system_design", _execute_system_design_node)
     graph.add_node("synthesize", _synthesize_node)
@@ -352,11 +360,13 @@ def _build_graph():
             "execute_code_review": "execute_code_review",
             "execute_system_design": "execute_system_design",
             "execute_general": "execute_general",
+            "execute_off_topic": "execute_off_topic",
         },
     )
     for node in (
         "execute_experience",
         "execute_general",
+        "execute_off_topic",
         "execute_code_review",
         "execute_system_design",
     ):
@@ -387,7 +397,7 @@ async def run_agent(
 ) -> AsyncGenerator[AgentStepEvent | AgentTokenEvent | AgentDoneEvent, None]:
     """Run a message through the orchestrator, yielding events as they happen.
 
-    ``deps`` must contain ``anthropic`` and ``settings``; ``redis``,
+    ``deps`` must contain ``openai`` and ``settings``; ``redis``,
     ``rag_pipeline``, ``ws_manager``, ``session_manager`` and
     ``knowledge_graph`` are optional.  Yields:
       - ``AgentStepEvent`` for each reasoning step as it completes,
@@ -404,7 +414,17 @@ async def run_agent(
     knowledge_graph = deps.get("knowledge_graph")
 
     # ─── Load prior conversation memory ──
-    history: list[dict[str, Any]] = (context or {}).get("messages", [])
+    # Client-supplied history is untrusted: sanitize at the boundary (only
+    # user/assistant roles, capped count and length). Server-side session
+    # memory, when available, is authoritative and overrides it.
+    raw_history = (context or {}).get("messages") or []
+    history: list[dict[str, Any]] = [
+        {"role": str(m["role"]), "content": str(m["content"])[:2000]}
+        for m in raw_history[-8:]
+        if isinstance(m, dict)
+        and m.get("role") in ("user", "assistant")
+        and m.get("content")
+    ]
     if session_manager is not None:
         try:
             loaded = await session_manager.get_history(session_id, limit=10)
@@ -473,5 +493,5 @@ async def run_agent(
     yield AgentDoneEvent(
         total_latency_ms=total_ms,
         tokens_used=final_state.get("metadata", {}).get("total_tokens", 0),
-        model=_SONNET_MODEL,
+        model=getattr(deps.get("settings"), "OPENAI_MODEL", ""),
     )

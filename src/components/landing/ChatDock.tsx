@@ -11,11 +11,12 @@
 // ═══════════════════════════════════════════════════════════════
 
 import { useEffect, useRef, useState } from 'react';
-import { Sparkles, X, ArrowRight, Minus } from 'lucide-react';
+import { Sparkles, X, ArrowRight, Minus, Volume2, Square } from 'lucide-react';
 import { Avatar } from '@/components/ui/Avatar';
 import { useAgentChat } from '@/lib/hooks/useAgentChat';
+import { useSpeech } from '@/lib/hooks/useSpeech';
 import type { ChatMessage } from '@/lib/types';
-import { renderWithSources, stepLabel } from './agentFormat';
+import { renderAssistantMarkdown, speechText, stepLabel } from './agentFormat';
 
 const SUGGESTIONS = [
   'What did he build at McKinsey?',
@@ -37,6 +38,7 @@ export function ChatDock() {
   const [input, setInput] = useState('');
   const [demoMode, setDemoMode] = useState(false);
   const { messages, agentSteps, isLoading, error, sendMessage } = useAgentChat([GREETING]);
+  const { speakingId, speak, stop } = useSpeech();
   const threadRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -98,8 +100,19 @@ export function ChatDock() {
                     <div className="bubble assistant typing-bubble"><span /><span /><span /></div>
                   ) : (
                     <div className={`bubble ${m.role}`}>
-                      {m.role === 'assistant' ? renderWithSources(m.content) : m.content}
+                      {m.role === 'assistant' ? renderAssistantMarkdown(m.content) : m.content}
                     </div>
+                  )}
+                  {m.role === 'assistant' && !m.streaming && m.content && (
+                    <button
+                      className={`bubble-speak${speakingId === m.id ? ' is-speaking' : ''}`}
+                      onClick={() =>
+                        speakingId === m.id ? stop() : void speak(m.id, speechText(m.content))
+                      }
+                      aria-label={speakingId === m.id ? 'Stop speaking' : 'Speak this answer'}
+                    >
+                      {speakingId === m.id ? <Square size={11} /> : <Volume2 size={13} />}
+                    </button>
                   )}
                 </div>
               );
@@ -150,7 +163,7 @@ export function ChatDock() {
           <div className="composer-hint">
             {demoMode
               ? 'SwarajOS demo · backend offline, responses are canned'
-              : 'SwarajOS · live multi-agent system on LangGraph + Claude'}
+              : 'SwarajOS · live multi-agent system on LangGraph + GPT-4.1'}
           </div>
         </div>
       )}

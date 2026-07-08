@@ -28,7 +28,7 @@ import { ShimmerButton } from '@/components/ui/ShimmerButton';
 import { useAgentChat } from '@/lib/hooks/useAgentChat';
 import { queryRAG } from '@/lib/api-client';
 import type { AgentEvent, ChatMessage } from '@/lib/types';
-import { renderWithSources, stepLabel } from './agentFormat';
+import { renderAssistantMarkdown, stepLabel } from './agentFormat';
 
 const jitter = (v: number, amt: number) => v + (Math.random() - 0.5) * amt;
 const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));
@@ -194,7 +194,7 @@ export function AgentDemo() {
               <div key={m.id} className="bubble assistant typing-bubble"><span /><span /><span /></div>
             ) : (
               <div key={m.id} className={`bubble ${m.role}`}>
-                {m.role === 'assistant' ? renderWithSources(m.content) : m.content}
+                {m.role === 'assistant' ? renderAssistantMarkdown(m.content) : m.content}
               </div>
             );
           })}
@@ -213,7 +213,7 @@ export function AgentDemo() {
               <div className="t"><b>classify</b>intent router</div>
               <div className="t"><b>route</b>experience_navigator</div>
               <div className="t"><b>tool_call</b>vector_search</div>
-              <div className="t"><b>generate</b>claude-sonnet-4</div>
+              <div className="t"><b>generate</b>gpt-4.1-mini</div>
             </>
           ) : (
             agentSteps.map((s) => {
