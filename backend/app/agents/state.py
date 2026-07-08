@@ -12,7 +12,7 @@ Design notes:
   - ``pipeline_steps`` is the reasoning trace the SSE/WebSocket layer
     streams to the frontend X-ray panel.  Nodes append to it via the
     ``append_step`` helper in this module so the shape stays consistent.
-  - Runtime dependencies (anthropic client, redis, etc.) are NOT stored
+  - Runtime dependencies (openai client, redis, etc.) are NOT stored
     here — they're injected per-run via LangGraph's ``config`` parameter
     (see orchestrator._deps_from_config).  Keeping non-serializable
     clients out of the state keeps the graph checkpoint-friendly later.

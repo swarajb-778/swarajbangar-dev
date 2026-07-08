@@ -142,7 +142,7 @@ class AgentDoneEvent(BaseModel):
             "example": {
                 "total_latency_ms": 2_413.7,
                 "tokens_used": 487,
-                "model": "claude-sonnet-4-5",
+                "model": "gpt-4.1-mini",
             }
         }
     )
