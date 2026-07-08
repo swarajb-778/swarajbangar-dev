@@ -386,7 +386,7 @@ export function Landing() {
       <footer className="site">
         <div className="in">
           <a className="nav-logo" href="#top"><b>SB</b><span>swarajbangar<i>.dev</i></span></a>
-          <span className="tag">Built in SFO ❤️ with Next.js, FastAPI, LangGraph, Claude and too much coffee</span>
+          <span className="tag">Built in SFO ❤️ with Next.js, FastAPI, LangGraph, OpenAI and too much coffee</span>
           <div className="links">
             <a href={SITE_CONFIG.github} target="_blank" rel="noopener noreferrer"><GitHubIcon />GitHub</a>
             <a href={SITE_CONFIG.linkedin} target="_blank" rel="noopener noreferrer"><LinkedInIcon />LinkedIn</a>

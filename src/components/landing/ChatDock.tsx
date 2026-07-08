@@ -163,7 +163,7 @@ export function ChatDock() {
           <div className="composer-hint">
             {demoMode
               ? 'SwarajOS demo · backend offline, responses are canned'
-              : 'SwarajOS · live multi-agent system on LangGraph + Claude'}
+              : 'SwarajOS · live multi-agent system on LangGraph + GPT-4.1'}
           </div>
         </div>
       )}

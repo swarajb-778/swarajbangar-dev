@@ -27,7 +27,7 @@ Now building the real backend on DigitalOcean and wiring it up.
 - Database: Supabase Postgres + pgvector (free, 500 MB)
 - Graph: Neo4j Aura Free (200K nodes)
 - Cache: Redis 7-alpine in Docker on the VPS
-- LLM: Anthropic API only (Sonnet for responses, Haiku for classification)
+- LLM: OpenAI API only (gpt-4.1-mini responses, gpt-4.1-nano classification, gpt-4o-mini-tts speech)
 - Embeddings: LOCAL sentence-transformers all-MiniLM-L6-v2 (384 dims, on VPS CPU)
 - Reranker: LOCAL cross-encoder ms-marco-MiniLM-L-6-v2 (22 MB, on VPS CPU)
 - Frontend: Vercel Hobby (already deployed)
@@ -79,7 +79,7 @@ backend/
   Makefile
 
 ### Environment variables (single .env)
-ANTHROPIC_API_KEY=sk-ant-...
+OPENAI_API_KEY=sk-...
 DATABASE_URL=postgresql://...      # Supabase pooler connection
 SUPABASE_URL=https://...supabase.co
 SUPABASE_ANON_KEY=eyJ...
@@ -96,8 +96,8 @@ GITHUB_TOKEN=                     # optional
 
 ### Critical constraints (DON'T LET CLAUDE CODE VIOLATE THESE)
 - vector(384), NOT vector(1536) — we use the local model
-- NO openai package in requirements.txt
-- NO litellm package in requirements.txt — direct Anthropic SDK only
+- Direct OpenAI SDK only (openai package) — NO litellm, NO langchain-openai;
+  all LLM text calls go through app/llm.py::chat_completion
 - All Docker images must be x86_64-compatible (default on DigitalOcean)
 - The reranker must fall back gracefully if the model fails to download
 - All LLM calls go through a token-budget wrapper that checks Redis first
