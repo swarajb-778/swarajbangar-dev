@@ -37,4 +37,9 @@ EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
     CMD curl -fsS http://localhost:8000/health || exit 1
 
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "2"]
+# Worker count is env-configurable via WEB_CONCURRENCY (default 1). Each
+# uvicorn worker loads its own ~450MB embedding + reranker model, so >1 worker
+# OOM-kills a 1GB host. Keep the default at 1; raise WEB_CONCURRENCY in .env
+# only on a larger box (e.g. 2 vCPU / 4GB+). `exec` keeps uvicorn as PID 1 so
+# it receives SIGTERM for graceful shutdown.
+CMD ["sh", "-c", "exec uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers ${WEB_CONCURRENCY:-1}"]

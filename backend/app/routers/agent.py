@@ -52,6 +52,8 @@ def _build_deps(request: Request) -> dict:
         "reranker": getattr(state, "reranker", None),
         "rag_pipeline": getattr(state, "rag_pipeline", None),
         "ws_manager": getattr(state, "ws_manager", None),
+        "session_manager": getattr(state, "session_manager", None),
+        "knowledge_graph": getattr(state, "knowledge_graph", None),
         "redis": getattr(state, "redis", None),
         "neo4j": getattr(state, "neo4j", None),
     }

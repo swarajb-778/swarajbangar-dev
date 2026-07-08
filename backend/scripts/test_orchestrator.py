@@ -5,7 +5,7 @@ Usage:
     python -m scripts.test_orchestrator "What did Swaraj build at McKinsey?"
     python -m scripts.test_orchestrator --rag "Tell me about ThoughtWorks"
 
-Builds the deps the orchestrator needs (Anthropic client, optional Redis,
+Builds the deps the orchestrator needs (OpenAI client, optional Redis,
 settings), runs ``run_agent``, and pretty-prints every event it yields:
 reasoning steps, streamed token chunks, and the final accounting.
 
@@ -47,12 +47,12 @@ async def _build_deps(skip_retriever: bool) -> tuple[dict, Any]:
     agent-tools global registry, since the Experience Navigator reaches it
     via the ``vector_search`` tool rather than through ``deps``.
     """
-    from anthropic import AsyncAnthropic
+    from openai import AsyncOpenAI
 
     settings = get_settings()
     deps: dict = {
         "settings": settings,
-        "anthropic": AsyncAnthropic(api_key=settings.ANTHROPIC_API_KEY),
+        "openai": AsyncOpenAI(api_key=settings.OPENAI_API_KEY),
         "redis": None,
         "ws_manager": None,
     }
@@ -75,20 +75,44 @@ async def _build_deps(skip_retriever: bool) -> tuple[dict, Any]:
         print(f"{DIM}building retriever (loads embedder + connects to Supabase)…{RESET}")
         pool = await _register_retriever(settings)
 
-    # Optional Neo4j — enables the graph_traverse tool on follow-ups.
+    # Optional Neo4j — enables the graph_traverse tool + memory layer.
+    # NEO4J_URI_OVERRIDE / NEO4J_USER_OVERRIDE / NEO4J_PASSWORD_OVERRIDE let
+    # you point at a local container when the configured Aura instance is
+    # unavailable (e.g. NEO4J_URI_OVERRIDE=bolt://localhost:7687).
+    import os
+
     try:
         import neo4j as neo4j_driver
 
+        from app.memory.graph import KnowledgeGraph
+        from app.memory.session import SessionManager
         from app.tools import registry as tool_registry
 
-        driver = neo4j_driver.AsyncGraphDatabase.driver(
-            settings.NEO4J_URI, auth=(settings.NEO4J_USER, settings.NEO4J_PASSWORD)
-        )
+        uri = os.environ.get("NEO4J_URI_OVERRIDE", settings.NEO4J_URI)
+        user = os.environ.get("NEO4J_USER_OVERRIDE", settings.NEO4J_USER)
+        password = os.environ.get("NEO4J_PASSWORD_OVERRIDE", settings.NEO4J_PASSWORD)
+
+        driver = neo4j_driver.AsyncGraphDatabase.driver(uri, auth=(user, password))
         await driver.verify_connectivity()
         tool_registry.set_neo4j(driver)
-        print(f"{DIM}neo4j: connected{RESET}")
+
+        kg = KnowledgeGraph(
+            driver=driver,
+            openai=deps["openai"],
+            redis=deps["redis"],
+            model=settings.OPENAI_CLASSIFIER_MODEL,
+        )
+        await kg.initialize()
+        deps["knowledge_graph"] = kg
+        deps["neo4j"] = driver
+        print(f"{DIM}neo4j: connected ({uri}){RESET}")
     except Exception as exc:  # noqa: BLE001
-        print(f"{DIM}neo4j: unavailable ({exc}); graph_traverse disabled{RESET}")
+        print(f"{DIM}neo4j: unavailable ({exc}); graph_traverse + graph memory disabled{RESET}")
+
+    # Session history (Redis) — independent of Neo4j.
+    from app.memory.session import SessionManager as _SM
+
+    deps["session_manager"] = _SM(redis=deps["redis"])
 
     return deps, pool
 
@@ -121,20 +145,20 @@ async def _register_retriever(settings):
     return pool
 
 
-async def main(message: str, skip_retriever: bool) -> None:
+async def main(message: str, skip_retriever: bool, session_id: str) -> None:
     from app.agents.orchestrator import run_agent
 
     deps, pool = await _build_deps(skip_retriever)
 
     print()
-    print(f"{CYAN}━━━ query ━━━{RESET}  {message!r}")
+    print(f"{CYAN}━━━ query ━━━{RESET}  {message!r}  {DIM}(session={session_id}){RESET}")
     print()
 
     answer_parts: list[str] = []
     step_n = 0
     start = time.perf_counter()
 
-    async for event in run_agent(message, session_id="cli-test", deps=deps):
+    async for event in run_agent(message, session_id=session_id, deps=deps):
         if isinstance(event, AgentStepEvent):
             step_n += 1
             lat = f"{event.latency_ms:.0f}ms" if event.latency_ms is not None else "-"
@@ -177,9 +201,14 @@ def _parse_args() -> argparse.Namespace:
         help="Skip building the retriever (faster; experience queries won't "
         "have grounded context).",
     )
+    parser.add_argument(
+        "--session",
+        default="cli-test",
+        help="Session id for memory continuity across runs (default: cli-test).",
+    )
     return parser.parse_args()
 
 
 if __name__ == "__main__":
     args = _parse_args()
-    asyncio.run(main(args.message, args.no_retriever))
+    asyncio.run(main(args.message, args.no_retriever, args.session))
