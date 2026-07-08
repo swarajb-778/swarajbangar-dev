@@ -23,7 +23,7 @@ from fastapi.responses import JSONResponse
 
 from app import __version__
 from app.config import get_settings
-from app.routers import agent, health, rag, stats, ws
+from app.routers import agent, health, rag, stats, tts, ws
 from app.routers.ws import ConnectionManager
 
 logger = logging.getLogger("swarajbangar.api")
@@ -157,7 +157,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     import asyncpg
     import neo4j
     import redis.asyncio as aioredis
-    from anthropic import AsyncAnthropic
+    from openai import AsyncOpenAI
 
     from app.rag.embedder import LocalEmbedder
     from app.rag.pipeline import RAGPipeline
@@ -218,10 +218,10 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     # the model can't be loaded (e.g. air-gapped first boot).
     app.state.reranker = CrossEncoderReranker(model_name=settings.RERANKER_MODEL)
 
-    # Anthropic client for the generate stage.  AsyncAnthropic manages
-    # its own httpx pool internally — we keep one shared instance for
+    # OpenAI client for classification + generation + TTS.  AsyncOpenAI
+    # manages its own httpx pool internally — one shared instance for
     # the lifetime of the app.
-    app.state.anthropic = AsyncAnthropic(api_key=settings.ANTHROPIC_API_KEY)
+    app.state.openai = AsyncOpenAI(api_key=settings.OPENAI_API_KEY)
 
     # Assemble the retriever + pipeline once we have all the pieces.
     # Both are pure orchestrators over app.state — no extra resources.
@@ -235,7 +235,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
             retriever=app.state.retriever,
             reranker=app.state.reranker,
             settings=settings,
-            anthropic_client=app.state.anthropic,
+            openai_client=app.state.openai,
         )
         logger.info("rag pipeline ready")
     else:
@@ -259,8 +259,9 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     app.state.session_manager = SessionManager(redis=app.state.redis)
     app.state.knowledge_graph = KnowledgeGraph(
         driver=app.state.neo4j,
-        anthropic=app.state.anthropic,
+        openai=app.state.openai,
         redis=app.state.redis,
+        model=settings.OPENAI_CLASSIFIER_MODEL,
     )
     try:
         await app.state.knowledge_graph.initialize()
@@ -437,6 +438,7 @@ app.include_router(rag.router, prefix="/v1/rag", tags=["rag"])
 app.include_router(agent.router, prefix="/v1/agent", tags=["agent"])
 app.include_router(ws.router, prefix="/v1", tags=["ws"])
 app.include_router(stats.router, prefix="/v1/stats", tags=["stats"])
+app.include_router(tts.router, prefix="/v1/tts", tags=["tts"])
 
 
 # ════════════════════════════════════════════════════════════════════

@@ -1,6 +1,6 @@
 """Daily token-budget guard.
 
-A soft cap on Anthropic token spend per UTC day, enforced via a single
+A soft cap on OpenAI token spend per UTC day, enforced via a single
 Redis counter (``budget:tokens:today``).  The counter is created with a
 TTL that expires at the next UTC midnight, so it rolls over on its own
 without a cron.
@@ -9,9 +9,8 @@ Usage pattern (per LLM call):
 
     if not await budget_available(redis, settings):
         return BUDGET_EXCEEDED_MESSAGE          # graceful fallback
-    resp = await anthropic.messages.create(...)
-    await record_tokens(redis, settings, resp.usage.input_tokens
-                                       + resp.usage.output_tokens)
+    text, tokens = await chat_completion(openai, ...)
+    await record_tokens(redis, settings, tokens)
 
 The guard fails OPEN: if Redis is unavailable we allow the call rather
 than block the whole agent on a cache outage.

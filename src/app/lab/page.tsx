@@ -24,7 +24,7 @@ const DEMOS = [
     description: 'RAG X-ray, 3D embeddings, and side-by-side model comparison.',
     href: '/lab/ai',
     icon: Brain,
-    tech: ['LangChain', 'pgvector', 'Claude API'],
+    tech: ['LangChain', 'pgvector', 'OpenAI API'],
     color: 'var(--accent-primary)',
   },
   {

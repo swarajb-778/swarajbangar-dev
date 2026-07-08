@@ -4,7 +4,8 @@ Three-tier strategy, cheapest first:
   1. Fast-path regex — zero LLM cost, catches the obvious cases
      (code blocks, "design a X", greetings).
   2. Redis cache — if we've classified this exact message before, reuse it.
-  3. Haiku LLM — the general case, with a strict JSON contract.
+  3. Cheap OpenAI classifier model — the general case, with a strict
+     JSON contract (json_object response format).
 
 Everything is defensive: a malformed LLM response, an unknown category, or
 a low-confidence result all degrade to ``general_chat`` rather than raising.
@@ -21,17 +22,16 @@ from typing import TYPE_CHECKING, Any
 
 from app.agents.budget import budget_available, record_tokens
 from app.agents.state import AgentState, append_step
+from app.llm import chat_completion
 
 if TYPE_CHECKING:
     import redis.asyncio as aioredis
-    from anthropic import AsyncAnthropic
+    from openai import AsyncOpenAI
 
     from app.config import Settings
 
 logger = logging.getLogger(__name__)
 
-# Haiku model used for the cheap classification call.
-_CLASSIFIER_MODEL = "claude-haiku-4-5-20251001"
 _CACHE_TTL_SECONDS = 3600  # 1 hour
 
 INTENT_CATEGORIES: dict[str, str] = {
@@ -41,7 +41,12 @@ INTENT_CATEGORIES: dict[str, str] = {
     "code_review": "User pastes code and wants feedback",
     "system_design": "User asks to design a system or architecture",
     "meta_question": "Questions about the portfolio itself or how SwarajOS works",
-    "general_chat": "Greetings, small talk, off-topic questions",
+    "general_chat": "Greetings, small talk, thanks, pleasantries directed at the agent",
+    "off_topic": (
+        "Anything unrelated to Swaraj Bangar or this portfolio: general knowledge "
+        "(capitals, history, math), news, weather, other people, or coding help "
+        "that has nothing to do with Swaraj's work"
+    ),
 }
 
 # (regex, intent) — evaluated in order, first match wins.  These cover the
@@ -64,7 +69,7 @@ _DEFAULT_RESULT = {
 
 async def classify_intent(
     state: AgentState,
-    anthropic: "AsyncAnthropic",
+    openai: "AsyncOpenAI",
     redis: "aioredis.Redis | None",
     settings: "Settings",
 ) -> AgentState:
@@ -92,7 +97,7 @@ async def classify_intent(
             return state
 
     # ─── 2. Redis cache by message hash ──
-    cache_key = f"intent:v1:{hashlib.sha256(msg.encode()).hexdigest()[:16]}"
+    cache_key = f"intent:v2:{hashlib.sha256(msg.encode()).hexdigest()[:16]}"
     if redis is not None:
         try:
             cached = await redis.get(cache_key)
@@ -116,7 +121,7 @@ async def classify_intent(
             except (TypeError, ValueError, KeyError) as exc:
                 logger.warning("cached intent malformed (%s); reclassifying", exc)
 
-    # ─── 3. LLM classification with Haiku ──
+    # ─── 3. LLM classification with the cheap OpenAI model ──
     # Budget guard — if we're tapped out, default to general_chat without
     # spending a call (the general node has its own budget-aware fallback).
     if not await budget_available(redis, settings):
@@ -136,7 +141,7 @@ async def classify_intent(
         )
         return state
 
-    data = await _classify_with_llm(state, msg, anthropic, redis, settings)
+    data = await _classify_with_llm(state, msg, openai, redis, settings)
 
     # Validate intent is in our taxonomy.
     if data.get("intent") not in INTENT_CATEGORIES:
@@ -170,11 +175,11 @@ async def classify_intent(
 async def _classify_with_llm(
     state: AgentState,
     msg: str,
-    anthropic: "AsyncAnthropic",
+    openai: "AsyncOpenAI",
     redis: "aioredis.Redis | None",
     settings: "Settings",
 ) -> dict[str, Any]:
-    """Call Haiku and parse the JSON verdict. Never raises."""
+    """Call the cheap classifier model and parse the JSON verdict. Never raises."""
     categories_text = "\n".join(f"- {k}: {v}" for k, v in INTENT_CATEGORIES.items())
     context = state.get("conversation_context") or "none"
     prompt = (
@@ -187,11 +192,13 @@ async def _classify_with_llm(
     )
 
     try:
-        response = await anthropic.messages.create(
-            model=_CLASSIFIER_MODEL,
+        text, tokens = await chat_completion(
+            openai,
+            model=settings.OPENAI_CLASSIFIER_MODEL,
+            user=prompt,
             max_tokens=200,
-            temperature=0,
-            messages=[{"role": "user", "content": prompt}],
+            temperature=0.0,
+            json_mode=True,
         )
     except Exception as exc:  # noqa: BLE001 — any API failure → safe default
         logger.warning("intent LLM call failed: %s; defaulting to general_chat", exc)
@@ -199,14 +206,12 @@ async def _classify_with_llm(
 
     # Record token usage against the daily budget.
     try:
-        usage = response.usage
-        await record_tokens(redis, settings, usage.input_tokens + usage.output_tokens)
+        await record_tokens(redis, settings, tokens)
     except Exception:  # noqa: BLE001
         pass
 
     try:
-        text = response.content[0].text.strip()
-        # Strip code fences if Haiku adds them despite the instruction.
+        # Strip code fences if the model adds them despite the instruction.
         text = re.sub(r"^```(?:json)?\s*|\s*```$", "", text).strip()
         data = json.loads(text)
         # Coerce confidence to float defensively.

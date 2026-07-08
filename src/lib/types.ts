@@ -47,6 +47,12 @@ export interface AgentDoneMeta {
   readonly model: string;
 }
 
+/** One prior turn sent to the agent as conversation context. */
+export interface AgentHistoryMessage {
+  readonly role: 'user' | 'assistant';
+  readonly content: string;
+}
+
 /** A single frame from the agent orchestrate SSE stream. */
 export type AgentEvent =
   | { readonly type: 'step'; readonly data: AgentStep }

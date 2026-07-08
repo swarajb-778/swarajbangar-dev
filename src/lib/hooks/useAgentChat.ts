@@ -12,9 +12,9 @@
 // frame sets `error`.
 // ═══════════════════════════════════════════════════════════════
 
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { streamAgent } from '@/lib/api-client';
-import type { AgentEvent, AgentStep, ChatMessage } from '@/lib/types';
+import type { AgentEvent, AgentHistoryMessage, AgentStep, ChatMessage } from '@/lib/types';
 
 export interface UseAgentChat {
   readonly messages: ChatMessage[];
@@ -51,6 +51,12 @@ export function useAgentChat(
   // Synchronous re-entrancy lock — the isLoading state update is async, so a
   // rapid second call could slip past it and fire a duplicate agent run.
   const inFlight = useRef(false);
+  // Mirror of `messages` readable inside sendMessage without adding it to
+  // the useCallback deps (which would re-create the callback every turn).
+  const messagesRef = useRef<ChatMessage[]>(messages);
+  useEffect(() => {
+    messagesRef.current = messages;
+  }, [messages]);
 
   const sendMessage = useCallback(
     async (text: string) => {
@@ -61,6 +67,12 @@ export function useAgentChat(
       setError(null);
       setIsLoading(true);
       setAgentSteps([]);
+
+      // Snapshot prior finished turns as context (backend caps at 8/2000ch).
+      const history: AgentHistoryMessage[] = messagesRef.current
+        .filter((m) => !m.streaming && m.content)
+        .slice(-8)
+        .map((m) => ({ role: m.role, content: m.content }));
 
       const stamp = Date.now();
       const assistantId = `a-${stamp}`;
@@ -78,7 +90,7 @@ export function useAgentChat(
 
       let answer = '';
       try {
-        for await (const event of streamAgent(trimmed, sessionId)) {
+        for await (const event of streamAgent(trimmed, sessionId, history)) {
           onEvent?.(event);
           if (event.type === 'step') {
             setAgentSteps((s) => [...s, event.data]);

@@ -62,7 +62,7 @@ const HELP_TEXT: readonly string[] = [
 const SKILLS_BY_CATEGORY: Record<string, { readonly color: string; readonly skills: readonly string[] }> = {
   'AI / ML': {
     color: C.purple,
-    skills: ['Python', 'LangChain', 'LangGraph', 'RAG Pipelines', 'Claude API', 'GPT-4', 'Embeddings'],
+    skills: ['Python', 'LangChain', 'LangGraph', 'RAG Pipelines', 'OpenAI API', 'Embeddings'],
   },
   'Backend': {
     color: C.emerald,
@@ -87,7 +87,7 @@ const NEOFETCH_ART: readonly string[] = [
   `${C.purple}   ╚════██║██╔══██╗${C.reset}  ${C.purple}OS:${C.reset}      Next.js 16 + App Router`,
   `${C.purple}   ███████║██████╔╝${C.reset}  ${C.purple}Shell:${C.reset}   xterm.js 5`,
   `${C.purple}   ╚══════╝╚═════╝ ${C.reset}  ${C.purple}DE:${C.reset}      Tailwind CSS 4`,
-  `                     ${C.purple}CPU:${C.reset}     Claude Sonnet 4`,
+  `                     ${C.purple}CPU:${C.reset}     GPT-4.1 mini`,
   `                     ${C.purple}GPU:${C.reset}     Framer Motion 12`,
   `                     ${C.purple}Memory:${C.reset}  Neo4j + pgvector`,
   `                     ${C.purple}Uptime:${C.reset}  99.97%`,
@@ -142,7 +142,7 @@ const CAT_README: readonly string[] = [
   `  Frontend:  Next.js 16 · TypeScript · Tailwind CSS 4 · Framer Motion 12`,
   `  Terminal:  xterm.js + WebGL · Custom shell with history + tab completion`,
   `  Backend:   FastAPI · LangGraph · PostgreSQL + pgvector · Redis · Neo4j`,
-  `  AI:        Claude API · GPT-4 · RAG Pipelines · Multi-agent orchestration`,
+  `  AI:        OpenAI API · RAG Pipelines · Multi-agent orchestration`,
   `  Deploy:    Vercel (frontend) · Hetzner VPS (backend) · Cloudflare (CDN)`,
   '',
   `  ${C.teal}## Features${C.reset}`,

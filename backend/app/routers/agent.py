@@ -46,7 +46,7 @@ def _build_deps(request: Request) -> dict:
     state = request.app.state
     return {
         "settings": getattr(state, "settings", None),
-        "anthropic": getattr(state, "anthropic", None),
+        "openai": getattr(state, "openai", None),
         "embedder": getattr(state, "embedder", None),
         "retriever": getattr(state, "retriever", None),
         "reranker": getattr(state, "reranker", None),
