@@ -10,6 +10,7 @@
 
 import type {
   AgentEvent,
+  AgentHistoryMessage,
   AgentStep,
   AgentStepType,
   BlogPost,
@@ -463,7 +464,8 @@ async function* streamAgentMock(message: string): AsyncGenerator<AgentEvent> {
  */
 export async function* streamAgent(
   message: string,
-  sessionId: string
+  sessionId: string,
+  history?: readonly AgentHistoryMessage[]
 ): AsyncGenerator<AgentEvent, void, unknown> {
   let res: Response;
   try {
@@ -473,7 +475,11 @@ export async function* streamAgent(
         'Content-Type': 'application/json',
         Accept: 'text/event-stream',
       },
-      body: JSON.stringify({ message, session_id: sessionId }),
+      body: JSON.stringify({
+        message,
+        session_id: sessionId,
+        ...(history && history.length > 0 ? { context: { messages: history } } : {}),
+      }),
     });
     if (!res.ok || !res.body) throw new Error(`agent ${res.status}`);
   } catch (err) {
