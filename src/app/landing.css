@@ -643,6 +643,11 @@
 .lp .bubble .md-code { font-family: var(--font-mono); font-size: 0.85em; padding: 1px 5px; border-radius: 4px; background: rgba(255, 255, 255, 0.07); }
 .lp .bubble.assistant strong { color: var(--text-primary); font-weight: 600; }
 
+/* speak-this-answer button beside assistant bubbles */
+.lp .chat-panel .bubble-speak { flex: 0 0 auto; width: 26px; height: 26px; display: inline-flex; align-items: center; justify-content: center; border-radius: 999px; border: 1px solid rgba(255, 255, 255, 0.12); background: transparent; color: var(--text-muted); cursor: pointer; transition: color 150ms ease-out, border-color 150ms ease-out; }
+.lp .chat-panel .bubble-speak:hover { color: var(--accent-teal); }
+.lp .chat-panel .bubble-speak.is-speaking { color: var(--accent-teal); border-color: var(--accent-teal); }
+
 /* error bubble + try-again affordance */
 .lp .chat-panel .bubble.chat-error { color: var(--accent-pink); }
 .lp .chat-panel .bubble.chat-error button { margin-left: 6px; padding: 0; background: none; border: none; color: var(--accent-teal); font: inherit; text-decoration: underline; cursor: pointer; }
