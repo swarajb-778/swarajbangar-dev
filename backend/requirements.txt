@@ -1,7 +1,9 @@
 # swarajbangar.dev backend — Free-tier edition
 # OpenAI SDK only (chat + TTS). NO litellm.
 # Local sentence-transformers (384 dims) for embeddings.
-# torch from CPU index — smaller, faster install on x86_64.
+# torch: the Dockerfile pre-installs the CPU wheel (--index-url whl/cpu)
+# before this file runs — the plain pin below is then already satisfied.
+# On macOS dev machines the default wheel is CPU-only anyway.
 
 fastapi==0.115.6
 uvicorn[standard]==0.34.0
@@ -23,5 +25,5 @@ openai==2.44.0
 tiktoken==0.8.0
 numpy==2.2.0
 sentence-transformers==3.3.1
-torch==2.6.0 --index-url https://download.pytorch.org/whl/cpu
+torch==2.6.0
 umap-learn==0.5.12
