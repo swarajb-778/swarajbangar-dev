@@ -30,12 +30,8 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
+# env files — never commit, including example/template files (kept local only)
 .env*
-# Allow example/template env files (do not contain real secrets)
-!.env.example
-!.env.sample
-!.env.template
 
 # vercel
 .vercel
@@ -48,3 +44,12 @@ next-env.d.ts
 digitaloceanskey
 *.pub
 Neo4j-*.txt
+
+# local-only docs — kept on disk, never pushed to GitHub
+/SwarajBangar_Portfolio_PRD_v2.docx
+/SwarajBangar_Portfolio_PRD_v2.md
+/prd-assets/
+/future_updates/
+/docs/superpowers/
+# private RAG source content (resume) — ingested locally / on the droplet, not shared
+backend/data/documents/*.md
