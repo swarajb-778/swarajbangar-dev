@@ -16,9 +16,13 @@ RUN apt-get update && apt-get install -y \
         libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Python deps (cached layer — only rebuilt when requirements.txt changes)
+# Python deps (cached layer — only rebuilt when requirements.txt changes).
+# torch is installed FIRST from the CPU wheel index: the default PyPI wheel
+# drags in ~5GB of nvidia CUDA packages, which blows the disk on a small
+# droplet. With torch already satisfied, the requirements pass skips it.
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir torch==2.6.0 --index-url https://download.pytorch.org/whl/cpu \
+    && pip install --no-cache-dir -r requirements.txt
 
 # Pre-download the embedding + reranker models into the image layer
 # so first boot doesn't take 5 minutes. Cached in /root/.cache by default.
