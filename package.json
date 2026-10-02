@@ -1,0 +1,14 @@
+{
+  "name": "swaraj-portfolio",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Editor-themed developer portfolio with zero dependencies.",
+  "scripts": {
+    "dev": "node scripts/serve.mjs",
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}
