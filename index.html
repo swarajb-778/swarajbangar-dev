@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en" data-theme="midnight">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Swaraj Bangar — AI Engineer · Agentic Systems · Full-Stack</title>
+    <meta
+      name="description"
+      content="Swaraj Bangar is an AI and full-stack software engineer in San Francisco building agentic AI systems (LangGraph, RAG, voice agents, MCP) on production platforms at McKinsey and Amazon."
+    />
+    <meta name="theme-color" content="#15161a" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Swaraj Bangar — AI Engineer · Agentic Systems · Full-Stack" />
+    <meta property="og:description" content="Agent lab, measured impact, and projects, presented as a code editor." />
+    <link rel="icon" href="assets/favicon-64.png" type="image/png" />
+    <link rel="apple-touch-icon" href="assets/apple-touch-icon.png" />
+    <link rel="stylesheet" href="styles/themes.css" />
+    <link rel="stylesheet" href="styles/app.css" />
+    <script>
+      // Apply the saved theme before first paint to avoid a flash of the wrong colors.
+      try {
+        const saved = JSON.parse(localStorage.getItem("swaraj-portfolio:v1") || "{}");
+        if (saved.theme) document.documentElement.dataset.theme = saved.theme;
+        else if (matchMedia("(prefers-color-scheme: light)").matches) document.documentElement.dataset.theme = "daylight";
+      } catch {}
+    </script>
+    <script type="module" src="src/main.js"></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#editor">Skip to content</a>
+    <div class="app" id="app">
+      <header class="titlebar" id="titlebar"></header>
+      <div class="workbench">
+        <nav class="activitybar" id="activitybar" aria-label="Views"></nav>
+        <aside class="sidebar" id="sidebar" aria-label="Primary sidebar"></aside>
+        <main class="editor-group" aria-label="Editor">
+          <div class="tabs" id="tabs" role="tablist" aria-label="Open files"></div>
+          <nav class="breadcrumbs" id="breadcrumbs" aria-label="Breadcrumbs"></nav>
+          <div class="editor" id="editor" tabindex="-1">
+            <pre class="gutter" id="gutter" aria-hidden="true"></pre>
+            <div class="editor-content" id="editor-content"></div>
+          </div>
+          <section class="panel" id="panel" aria-label="Terminal" hidden></section>
+        </main>
+        <aside class="chat" id="chat" aria-label="Assistant" hidden></aside>
+        <div class="scrim" id="scrim" hidden></div>
+      </div>
+      <footer class="statusbar" id="statusbar"></footer>
+    </div>
+    <noscript>
+      <div class="noscript">
+        <h1>Swaraj Bangar</h1>
+        <p>AI Engineer · Agentic Engineer · Full-Stack Software Engineer, San Francisco. This portfolio is interactive and needs JavaScript.</p>
+        <p>
+          <a href="mailto:swarajbangar778@gmail.com">swarajbangar778@gmail.com</a> ·
+          <a href="https://github.com/swarajb-778">GitHub</a> ·
+          <a href="https://www.linkedin.com/in/swarajb778/">LinkedIn</a>
+        </p>
+        <p>Résumé available on request by email.</p>
+      </div>
+    </noscript>
+  </body>
+</html>
