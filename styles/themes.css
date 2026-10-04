@@ -1,0 +1,58 @@
+:root {
+  --font-ui: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", "JetBrains Mono", "Cascadia Code", Menlo, Consolas, monospace;
+  --code-size: 13px;
+  --line-h: 20px;
+  --titlebar-h: 36px;
+  --statusbar-h: 24px;
+  --activity-w: 48px;
+  --sidebar-w: 264px;
+  --chat-w: 330px;
+  --tabs-h: 36px;
+  --panel-h: 250px;
+  --gutter-w: 60px;
+}
+
+:root,
+[data-theme="midnight"] {
+  color-scheme: dark;
+  --bg-chrome: #15161a;
+  --bg-sidebar: #18191e;
+  --bg-editor: #1c1d22;
+  --bg-panel: #18191e;
+  --bg-elevated: #23252c;
+  --bg-input: #121317;
+  --bg-hover: rgb(255 255 255 / 0.05);
+  --bg-active: rgb(110 155 255 / 0.16);
+  --bg-statusbar: #15161a;
+  --border: #2a2c34;
+  --border-strong: #383b45;
+  --fg: #d3d6de;
+  --fg-strong: #f4f5f8;
+  --fg-muted: #9196a3;
+  --fg-faint: #5c606c;
+  --fg-statusbar: #a9adb9;
+  --accent: #7aa2ff;
+  --accent-strong: #3d6fe0;
+  --accent-fg: #ffffff;
+  --link: #8db3ff;
+  --success: #4ec98b;
+  --warning: #e5b759;
+  --danger: #f27272;
+  --tok-key: #8ccbff;
+  --tok-property: #9fd8f2;
+  --tok-string: #e6a57e;
+  --tok-number: #b8dc9f;
+  --tok-keyword: #c99bf5;
+  --tok-type: #5fd4bd;
+  --tok-fn: #f0d68a;
+  --tok-punct: #a3a8b5;
+  --tok-comment: #6f8f6a;
+  --heat-0: #151b23;
+  --heat-1: #033a16;
+  --heat-2: #196c2e;
+  --heat-3: #2ea043;
+  --heat-4: #56d364;
+  --shadow: 0 12px 40px rgb(0 0 0 / 0.45);
+  --scrim: rgb(0 0 0 / 0.45);
+}
