@@ -404,3 +404,44 @@ textarea.input {
   display: none;
 }
 
+/* ---------- Activity bar ---------- */
+
+.activitybar {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  justify-content: space-between;
+  width: var(--activity-w);
+  background: var(--bg-chrome);
+  border-right: 1px solid var(--border);
+}
+
+.activity-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.activity-button {
+  position: relative;
+  display: grid;
+  place-items: center;
+  height: 48px;
+  color: var(--fg-faint);
+}
+
+.activity-button:hover,
+.activity-button.is-active {
+  color: var(--fg-strong);
+}
+
+.activity-button.is-active::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 10px;
+  bottom: 10px;
+  width: 2px;
+  border-radius: 0 2px 2px 0;
+  background: var(--accent);
+}
+
