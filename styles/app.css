@@ -251,3 +251,156 @@ textarea.input {
   --icon-text: "Py";
 }
 
+/* ---------- Title bar ---------- */
+
+.titlebar {
+  position: relative;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 8px;
+  background: var(--bg-chrome);
+  border-bottom: 1px solid var(--border);
+  user-select: none;
+}
+
+.window-dots {
+  display: flex;
+  gap: 8px;
+  padding: 0 8px 0 4px;
+}
+
+.window-dots span {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #ff5f57;
+}
+.window-dots span:nth-child(2) {
+  background: #febc2e;
+}
+.window-dots span:nth-child(3) {
+  background: #28c840;
+}
+
+.app-logo {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 26px;
+  height: 26px;
+  border-radius: 5px;
+}
+
+.app-logo:hover {
+  background: var(--bg-hover);
+}
+
+.app-logo img {
+  display: block;
+}
+
+.menubar {
+  display: flex;
+}
+
+.menu {
+  position: relative;
+}
+
+.menu-button {
+  padding: 3px 8px;
+  border-radius: 5px;
+  color: var(--fg-muted);
+  font-size: 12.5px;
+}
+
+.menu-button:hover,
+.menu.is-open .menu-button {
+  background: var(--bg-hover);
+  color: var(--fg-strong);
+}
+
+.menu-list {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  min-width: 250px;
+  margin: 0;
+  padding: 4px;
+  list-style: none;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+}
+
+.menu-item {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  width: 100%;
+  padding: 5px 10px;
+  border-radius: 4px;
+}
+
+.menu-item:hover,
+.menu-item:focus-visible {
+  background: var(--accent-strong);
+  color: var(--accent-fg);
+  outline: none;
+}
+
+.menu-keys {
+  font-size: 12px;
+  opacity: 0.7;
+}
+
+.menu-sep {
+  height: 1px;
+  margin: 4px 6px;
+  background: var(--border);
+}
+
+.title-search {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: min(440px, 38vw);
+  height: 24px;
+  padding: 0 10px;
+  border: 1px solid var(--border-strong);
+  border-radius: 6px;
+  background: var(--bg-input);
+  color: var(--fg-muted);
+  font-size: 12px;
+}
+
+.title-search:hover {
+  color: var(--fg-strong);
+  border-color: var(--fg-faint);
+}
+
+.title-search kbd {
+  margin-left: auto;
+}
+
+.title-search-label {
+  margin-left: auto;
+}
+
+.title-actions {
+  display: flex;
+  gap: 2px;
+  margin-left: auto;
+}
+
+.mobile-only {
+  display: none;
+}
+
