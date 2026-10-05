@@ -445,3 +445,138 @@ textarea.input {
   background: var(--accent);
 }
 
+/* ---------- Overlays ---------- */
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding-top: 9vh;
+  background: color-mix(in srgb, var(--scrim) 50%, transparent);
+}
+
+.palette {
+  width: min(620px, calc(100vw - 24px));
+  overflow: hidden;
+  border: 1px solid var(--border-strong);
+  border-radius: 10px;
+  background: var(--bg-elevated);
+  box-shadow: var(--shadow);
+}
+
+.palette-input {
+  width: 100%;
+  padding: 11px 14px;
+  border: 0;
+  border-bottom: 1px solid var(--border);
+  outline: none;
+  background: transparent;
+  color: var(--fg-strong);
+  font-size: 14px;
+}
+
+.palette-message {
+  margin: 0;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+  color: var(--fg-muted);
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+
+.palette-item svg {
+  color: var(--fg-muted);
+}
+
+.palette-list {
+  max-height: 52vh;
+  margin: 0;
+  padding: 4px;
+  overflow: auto;
+  list-style: none;
+}
+
+.palette-item {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.palette-item[aria-selected="true"] {
+  background: var(--bg-active);
+  color: var(--fg-strong);
+}
+
+.palette-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.palette-detail {
+  flex: none;
+  margin-left: auto;
+  color: var(--fg-muted);
+  font-size: 12px;
+}
+
+.palette-empty {
+  padding: 10px 12px;
+  color: var(--fg-muted);
+}
+
+.toasts {
+  position: fixed;
+  right: 16px;
+  bottom: calc(var(--statusbar-h) + 14px);
+  z-index: 120;
+  display: grid;
+  gap: 8px;
+}
+
+.toast {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  max-width: min(380px, calc(100vw - 32px));
+  padding: 10px 14px;
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  background: var(--bg-elevated);
+  box-shadow: var(--shadow);
+  color: var(--fg-strong);
+  animation: toast-in 0.18s ease-out;
+  transition:
+    opacity 0.2s,
+    transform 0.2s;
+}
+
+.toast svg {
+  color: var(--accent);
+}
+
+.toast.is-leaving {
+  opacity: 0;
+  transform: translateY(6px);
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+.noscript {
+  max-width: 560px;
+  margin: 15vh auto;
+  padding: 0 20px;
+  font-size: 15px;
+}
+
