@@ -1318,6 +1318,72 @@ textarea.input {
   text-decoration: underline;
 }
 
+/* Résumé (locked, request-only) */
+
+.locked {
+  position: relative;
+  display: grid;
+  max-width: 640px;
+  min-height: 360px;
+  padding: 0;
+  overflow: hidden;
+}
+
+.locked-preview,
+.locked-body {
+  grid-area: 1 / 1;
+}
+
+.locked-preview {
+  display: grid;
+  align-content: start;
+  gap: 10px;
+  padding: 28px 32px;
+  filter: blur(3px);
+  opacity: 0.55;
+}
+
+.skeleton-line {
+  display: block;
+  height: 9px;
+  border-radius: 4px;
+  background: var(--border-strong);
+}
+
+.skeleton-gap {
+  height: 6px;
+}
+
+.locked-body {
+  z-index: 1;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 8px;
+  padding: 32px;
+  background: color-mix(in srgb, var(--bg-elevated) 70%, transparent);
+  text-align: center;
+}
+
+.locked-body .card-text {
+  max-width: 44ch;
+}
+
+.locked-body .form-actions {
+  justify-content: center;
+  margin: 8px 0 0;
+}
+
+.locked-icon {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: var(--bg-active);
+  color: var(--accent);
+}
+
 /* ---------- Overlays ---------- */
 
 .overlay {
