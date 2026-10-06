@@ -1249,6 +1249,75 @@ textarea.input {
   font-size: 12px;
 }
 
+/* Contact */
+
+.contact-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+}
+
+.contact-form {
+  display: grid;
+  gap: 12px;
+}
+
+.field {
+  display: grid;
+  gap: 5px;
+}
+
+.field-label {
+  color: var(--fg-muted);
+  font-size: 12px;
+}
+
+.form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.contact-form .form-actions {
+  margin: 0;
+}
+
+.form-status {
+  min-height: 1.5em;
+  margin: 0;
+  font-size: 12.5px;
+}
+
+.form-status[data-tone="error"] {
+  color: var(--danger);
+}
+
+.form-status[data-tone="ok"] {
+  color: var(--success);
+}
+
+.link-list {
+  display: grid;
+  gap: 8px;
+  margin: 8px 0 14px;
+  padding: 0;
+  list-style: none;
+}
+
+.link-list a {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  word-break: break-all;
+}
+
+.link-list a:hover {
+  text-decoration: underline;
+}
+
 /* ---------- Overlays ---------- */
 
 .overlay {
