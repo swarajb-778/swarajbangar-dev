@@ -1144,6 +1144,61 @@ textarea.input {
   color: var(--fg-strong);
 }
 
+/* Timeline */
+
+.timeline {
+  position: relative;
+  display: grid;
+  gap: 14px;
+  margin: 0;
+  padding: 0 0 0 24px;
+  list-style: none;
+}
+
+.timeline::before {
+  content: "";
+  position: absolute;
+  left: 6px;
+  top: 8px;
+  bottom: 8px;
+  width: 1px;
+  background: var(--border-strong);
+}
+
+.timeline-item {
+  position: relative;
+}
+
+.timeline-dot {
+  position: absolute;
+  left: -23px;
+  top: 18px;
+  width: 11px;
+  height: 11px;
+  border: 2px solid var(--accent);
+  border-radius: 50%;
+  background: var(--bg-editor);
+}
+
+.timeline-dot.is-muted {
+  border-color: var(--fg-faint);
+}
+
+.at {
+  color: var(--accent);
+  font-weight: 500;
+}
+
+.bullets {
+  margin: 8px 0 0;
+  padding-left: 18px;
+  color: var(--fg);
+}
+
+.bullets li + li {
+  margin-top: 2px;
+}
+
 /* ---------- Overlays ---------- */
 
 .overlay {

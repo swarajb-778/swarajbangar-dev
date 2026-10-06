@@ -228,6 +228,23 @@ export default {
     },
   ],
 
+  education: [
+    {
+      degree: "MS, Computer Science",
+      school: "California State University, East Bay",
+      start: "2024-09",
+      end: "2026-05",
+      notes: "Research: agentic AI systems. Coursework: advanced ML, distributed systems, NLP",
+    },
+    {
+      degree: "BS, Computer Science",
+      school: "Pune University",
+      start: "2018-08",
+      end: "2021-04",
+      notes: "Coursework: data structures and algorithms, OOP, system design",
+    },
+  ],
+
   // Logos live in assets/logos/. Most are Devicon (MIT) or Simple Icons (CC0).
   // openai.svg and pinecone.svg are those projects' own marks, from their official repos.
   // Items without a logo show initials.
