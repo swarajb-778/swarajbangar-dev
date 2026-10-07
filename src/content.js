@@ -46,6 +46,18 @@ export default {
     { label: "Portfolio v1", handle: "swarajbangar-dev", url: "https://swarajbangar-dev.vercel.app" },
   ],
 
+  // From the résumé. `better` says which direction is an improvement.
+  impact: [
+    { label: "Risk-service throughput", company: "McKinsey", before: 780, after: 1110, unit: "req/min", better: "higher", note: "same compute, p95, and error budget" },
+    { label: "Analyst research time", company: "McKinsey", before: 100, after: 60, unit: "% of baseline", better: "lower", note: "median, with the agentic research platform" },
+    { label: "Exposure review effort", company: "McKinsey", before: 20, after: 3, unit: "person-hours", better: "lower", note: "one recurring workflow" },
+    { label: "Dashboard ready time", company: "McKinsey", before: 4, after: 1.7, unit: "s", better: "lower", note: "TanStack Query caching, server pagination" },
+    { label: "First-pass auto-reconciliation", company: "Amazon via ThoughtWorks", before: 84, after: 97, unit: "%", better: "higher", note: "rules + confidence-scored matching" },
+    { label: "Exception view p95", company: "Amazon via ThoughtWorks", before: 3.5, after: 1.6, unit: "s", better: "lower", note: "Next.js SSR and React Query" },
+    { label: "Release cycle", company: "Amazon via ThoughtWorks", before: 14, after: 3, unit: "days", better: "lower", note: "rebuilt CI/CD with contract tests" },
+    { label: "PostgreSQL read load", company: "Amazon via ThoughtWorks", before: 100, after: 40, unit: "% of baseline", better: "lower", note: "Redis caching with explicit invalidation" },
+  ],
+
   projects: [
     {
       name: "SuperVoiceAI",
