@@ -60,6 +60,99 @@ export default {
     { label: "PostgreSQL read load", company: "Amazon via ThoughtWorks", before: 100, after: 40, unit: "% of baseline", better: "lower", note: "Redis caching with explicit invalidation" },
   ],
 
+  ai: {
+    summary:
+      "At McKinsey, Swaraj built an agentic research platform (LangChain and LangGraph, hybrid BM25 + embedding retrieval on Pinecone, " +
+      "evidence-linked citations, abstention controls) that cut median analyst research time by 40%. Side projects include " +
+      "SuperVoiceAI, TDS Agents, and the RapidOrch and SEOptiMCP MCP servers.",
+    agent: {
+      name: "SwarajOS",
+      summary: "a multi-agent assistant that answers questions about my work, with its reasoning trace exposed",
+      nodes: [
+        { id: "classify", fn: "classify_intent", label: "Classify", detail: "Intent and confidence from a small, fast model" },
+        { id: "route", fn: "route_to_specialist", label: "Route", detail: "Hands off to the experience, project, or policy agent" },
+        { id: "retrieve", fn: "hybrid_retrieve", label: "Retrieve", detail: "BM25 + embeddings over the résumé, repos, and notes, then rerank" },
+        { id: "tools", fn: "call_tools", label: "Tools", detail: "Live lookups such as the GitHub API, exposed over MCP" },
+        { id: "generate", fn: "generate_answer", label: "Generate", detail: "Grounded answer with inline citations" },
+        { id: "verify", fn: "verify_citations", label: "Verify", detail: "Checks every claim is cited; retries or abstains" },
+      ],
+      edges: [
+        ["classify", "route"],
+        ["route", "retrieve"],
+        ["route", "tools", "when the answer needs live data"],
+        ["retrieve", "generate"],
+        ["tools", "generate"],
+        ["generate", "verify"],
+        ["verify", "generate", "retry when a claim lacks a citation"],
+        ["verify", "END"],
+      ],
+      // FABRICATED: simulated timings for the demo trace replay.
+      traces: [
+        {
+          question: "What did Swaraj build at McKinsey?",
+          steps: [
+            ["classify", "experience_query · 0.94", 38],
+            ["route", "experience_agent", 4],
+            ["retrieve", "top-k 8 → reranked to 4", 61],
+            ["generate", "214 tokens · 3 citations", 640],
+            ["verify", "3/3 claims cited ✓", 22],
+          ],
+        },
+        {
+          question: "Which projects use voice agents?",
+          steps: [
+            ["classify", "project_query · 0.91", 35],
+            ["route", "project_agent + tools", 5],
+            ["tools", "GitHub API · 2 matching repos", 180],
+            ["retrieve", "top-k 6 → reranked to 3", 57],
+            ["generate", "168 tokens · 2 citations", 520],
+            ["verify", "2/2 claims cited ✓", 19],
+          ],
+        },
+        {
+          question: "What salary is he asking for?",
+          steps: [
+            ["classify", "personal_query · 0.88", 33],
+            ["route", "policy_agent", 3],
+            ["retrieve", "0 sources above threshold", 44],
+            ["verify", "abstained: not in sources", 12],
+          ],
+        },
+      ],
+      // FABRICATED: replace with numbers from a real eval run.
+      evals: [
+        { metric: "Faithfulness", score: 0.94 },
+        { metric: "Answer relevancy", score: 0.91 },
+        { metric: "Citation precision", score: 0.96 },
+        { metric: "Correct abstentions", score: 0.89 },
+        { metric: "Tool-call success", score: 0.97 },
+      ],
+      evalNote: "142-question golden set, LLM-as-judge with human spot checks", // FABRICATED
+    },
+  },
+            ["judge", "H3 rejected (config only) · H1 and H2 stand · retries skip the idempotency key", 70],
+            { gate: "gate", detail: "Pause the consumer group and drain the DLQ through the idempotent worker?" },
+          ],
+          choices: {
+            Approve: [
+              ["act", "group paused · DLQ drained · cache warmed", 220],
+              ["confirm", "p95 back under 1.6s · DLQ empty", 60],
+            ],
+            Escalate: [["escalate", "no mutation · handed to a person", 20]],
+          },
+        },
+      ],
+      // FABRICATED: scripted checks for the demo, not a production eval run.
+      evals: [
+        { metric: "Hypothesis match", score: 0.9 },
+        { metric: "Rejected causes stay rejected", score: 0.95 },
+        { metric: "No mutate before approve", score: 1 },
+        { metric: "Red confirm is not resolved", score: 0.92 },
+      ],
+      evalNote: "Scripted pages. A red confirm is a failure even if the write succeeded.",
+    },
+  },
+
   projects: [
     {
       name: "SuperVoiceAI",

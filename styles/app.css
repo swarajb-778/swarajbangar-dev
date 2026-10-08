@@ -1307,6 +1307,146 @@ textarea.input {
   font-size: 20px;
 }
 
+/* Agent lab */
+
+.agent-graph {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg-elevated);
+}
+
+.agent-layer {
+  display: grid;
+  gap: 8px;
+}
+
+.agent-node {
+  display: grid;
+  gap: 2px;
+  min-width: 110px;
+  padding: 8px 12px;
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  background: var(--bg-input);
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s,
+    background 0.2s;
+}
+
+.agent-node-label {
+  color: var(--fg-strong);
+  font-weight: 600;
+}
+
+.agent-node-fn {
+  color: var(--fg-muted);
+  font: 11px var(--font-mono);
+}
+
+.agent-node.is-done {
+  border-color: color-mix(in srgb, var(--success) 60%, var(--border));
+}
+
+.agent-node.is-active {
+  border-color: var(--accent);
+  background: var(--bg-active);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent);
+}
+
+.agent-node.is-end {
+  min-width: 0;
+  color: var(--fg-muted);
+}
+
+.agent-arrow {
+  color: var(--fg-faint);
+  font-family: var(--font-mono);
+}
+
+.loop-notes {
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+  color: var(--fg-muted);
+  font-size: 12.5px;
+}
+
+.loop-notes code,
+.hint code {
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: var(--bg-elevated);
+  color: var(--fg);
+  font: 12px var(--font-mono);
+}
+
+.trace-panel {
+  margin-top: 12px;
+  font-family: var(--font-mono);
+}
+
+.trace-log {
+  display: grid;
+  gap: 6px;
+  min-height: 24px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.trace-step {
+  display: grid;
+  grid-template-columns: 90px minmax(0, 1fr) auto;
+  gap: 12px;
+  font-size: 12.5px;
+  animation: toast-in 0.18s ease-out;
+}
+
+.trace-node {
+  color: var(--accent);
+}
+
+.trace-detail {
+  color: var(--fg);
+}
+
+.trace-ms {
+  color: var(--fg-muted);
+}
+
+.trace-summary {
+  margin: 10px 0 0;
+  color: var(--success);
+  font-size: 12px;
+}
+
+.eval-list {
+  display: grid;
+  gap: 10px;
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.eval-list li {
+  display: grid;
+  grid-template-columns: 160px minmax(0, 1fr) 44px;
+  align-items: center;
+  gap: 12px;
+}
+
+.eval-score {
+  color: var(--fg-strong);
+  font: 12px var(--font-mono);
+  text-align: right;
+}
+
 /* Timeline */
 
 .timeline {
