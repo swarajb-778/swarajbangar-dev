@@ -1687,6 +1687,83 @@ textarea.input {
   color: var(--accent);
 }
 
+/* ---------- Terminal panel ---------- */
+
+.panel {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  height: var(--panel-h);
+  border-top: 1px solid var(--border);
+  background: var(--bg-panel);
+}
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  flex: none;
+  height: 34px;
+  padding: 0 8px 0 16px;
+}
+
+.panel-tab {
+  padding: 6px 0;
+  border-bottom: 1px solid var(--accent);
+  color: var(--fg-strong);
+  font-size: 11px;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.panel-actions {
+  display: flex;
+  margin-left: auto;
+}
+
+.term-body {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 2px 16px 12px;
+  font: 12.5px/1.6 var(--font-mono);
+  cursor: text;
+}
+
+.term-line {
+  min-height: 1.6em;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.term-line.is-error {
+  color: var(--danger);
+}
+
+.term-line.is-muted {
+  color: var(--fg-muted);
+}
+
+.term-prompt {
+  margin-right: 8px;
+  color: var(--success);
+}
+
+.term-prompt-line {
+  display: flex;
+}
+
+.term-input {
+  flex: 1;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: var(--fg-strong);
+  font: inherit;
+  caret-color: var(--accent);
+}
+
 /* ---------- Overlays ---------- */
 
 .overlay {
