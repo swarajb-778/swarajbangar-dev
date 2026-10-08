@@ -1764,6 +1764,91 @@ textarea.input {
   caret-color: var(--accent);
 }
 
+/* ---------- Assistant ---------- */
+
+.chat-note {
+  margin: 0;
+  padding: 0 16px 8px;
+  color: var(--fg-muted);
+  font-size: 11.5px;
+}
+
+.chat-log {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 0;
+  overflow: auto;
+  padding: 8px 14px;
+}
+
+.bubble {
+  max-width: 92%;
+  padding: 8px 11px;
+  border: 1px solid var(--border);
+  border-radius: 12px 12px 12px 4px;
+  background: var(--bg-elevated);
+  font-size: 12.5px;
+  line-height: 1.55;
+}
+
+.bubble p {
+  margin: 0;
+}
+
+.bubble.user {
+  align-self: flex-end;
+  border-color: transparent;
+  border-radius: 12px 12px 4px 12px;
+  background: var(--accent-strong);
+  color: var(--accent-fg);
+}
+
+.bubble.typing {
+  color: var(--fg-muted);
+  animation: pulse 1s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.bubble-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.chip-btn {
+  padding: 3px 9px;
+  border: 1px solid var(--border-strong);
+  border-radius: 999px;
+  color: var(--fg);
+  font-size: 11.5px;
+}
+
+.chip-btn:hover {
+  border-color: var(--accent);
+  color: var(--fg-strong);
+}
+
+.chat-suggest {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 8px 14px 0;
+}
+
+.chat-form {
+  display: flex;
+  gap: 6px;
+  padding: 10px 14px 14px;
+}
+
 /* ---------- Overlays ---------- */
 
 .overlay {
