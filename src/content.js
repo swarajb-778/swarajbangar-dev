@@ -40,6 +40,8 @@ export default {
     { title: "AI-native workflow", text: "I pair with coding agents for spec → plan → test-first implementation, and review every line they write." },
   ],
 
+  github: { user: "swarajb-778" },
+
   socials: [
     { label: "GitHub", handle: "swarajb-778", url: "https://github.com/swarajb-778" },
     { label: "LinkedIn", handle: "swarajb778", url: "https://www.linkedin.com/in/swarajb778/" },
