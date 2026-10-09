@@ -917,6 +917,132 @@ textarea.input {
   margin-left: 10px;
 }
 
+/* ---------- Editor ---------- */
+
+.editor-group {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+  background: var(--bg-editor);
+}
+
+.tabs {
+  display: flex;
+  flex: none;
+  height: var(--tabs-h);
+  overflow-x: auto;
+  background: var(--bg-chrome);
+  border-bottom: 1px solid var(--border);
+  scrollbar-width: none;
+}
+
+.tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.tab {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex: none;
+  padding: 0 6px 0 12px;
+  border-right: 1px solid var(--border);
+  color: var(--fg-muted);
+  font-size: 12.5px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.tab:hover {
+  background: var(--bg-hover);
+}
+
+.tab.is-active {
+  background: var(--bg-editor);
+  color: var(--fg-strong);
+  box-shadow: 0 1px 0 var(--bg-editor);
+}
+
+.tab.is-active::after {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 1px;
+  background: var(--accent);
+}
+
+.tab-close {
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  opacity: 0;
+}
+
+.tab:hover .tab-close,
+.tab.is-active .tab-close {
+  opacity: 1;
+}
+
+.tab-close:hover {
+  background: var(--bg-hover);
+}
+
+.breadcrumbs {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex: none;
+  height: 24px;
+  padding: 0 16px;
+  overflow: hidden;
+  color: var(--fg-muted);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.crumb.is-current {
+  color: var(--fg);
+}
+
+.editor {
+  display: grid;
+  flex: 1;
+  grid-template-columns: var(--gutter-w) minmax(0, 1fr);
+  align-items: start;
+  min-height: 0;
+  overflow: auto;
+  outline: none;
+}
+
+.gutter {
+  position: sticky;
+  left: 0;
+  margin: 0;
+  padding: 6px 18px 0 0;
+  color: var(--fg-faint);
+  font: var(--code-size) / var(--line-h) var(--font-mono);
+  text-align: right;
+  user-select: none;
+  white-space: pre;
+}
+
+.editor-content {
+  min-width: 0;
+  padding: 6px 32px 120px 8px;
+}
+
+.editor.is-empty {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.editor.is-empty .gutter {
+  display: none;
+}
+
 /* Code */
 
 .code {
@@ -1685,6 +1811,48 @@ textarea.input {
   border-radius: 12px;
   background: var(--bg-active);
   color: var(--accent);
+}
+
+/* Welcome (no open files) */
+
+.welcome {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  max-width: 420px;
+  margin: 10vh auto 0;
+  text-align: center;
+}
+
+.welcome-logo {
+  width: 96px;
+  height: 96px;
+  margin-bottom: 8px;
+  object-fit: contain;
+}
+
+.welcome-title {
+  margin: 0;
+  color: var(--fg-strong);
+  font-size: 20px;
+}
+
+.welcome-keys {
+  display: grid;
+  gap: 8px;
+  width: 100%;
+  margin: 14px 0 18px;
+}
+
+.welcome-row {
+  display: flex;
+  justify-content: space-between;
+  color: var(--fg-muted);
+}
+
+.welcome-row dt,
+.welcome-row dd {
+  margin: 0;
 }
 
 /* ---------- Terminal panel ---------- */
