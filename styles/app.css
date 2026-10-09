@@ -2196,3 +2196,105 @@ button.status-remote:hover {
   font-size: 15px;
 }
 
+/* ---------- Responsive ---------- */
+
+@media (max-width: 900px) {
+  .menubar,
+  .window-dots {
+    display: none;
+  }
+
+  .mobile-only {
+    display: inline-grid;
+  }
+
+  .title-search {
+    position: static;
+    flex: 1;
+    width: auto;
+    transform: none;
+  }
+
+  .sidebar,
+  .chat {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    z-index: 20;
+    box-shadow: var(--shadow);
+  }
+
+  .sidebar {
+    left: var(--activity-w);
+    width: min(300px, calc(100vw - var(--activity-w) - 32px));
+  }
+
+  .chat {
+    right: 0;
+    width: min(360px, 100vw);
+  }
+
+  .scrim {
+    position: absolute;
+    inset: 0;
+    z-index: 15;
+    background: var(--scrim);
+  }
+
+  .editor-content {
+    padding-right: 16px;
+  }
+
+  .panel {
+    height: 45%;
+  }
+
+  .contact-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 560px) {
+  :root {
+    --activity-w: 42px;
+    --gutter-w: 38px;
+  }
+
+  .gutter {
+    padding-right: 10px;
+  }
+
+  .title-search kbd,
+  .title-actions [data-key="chatOpen"],
+  .status-optional,
+  .status-optional-text {
+    display: none;
+  }
+
+  .breadcrumbs {
+    padding: 0 10px;
+  }
+
+  .card-grid,
+  .card-grid.wide {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .eval-list li {
+    grid-template-columns: 120px minmax(0, 1fr) 40px;
+  }
+
+  .trace-step {
+    grid-template-columns: 70px minmax(0, 1fr) auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}
