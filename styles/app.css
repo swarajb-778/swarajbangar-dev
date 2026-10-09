@@ -1849,6 +1849,50 @@ textarea.input {
   padding: 10px 14px 14px;
 }
 
+/* ---------- Status bar ---------- */
+
+.statusbar {
+  display: flex;
+  align-items: stretch;
+  justify-content: space-between;
+  overflow: hidden;
+  background: var(--bg-statusbar);
+  border-top: 1px solid var(--border);
+  color: var(--fg-statusbar);
+  font-size: 12px;
+  user-select: none;
+}
+
+.sb-group {
+  display: flex;
+  align-items: stretch;
+}
+
+.status-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 0 9px;
+  white-space: nowrap;
+}
+
+button.status-item:hover {
+  background: var(--bg-hover);
+  color: var(--fg-strong);
+}
+
+.status-remote {
+  background: var(--accent-strong);
+  color: var(--accent-fg);
+  font: 700 11px/1 var(--font-mono);
+}
+
+button.status-remote:hover {
+  background: var(--accent-strong);
+  color: var(--accent-fg);
+  filter: brightness(1.1);
+}
+
 /* ---------- Overlays ---------- */
 
 .overlay {
