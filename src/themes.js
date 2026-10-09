@@ -1,5 +1,8 @@
 export const THEMES = [
   { id: "midnight", label: "Midnight", kind: "dark" },
+  { id: "daylight", label: "Daylight", kind: "light" },
+  { id: "matcha", label: "Matcha", kind: "dark" },
+  { id: "contrast", label: "High Contrast", kind: "dark" },
 ];
 
 export const defaultTheme = () =>
