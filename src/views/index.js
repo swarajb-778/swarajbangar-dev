@@ -7,6 +7,7 @@ import { renderResume } from "./resume.js";
 import { renderAgents } from "./agents.js";
 import { renderImpact } from "./impact.js";
 import { renderActivity } from "./activity.js";
+import { renderMcp, renderReconcile, renderRetrieve, renderWaterfall } from "./labs.js";
 import { codeBlock, doc } from "./parts.js";
 
 const renderCode = (file) => doc(codeBlock(file.lines));
@@ -22,6 +23,10 @@ const VIEWS = {
   agents: renderAgents,
   impact: renderImpact,
   activity: renderActivity,
+  retrieve: renderRetrieve,
+  reconcile: renderReconcile,
+  waterfall: renderWaterfall,
+  mcp: renderMcp,
 };
 
 export const renderView = (file, ctx) => (VIEWS[file.view] ?? renderCode)(file, ctx);

@@ -198,6 +198,51 @@ export default {
     },
   },
 
+  labs: {
+    ledger: {
+      clean: 21,
+      edges: [
+        { id: "FEE-1", kind: "fee mismatch", amountDelta: 1.2, daySkew: 0, duplicate: false, key: true },
+        { id: "DATE-1", kind: "date skew", amountDelta: 0, daySkew: 2, duplicate: false, key: true },
+        { id: "DUP-1", kind: "duplicate offset", amountDelta: 0, daySkew: 0, duplicate: true, key: true },
+        { id: "BAD-1", kind: "unrelated amount", amountDelta: 40, daySkew: 0, duplicate: false, key: false },
+      ],
+    },
+    waterfalls: [
+      {
+        name: "Dashboard ready",
+        note: "The published 4.0s → 1.7s, drawn as the calls behind it.",
+        before: [
+          ["GET /balances", 820],
+          ["GET /exposures", 740],
+          ["GET /limits", 690],
+          ["GET /alerts", 610],
+          ["GET /notes", 580],
+          ["GET /user", 560],
+        ],
+        after: [
+          ["POST /graphql (BFF)", 1280],
+          ["TanStack Query cache hit", 420],
+        ],
+      },
+      {
+        name: "Exception view",
+        note: "The published 3.5s → 1.6s. After is the server-rendered document, not a client waterfall.",
+        before: [
+          ["GET /exceptions", 1400],
+          ["GET /accounts", 1100],
+          ["GET /rules", 1000],
+        ],
+        after: [["Next.js SSR document", 1600]],
+      },
+    ],
+    openapi: {
+      operationId: "getImpact",
+      summary: "Look up one published before/after metric",
+      parameters: [{ name: "metric", required: true, description: "Metric label", schema: { type: "string" } }],
+    },
+  },
+
   projects: [
     {
       name: "SuperVoiceAI",
