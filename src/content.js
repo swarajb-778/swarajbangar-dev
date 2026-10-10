@@ -129,7 +129,52 @@ export default {
       ],
       evalNote: "142-question golden set, LLM-as-judge with human spot checks", // FABRICATED
     },
-  },
+    oncall: {
+      name: "On-call",
+      summary: "an operator that triages one page, fans out for evidence, and waits for approval before it changes anything",
+      intro:
+        "SwarajOS answers questions. On-call is a different graph: it triages a scripted reconciliation page, gathers metrics, broker, and deploy evidence in parallel, and stops until you approve or escalate. Nothing here is a live incident.",
+      nodes: [
+        { id: "page", fn: "normalize_page", label: "Page", detail: "Turn the alert into a budget, a symptom, and a service" },
+        { id: "hypothesize", fn: "write_hypotheses", label: "Hypothesize", detail: "Write competing causes into state before looking" },
+        { id: "metrics", fn: "read_metrics", label: "Metrics", detail: "p95, error rate, and cache hit rate" },
+        { id: "broker", fn: "read_broker", label: "Broker", detail: "Consumer lag and the dead-letter queue" },
+        { id: "changes", fn: "read_changes", label: "Changes", detail: "Deploys and config edits in the last hour" },
+        { id: "judge", fn: "judge_hypotheses", label: "Judge", detail: "Keep or kill each hypothesis from the evidence" },
+        { id: "gate", fn: "wait_for_approval", label: "Gate", detail: "Interrupt before anything that mutates production" },
+        { id: "act", fn: "drain_and_warm", label: "Act", detail: "Pause the group, drain the DLQ, warm the cache" },
+        { id: "escalate", fn: "hand_off", label: "Escalate", detail: "Leave the system untouched and page a person" },
+        { id: "confirm", fn: "check_slo", label: "Confirm", detail: "The page is not resolved until p95 is back under budget" },
+      ],
+      edges: [
+        ["page", "hypothesize"],
+        ["hypothesize", "metrics"],
+        ["hypothesize", "broker"],
+        ["hypothesize", "changes"],
+        ["metrics", "judge"],
+        ["broker", "judge"],
+        ["changes", "judge"],
+        ["judge", "gate"],
+        ["gate", "act", "only after approval"],
+        ["gate", "escalate", "only if you refuse"],
+        ["act", "confirm"],
+        ["confirm", "judge", "retry when the SLO is still red"],
+        ["confirm", "END"],
+        ["escalate", "END"],
+      ],
+      traces: [
+        {
+          question: "recon-matcher p95 3.4s",
+          steps: [
+            ["page", "budget 1.6s · p95 3.4s · DLQ non-empty", 40],
+            ["hypothesize", "H1 Kafka redelivery · H2 cache miss · H3 bad deploy", 90],
+            {
+              parallel: [
+                ["metrics", "p95 3.4s · errors flat · cache hit 41%", 120],
+                ["broker", "consumer lag · DLQ is duplicate-key failures", 150],
+                ["changes", "matching threshold changed 14m ago · same image", 80],
+              ],
+            },
             ["judge", "H3 rejected (config only) · H1 and H2 stand · retries skip the idempotency key", 70],
             { gate: "gate", detail: "Pause the consumer group and drain the DLQ through the idempotent worker?" },
           ],
