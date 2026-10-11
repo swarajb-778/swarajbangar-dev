@@ -94,6 +94,67 @@ mark {
   min-height: 0;
 }
 
+/* Sashes: drag handles on the sidebar, terminal and assistant edges (src/ui/resize.js).
+   Negative margins keep them out of the layout, straddling the panel border. */
+
+.sash {
+  --sash-size: 4px;
+  position: relative;
+  z-index: 10;
+  flex: none;
+  touch-action: none;
+  transition: background-color 0.1s;
+}
+
+.sash-x {
+  width: var(--sash-size);
+  margin: 0 calc(var(--sash-size) / -2);
+  cursor: col-resize;
+}
+
+.sash-y {
+  height: var(--sash-size);
+  margin: calc(var(--sash-size) / -2) 0;
+  cursor: row-resize;
+}
+
+/* Like VS Code, hovering lights the sash only after a short pause. */
+.sash:hover {
+  background: var(--accent);
+  transition-delay: 0.25s;
+}
+
+.sash:focus-visible,
+.sash.is-dragging {
+  background: var(--accent);
+  transition-delay: 0s;
+}
+
+.is-resizing-x,
+.is-resizing-x * {
+  cursor: col-resize !important;
+  user-select: none;
+}
+
+.is-resizing-y,
+.is-resizing-y * {
+  cursor: row-resize !important;
+  user-select: none;
+}
+
+@media (pointer: coarse) {
+  .sash {
+    --sash-size: 12px;
+  }
+}
+
+/* Small screens show the sidebar and assistant as fixed-size overlays instead. */
+@media (max-width: 900px) {
+  .sash {
+    display: none;
+  }
+}
+
 /* ---------- Shared controls ---------- */
 
 .icon-button {

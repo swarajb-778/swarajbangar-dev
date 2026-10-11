@@ -16,6 +16,7 @@ import { createSidebar } from "./ui/sidebar.js";
 import { createTerminal } from "./ui/terminal.js";
 import { createChat } from "./ui/chat.js";
 import { createStatusbar } from "./ui/statusbar.js";
+import { createResizers } from "./ui/resize.js";
 
 const STORAGE_KEY = "swaraj-portfolio:v1";
 const SIDEBAR_VIEWS = ["explorer", "search", "git", "run", "extensions"];
@@ -45,8 +46,12 @@ const store = createStore(
     panelOpen: false,
     chatOpen: false,
     expanded: {},
+    // Panel sizes in px, set by dragging a sash; null keeps the default from styles/themes.css.
+    sidebarW: null,
+    chatW: null,
+    panelH: null,
   },
-  { storage: safeStorage(), key: STORAGE_KEY, persist: ["theme", "openTabs", "active", "sidebarView", "expanded"] },
+  { storage: safeStorage(), key: STORAGE_KEY, persist: ["theme", "openTabs", "active", "sidebarView", "expanded", "sidebarW", "chatW", "panelH"] },
 );
 
 // Persisted state comes from an older visit (or a hand-edited localStorage), so validate it.
@@ -60,6 +65,9 @@ const store = createStore(
     active,
     sidebarView: SIDEBAR_VIEWS.includes(s.sidebarView) ? s.sidebarView : "explorer",
     expanded: s.expanded && typeof s.expanded === "object" ? s.expanded : {},
+    sidebarW: Number.isFinite(s.sidebarW) ? s.sidebarW : null,
+    chatW: Number.isFinite(s.chatW) ? s.chatW : null,
+    panelH: Number.isFinite(s.panelH) ? s.panelH : null,
   });
 }
 
@@ -148,6 +156,7 @@ app.editor = createEditor(app, { tabs: $("#tabs"), breadcrumbs: $("#breadcrumbs"
 createSidebar(app, $("#sidebar"));
 app.terminal = createTerminal(app, $("#panel"));
 app.chat = createChat(app, $("#chat"));
+createResizers(app, $(".workbench"));
 createStatusbar(app, $("#statusbar"));
 
 const scrim = $("#scrim");
