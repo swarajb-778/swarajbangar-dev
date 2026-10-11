@@ -246,6 +246,10 @@ textarea.input {
   --icon-color: #7a7f8c;
   --icon-text: "≡";
 }
+.file-icon[data-icon="git"] {
+  --icon-color: #6b7280;
+  --icon-text: "Gi";
+}
 .file-icon[data-icon="py"] {
   --icon-color: #3b77a8;
   --icon-text: "Py";

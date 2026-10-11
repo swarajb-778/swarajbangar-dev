@@ -19,6 +19,7 @@ test("builds the expected virtual files in display order", () => {
       "skills/skills.json",
       "contact/contact.ts",
       "resume.pdf",
+      ".gitignore",
       "LICENSE",
     ],
   );
@@ -57,6 +58,7 @@ test("buildTree nests files under folders and keeps root files last", () => {
       "folder:skills",
       "folder:contact",
       "file:resume.pdf",
+      "file:.gitignore",
       "file:LICENSE",
     ],
   );
@@ -74,6 +76,15 @@ test("impact.json lists each metric with its computed change", () => {
   const impact = files.find((f) => f.path === "metrics/impact.json");
   const parsed = JSON.parse(impact.lines.map(lineText).join("\n"));
   assert.deepEqual(parsed[0], { metric: "Throughput", before: "780 req/min", after: "1,110 req/min", change: "+42%", where: "Acme" });
+});
+
+test(".gitignore keeps the life-edition ignore rules verbatim", () => {
+  const ignore = files.find((f) => f.path === ".gitignore");
+  const source = ignore.lines.map(lineText).join("\n");
+  assert.match(source, /also ignored \(life edition\)/);
+  assert.match(source, /!work\/\n!projects\/\*\*\/\*\.committed\n!ship\/this-week\/\*/);
+  assert.match(source, /git add \. && git commit -m "living"/);
+  assert.equal(source.split("\n").filter((line) => line.startsWith("#")).length, 18);
 });
 
 test("the résumé file only offers it on request by email", () => {

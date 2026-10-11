@@ -129,6 +129,77 @@ function contactObject({ profile, socials }) {
   };
 }
 
+const GITIGNORE = [
+  "# ─────────────────────────────────────────────",
+  "#  also ignored (life edition)",
+  "# ─────────────────────────────────────────────",
+  "",
+  "# Ignore the noise.",
+  "noise/",
+  "hot-takes/",
+  "twitter-fights/",
+  "comparison-with-strangers/",
+  "",
+  "# Ignore the drama.",
+  "drama/",
+  "group-chats/*.gossip",
+  "subtweets-about-you/",
+  "imaginary-arguments-in-the-shower/",
+  "",
+  "# Focus on work.",
+  "!work/",
+  "!projects/**/*.committed",
+  "!ship/this-week/*",
+  "",
+  "# If you cannot focus on work:",
+  "!gym/",
+  "!games/",
+  "",
+  "# That's it. Touch grass. Then push code.",
+  "",
+  "",
+  "# ─────────────────────────────────────────────",
+  "#  .gitignore — what does NOT make the commit",
+  "# ─────────────────────────────────────────────",
+  "",
+  "# dependencies",
+  "node_modules/",
+  ".pnpm-store/",
+  "vendor/",
+  "",
+  "# build artefacts",
+  "dist/",
+  "build/",
+  ".next/",
+  ".turbo/",
+  "",
+  "# secrets — please.",
+  ".env",
+  ".env.*",
+  "*.pem",
+  "",
+  "# OS noise",
+  ".DS_Store",
+  "Thumbs.db",
+  "",
+  "# editor",
+  ".vscode/*",
+  "!.vscode/settings.json",
+  ".idea/",
+  "",
+  "# EOF",
+  '#       git add . && git commit -m "living"',
+];
+
+function gitignoreLines() {
+  return GITIGNORE.map((line) => {
+    if (!line) return [];
+    if (line.startsWith("#")) return [["comment", line]];
+    if (line.startsWith("!")) return [["keyword", "!"], ["plain", line.slice(1)]];
+    return [["plain", line]];
+  });
+}
+
 function licenseText(name) {
   return [
     "MIT License",
@@ -259,6 +330,7 @@ export function buildFiles(content) {
     }),
     file("contact/contact.ts", { language: "TypeScript", icon: "ts", view: "contact", lines: tsLines(contactObject(content), { name: "contact" }) }),
     file("resume.pdf", { language: "PDF", icon: "pdf", view: "resume", extraText: [`${profile.name} — résumé`, `Available on request: ${profile.email}`] }),
+    file(".gitignore", { language: "Ignore", icon: "git", view: "code", lines: gitignoreLines() }),
     file("LICENSE", { language: "Plain Text", icon: "txt", view: "code", lines: licenseText(profile.name).map((t) => [["plain", t]]) }),
   ].filter(Boolean);
 }
