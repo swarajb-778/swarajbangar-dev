@@ -4,7 +4,7 @@ const VIEWS = [
   { id: "explorer", icon: "files", label: "Explorer" },
   { id: "search", icon: "search", label: "Search" },
   { id: "git", icon: "branch", label: "Source Control · Experience" },
-  { id: "run", icon: "run", label: "Run and Debug · Demos" },
+  { id: "run", icon: "debug", label: "Run and Debug · Demos" },
   { id: "extensions", icon: "extensions", label: "Extensions · Skills" },
 ];
 

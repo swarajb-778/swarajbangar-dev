@@ -1,5 +1,5 @@
 // Explorer, search, source control, pinned launches, and the skills list.
-import { h, icon, fileIcon, initials } from "../lib/dom.js";
+import { h, icon, fileIcon, folderIcon, initials } from "../lib/dom.js";
 import { keyLabel } from "../lib/keys.js";
 import { searchDocuments } from "../lib/search.js";
 import { formatPeriod, shortHash } from "../lib/format.js";
@@ -47,7 +47,7 @@ export function createSidebar(app, root) {
         "button",
         { class: isActive ? "tree-row is-active" : "tree-row", type: "button", style: { "--depth": depth }, onclick: () => app.open(node.path) },
         h("span", { class: "chev-space" }),
-        fileIcon(file.icon),
+        fileIcon(file.icon, file.name),
         h("span", { class: "tree-label" }, node.name),
       ),
     );
@@ -67,6 +67,7 @@ export function createSidebar(app, root) {
           onclick: () => app.store.set((s) => ({ expanded: { ...s.expanded, [node.path]: !open } })),
         },
         icon(open ? "chevronDown" : "chevronRight", { size: 14 }),
+        folderIcon(node.name, open),
         h("span", { class: "tree-label" }, node.name),
       ),
       open && h("ul", { role: "group" }, node.children.map((child) => fileRow(child, state, 1))),
@@ -169,7 +170,7 @@ export function createSidebar(app, root) {
               h(
                 "button",
                 { class: "tree-row", type: "button", onclick: () => app.open(r.path) },
-                fileIcon(file.icon),
+                fileIcon(file.icon, file.name),
                 h("span", { class: "tree-label" }, file.name),
                 file.folder && h("span", { class: "sb-dim" }, file.folder),
                 h("span", { class: "count" }, String(r.matches.length)),

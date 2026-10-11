@@ -202,57 +202,19 @@ textarea.input {
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--success) 25%, transparent);
 }
 
-.file-icon {
-  display: inline-grid;
-  place-items: center;
+/* Codicons (inline SVG, currentColor) and Material Icon Theme file/folder art (<img>). */
+.codicon {
   flex: none;
-  width: 14px;
-  height: 14px;
-  border-radius: 3px;
-  background: var(--icon-color, #7a7f8c);
-  color: #fff;
-  font: 700 8px/1 var(--font-mono);
+  overflow: visible;
 }
 
-.file-icon::before {
-  content: var(--icon-text, "");
-}
-
-.file-icon[data-icon="md"] {
-  --icon-color: #4a8fe0;
-  --icon-text: "M";
-}
-.file-icon[data-icon="json"] {
-  --icon-color: #c39a1d;
-  --icon-text: "{}";
-}
-.file-icon[data-icon="tsx"] {
-  --icon-color: #1f9fbd;
-  --icon-text: "<>";
-}
-.file-icon[data-icon="ts"] {
-  --icon-color: #3178c6;
-  --icon-text: "TS";
-}
-.file-icon[data-icon="yml"] {
-  --icon-color: #c4546b;
-  --icon-text: "Y";
-}
-.file-icon[data-icon="pdf"] {
-  --icon-color: #d0453b;
-  --icon-text: "P";
-}
-.file-icon[data-icon="txt"] {
-  --icon-color: #7a7f8c;
-  --icon-text: "≡";
-}
-.file-icon[data-icon="git"] {
-  --icon-color: #6b7280;
-  --icon-text: "Gi";
-}
-.file-icon[data-icon="py"] {
-  --icon-color: #3b77a8;
-  --icon-text: "Py";
+.file-icon {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+  pointer-events: none;
+  user-select: none;
 }
 
 /* ---------- Title bar ---------- */

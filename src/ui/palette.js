@@ -68,7 +68,7 @@ export function createPalette(app) {
             onmousemove: () => i !== session.selected && select(i),
             onclick: () => choose(i),
           },
-          item.icon && fileIcon(item.icon),
+          item.icon && fileIcon(item.icon, item.label),
           item.glyph && icon(item.glyph, { size: 16 }),
           h("span", { class: "palette-label" }, highlighted(item.label, indices.filter((x) => x < item.label.length))),
           item.detail && h("span", { class: "palette-detail" }, item.detail),

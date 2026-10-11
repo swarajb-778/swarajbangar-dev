@@ -44,7 +44,7 @@ export function createEditor(app, { tabs, breadcrumbs, scroller, gutter, content
               }
             },
           },
-          fileIcon(file.icon),
+          fileIcon(file.icon, file.name),
           h("span", { class: "tab-label" }, file.name),
           h(
             "button",
