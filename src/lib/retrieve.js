@@ -1,5 +1,9 @@
 const tokenize = (text) => text.toLowerCase().match(/[a-z0-9]+/g) ?? [];
 
+// Filler words carry no evidence; without this, "what salary are you asking for" matches every chunk.
+const STOPWORDS = new Set("a an and are be did do does for from how i in is it me my of on or the this to was what when where which who why with you your".split(" "));
+const keywords = (text) => tokenize(text).filter((t) => !STOPWORDS.has(t));
+
 function trigrams(text) {
   const padded = `  ${text.toLowerCase().replace(/\s+/g, " ")} `;
   const grams = new Set();
@@ -22,7 +26,7 @@ function ranks(chunks, scoreOf) {
 
 /** Reciprocal rank fusion of a lexical score and a character-trigram score. */
 export function retrieve(chunks, query, { k = 60, threshold = 0.012 } = {}) {
-  const tokens = tokenize(query);
+  const tokens = keywords(query);
   const queryGrams = trigrams(query);
   const lexical = ranks(chunks, (chunk) => {
     const words = tokenize(chunk.text);
@@ -30,6 +34,8 @@ export function retrieve(chunks, query, { k = 60, threshold = 0.012 } = {}) {
     return hits / Math.sqrt(words.length || 1);
   });
   const dense = ranks(chunks, (chunk) => cosine(queryGrams, trigrams(chunk.text)));
+  // No keyword appears anywhere in the corpus, so nothing can ground an answer.
+  const grounded = lexical.length > 0;
   const fused = new Map();
   for (const list of [lexical, dense]) {
     list.forEach((row, rank) => fused.set(row.id, (fused.get(row.id) ?? 0) + 1 / (k + rank + 1)));
@@ -37,5 +43,5 @@ export function retrieve(chunks, query, { k = 60, threshold = 0.012 } = {}) {
   const hits = [...fused.entries()]
     .map(([id, score]) => ({ id, score, path: chunks.find((chunk) => chunk.id === id).path, text: chunks.find((chunk) => chunk.id === id).text }))
     .sort((a, b) => b.score - a.score || a.id.localeCompare(b.id));
-  return { lexical, dense, hits, abstain: hits.length === 0 || hits[0].score < threshold };
+  return { lexical, dense, hits, abstain: !grounded || hits.length === 0 || hits[0].score < threshold };
 }

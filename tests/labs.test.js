@@ -73,3 +73,12 @@ test("the on-call evidence nodes share one column", () => {
   ];
   assert.deepEqual(layerGraph(nodes, edges)[2], ["metrics", "broker", "changes"]);
 });
+
+test("retrieval abstains when no keyword appears anywhere, even at the default threshold", () => {
+  const chunks = [
+    { id: "a#0", path: "a", text: "I cut median analyst research time by 40% with an agentic research platform" },
+    { id: "b#0", path: "b", text: "Voice agents over WebRTC book appointments through tool calling" },
+  ];
+  assert.equal(retrieve(chunks, "what salary are you asking for").abstain, true);
+  assert.equal(retrieve(chunks, "analyst research time").abstain, false);
+});
