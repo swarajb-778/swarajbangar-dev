@@ -6,7 +6,6 @@ const SUGGESTIONS = [
   "What impact have you had?",
   "Show me your projects",
   "What's your tech stack?",
-  "Are you open to work?",
   "How can I contact you?",
 ];
 

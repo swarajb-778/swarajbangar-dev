@@ -61,7 +61,6 @@ export function renderContact(file, ctx) {
         h("li", {}, h("a", { href: s.url, target: "_blank", rel: "noopener noreferrer" }, icon("external", { size: 14 }), `${s.label} · ${s.handle}`)),
       ),
     ),
-    h("p", { class: "card-text" }, profile.availability, "."),
     h("button", { class: "btn", type: "button", onclick: () => ctx.requestResume() }, icon("lock", { size: 14 }), "Request résumé"),
   );
 

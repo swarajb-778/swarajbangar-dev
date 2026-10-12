@@ -106,7 +106,7 @@ export function createSidebar(app, root) {
         "span",
         { class: "profile-text" },
         h("span", { class: "profile-name" }, profile.name),
-        h("span", { class: "profile-role" }, profile.openToWork ? h("span", { class: "status-dot" }) : null, profile.openToWork ? "Open to work" : profile.role),
+        h("span", { class: "profile-role" }, profile.role),
       ),
     );
   }

@@ -14,7 +14,6 @@ export function createStatusbar(app, root) {
       item({ class: "status-remote", title: "Open terminal", "aria-label": "Open terminal", onclick: () => app.togglePanel(true) }, h("span", { "aria-hidden": "true" }, "><")),
       item({ title: "Source control: experience", onclick: () => app.showView("git", true) }, icon("branch", { size: 14 }), "main"),
       item({ class: "status-optional", title: "No problems" }, icon("error", { size: 14 }), "0", icon("warning", { size: 14 }), "0"),
-      profile.openToWork && item({ title: profile.availability, onclick: () => app.open("contact/contact.ts") }, h("span", { class: "status-dot" }), "Open to work"),
     ),
     h(
       "div",

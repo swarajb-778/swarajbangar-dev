@@ -1,9 +1,8 @@
 import { formatMetric, formatPeriod, impactDelta } from "./format.js";
 
-// Order matters: earlier intents win ties ("open to work" is availability, not experience).
+// Order matters: earlier intents win ties ("available for work" is contact, not experience).
 const INTENTS = [
-  ["availability", ["open", "available", "availability", "hire", "hiring", "freelance", "opportunit"]],
-  ["contact", ["contact", "email", "reach", "mail", "message", "touch", "connect", "social", "linkedin", "github"]],
+  ["contact", ["contact", "email", "reach", "mail", "message", "touch", "connect", "social", "linkedin", "github", "available", "hire", "hiring", "freelance", "opportunit"]],
   ["resume", ["resume", "cv"]],
   ["education", ["study", "degree", "education", "university", "college", "school", "masters", "bachelor", "graduat"]],
   ["ai", ["ai", "agent", "agentic", "llm", "rag", "langgraph", "langchain", "genai", "ml", "machine", "model"]],
@@ -66,8 +65,6 @@ export function answer(question, { profile, projects, skills, experience, social
         .join("; ");
       return { text: `Measured results from my work: ${top}.`, links: [LINKS.impact] };
     }
-    case "availability":
-      return { text: `${profile.availability}. The quickest way to reach me is ${profile.email}.`, links: [LINKS.contact] };
     case "contact":
       return {
         text: `Email me at ${profile.email}${socialNames ? `, or find me on ${socialNames}` : ""}.`,

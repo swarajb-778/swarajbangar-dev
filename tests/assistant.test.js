@@ -8,7 +8,6 @@ const linksTo = (reply, path) => reply.links.some((l) => l.path === path);
 
 // One question per intent, plus the fallback, so the voice checks cover every reply.
 const QUESTIONS = [
-  "Are you open to work?",
   "How can I contact you?",
   "Can I see your resume?",
   "Where did you study?",
@@ -51,8 +50,10 @@ test("location questions mention the location", () => {
   assert.match(answer("where are you based", content).text, /Pune/);
 });
 
-test("availability beats experience for 'open to work'", () => {
-  assert.match(answer("Are you open to work?", content).text, /Open to full-time roles/);
+test("hiring questions point to contact, not experience", () => {
+  const reply = answer("Are you available for work?", content);
+  assert.match(reply.text, /ada@example\.com/);
+  assert.ok(linksTo(reply, "contact/contact.ts"));
 });
 
 test("AI and agent questions describe the AI work and link to the agent lab", () => {

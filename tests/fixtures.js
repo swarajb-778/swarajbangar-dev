@@ -8,8 +8,6 @@ export const content = {
     bio: "I write software for people who write software.",
     location: "Pune, India",
     email: "ada@example.com",
-    availability: "Open to full-time roles",
-    openToWork: true,
     avatarUrl: "",
   },
   highlights: ["4 years shipping", "10 projects"],

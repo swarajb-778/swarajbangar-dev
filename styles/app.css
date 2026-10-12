@@ -254,15 +254,6 @@ textarea.input {
   color: var(--fg-muted);
 }
 
-.status-dot {
-  display: inline-block;
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--success);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--success) 25%, transparent);
-}
-
 /* Codicons (inline SVG, currentColor) and Material Icon Theme file/folder art (<img>). */
 .codicon {
   flex: none;
@@ -1225,18 +1216,6 @@ textarea.input {
   50% {
     opacity: 0;
   }
-}
-
-.status-line {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  margin: 18px 0 0;
-  padding: 3px 12px;
-  border: 1px solid var(--border-strong);
-  border-radius: 999px;
-  color: var(--fg-muted);
-  font: 11.5px var(--font-mono);
 }
 
 .roles {

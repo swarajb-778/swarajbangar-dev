@@ -81,7 +81,6 @@ export function createShell({ content, files, themes }) {
           `Roles     ${(profile.roles ?? [profile.role]).join(" · ")}`,
           `Location  ${profile.location}`,
           `Stack     ${skills.map((g) => g.items[0]?.name).filter(Boolean).join(", ")}`,
-          `Status    ${profile.availability}`,
           `Contact   ${profile.email}`,
         ]),
     ],

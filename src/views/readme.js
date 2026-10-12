@@ -45,8 +45,6 @@ function rotateRoles(el, roles) {
   setTimeout(tick, 1200);
 }
 
-const slug = (text) => text.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "");
-
 const QUICK_LINKS = [
   { path: "ai/agents.py", title: "Agent lab", icon: "sparkle", text: () => "SwarajOS answers, with the trace exposed" },
   { path: "ai/oncall.py", title: "On-call", icon: "warning", text: () => "A second agent that waits for approval" },
@@ -69,11 +67,8 @@ export function renderReadme(file, ctx) {
   const roleText = h("span", { class: "role-text" }, roles[0]);
   rotateRoles(roleText, roles);
 
-  const status = [profile.openToWork ? "open_to_work" : "heads_down", slug(profile.location)].filter(Boolean).join(" · ");
-
   return doc(
     codeBlock(file.lines, "Front matter"),
-    h("p", { class: "status-line" }, h("span", { class: "status-dot" }), status),
     h("h1", { class: "md-h1", id: "intro", "aria-label": profile.name, dataset: { outline: profile.name } }, mark("# "), name),
     h("p", { class: "roles", "aria-label": roles.join(", ") }, mark("> "), roleText, h("span", { class: "caret", "aria-hidden": "true" })),
     h("p", { class: "lead" }, profile.tagline),

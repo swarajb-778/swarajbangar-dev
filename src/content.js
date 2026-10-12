@@ -18,8 +18,6 @@ export default {
       "LangGraph workflows, hybrid RAG with cited answers, voice agents, and MCP tooling, measured like any other production system.",
     location: "San Francisco, CA",
     email: "swarajbangar778@gmail.com",
-    availability: "Open to AI Engineer, Agentic Engineer, and Full-Stack roles · open to relocate",
-    openToWork: true,
     avatarUrl: "https://avatars.githubusercontent.com/u/67543214?v=4",
   },
 

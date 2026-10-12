@@ -26,7 +26,6 @@ function readmeLines({ profile }) {
     name: profile.name,
     role: profile.role,
     location: profile.location,
-    status: profile.openToWork ? "open to work" : "not looking",
   };
   return [[["punct", "---"]], ...yamlLines(frontmatter), [["punct", "---"]]];
 }
@@ -87,8 +86,6 @@ function profileJson({ profile, socials }) {
     roles: profile.roles ?? [profile.role],
     location: profile.location,
     email: profile.email,
-    availability: profile.availability,
-    openToWork: profile.openToWork,
     links: Object.fromEntries(socials.map((s) => [socialKey(s.label), s.url])),
   };
 }
@@ -124,7 +121,6 @@ function contactObject({ profile, socials }) {
   return {
     email: profile.email,
     location: profile.location,
-    availability: profile.availability,
     ...Object.fromEntries(socials.map((s) => [socialKey(s.label), s.url])),
   };
 }
