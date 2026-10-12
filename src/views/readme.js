@@ -1,7 +1,7 @@
 import { h, icon, prefersReducedMotion } from "../lib/dom.js";
 import { kbd } from "../lib/keys.js";
 import { chipList, codeBlock, doc, heading, mark } from "./parts.js";
-import { kpiTile } from "./impact.js";
+import { impactTable } from "./impact.js";
 
 let hasTyped = false;
 
@@ -76,7 +76,9 @@ export function renderReadme(file, ctx) {
     chipList(highlights),
 
     impact.length > 0 && heading("Impact at a glance", "impact"),
-    impact.length > 0 && h("div", { class: "card-grid" }, impact.slice(0, 4).map((m) => kpiTile(m, () => ctx.open("metrics/impact.json")))),
+    impact.length > 0 && impactTable(impact),
+    impact.length > 0 &&
+      h("p", { class: "hint" }, "Measured on production systems. Context for each number is in ", h("button", { class: "link-button", type: "button", onclick: () => ctx.open("metrics/impact.json") }, "metrics/impact.json"), "."),
 
     heading("What I do", "what-i-do"),
     h(

@@ -23,14 +23,31 @@ function kpiCard(m) {
   );
 }
 
-/** Compact, clickable tile for the README. */
-export function kpiTile(m, onclick) {
+/** A plain markdown-style table for the README: one row per result, numbers in mono. */
+export function impactTable(impact) {
+  const cell = (cls, ...children) => h("td", { class: cls }, ...children);
   return h(
-    "button",
-    { class: "card link-card kpi kpi-tile", type: "button", onclick },
-    h("span", { class: "kpi-delta" }, impactDelta(m)),
-    h("span", { class: "card-title" }, m.label),
-    h("span", { class: "card-sub" }, `${formatMetric(m.before, m.unit)} → ${formatMetric(m.after, m.unit)} · ${m.company}`),
+    "div",
+    { class: "table-scroll" },
+    h(
+      "table",
+      { class: "md-table" },
+      h("thead", {}, h("tr", {}, ["Result", "Before", "After", "Change"].map((label) => h("th", { scope: "col" }, label)))),
+      h(
+        "tbody",
+        {},
+        impact.map((m) =>
+          h(
+            "tr",
+            {},
+            cell("", m.label, h("span", { class: "md-table-sub" }, m.company)),
+            cell("num", formatMetric(m.before, m.unit)),
+            cell("num", formatMetric(m.after, m.unit)),
+            cell("num delta", impactDelta(m)),
+          ),
+        ),
+      ),
+    ),
   );
 }
 
