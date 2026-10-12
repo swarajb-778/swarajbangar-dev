@@ -1,6 +1,14 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { formatMonth, formatPeriod, shortHash, formatMetric, impactDelta } from "../src/lib/format.js";
+import { formatMonth, formatPeriod, shortHash, formatMetric, impactDelta, loginStamp } from "../src/lib/format.js";
+
+test("loginStamp uses a 12-hour clock and the viewer's zone abbreviation", () => {
+  const at = new Date("2026-10-12T22:33:44Z");
+  assert.equal(loginStamp(at, { timeZone: "America/Los_Angeles" }), "Mon, 12 Oct 2026 3:33:44 PM PDT");
+  assert.equal(loginStamp(at, { timeZone: "Asia/Kolkata" }), "Tue, 13 Oct 2026 4:03:44 AM IST");
+  assert.equal(loginStamp(at, { timeZone: "Europe/London" }), "Mon, 12 Oct 2026 11:33:44 PM BST");
+  assert.equal(loginStamp(at, { timeZone: "Asia/Tokyo" }), "Tue, 13 Oct 2026 7:33:44 AM GMT+9");
+});
 
 test("formatMetric adds units the way people write them", () => {
   assert.equal(formatMetric(1110, "req/min"), "1,110 req/min");

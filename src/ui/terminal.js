@@ -1,5 +1,6 @@
 import { h, icon } from "../lib/dom.js";
 import { createShell } from "../lib/shell.js";
+import { loginStamp } from "../lib/format.js";
 
 const ERROR_LINE = /^(command not found|usage:|\w+: .*(No such|unknown))/;
 
@@ -171,8 +172,7 @@ export function createTerminal(app, root) {
   function greet() {
     if (greeted) return;
     greeted = true;
-    // toUTCString() already reads like macOS: "Mon, 12 Oct 2026 22:12:30 GMT".
-    print([`Last login: ${new Date().toUTCString()} on ttys001`]);
+    print([`Last login: ${loginStamp(new Date(), { locale: navigator.language })} on ttys001`]);
     print(['Type "help" to see commands, or try "projects", "skills", "contact".', ""], "is-muted");
   }
 

@@ -29,6 +29,19 @@ export function impactDelta({ before, after, unit, delta }) {
   return `${sign(change)}${roundAbs(change)}%`;
 }
 
+// Each English locale only knows its own region's zone names (en-US has PDT, en-IN has IST),
+// so try a few and keep the first real abbreviation; otherwise fall back to "GMT+9" style.
+const ZONE_LOCALES = ["en-US", "en-GB", "en-IN", "en-AU"];
+
+/** "Mon, 12 Oct 2026 3:33:44 PM PDT" in the viewer's time zone (or `timeZone`), like a shell's last-login line. */
+export function loginStamp(date, { timeZone, locale } = {}) {
+  const parts = (loc, opts) => Object.fromEntries(new Intl.DateTimeFormat(loc, { timeZone, ...opts }).formatToParts(date).map((p) => [p.type, p.value]));
+  const p = parts("en-US", { weekday: "short", day: "numeric", month: "short", year: "numeric", hour: "numeric", minute: "2-digit", second: "2-digit", hour12: true });
+  const zones = [locale, ...ZONE_LOCALES].filter(Boolean).map((loc) => parts(loc, { timeZoneName: "short" }).timeZoneName);
+  const zone = zones.find((z) => !/^(GMT|UTC)[+-]/.test(z)) ?? zones[0];
+  return `${p.weekday}, ${p.day} ${p.month} ${p.year} ${p.hour}:${p.minute}:${p.second} ${p.dayPeriod} ${zone}`;
+}
+
 /** FNV-1a, shortened to look like a git commit hash. */
 export function shortHash(input) {
   let hash = 0x811c9dc5;
