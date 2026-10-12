@@ -1,6 +1,6 @@
 export const THEMES = [
   { id: "midnight", label: "Midnight", kind: "dark" },
-  { id: "daylight", label: "Daylight", kind: "light" },
+  { id: "daylight", label: "Daylight", kind: "light", note: "Sorry, you're not a developer" },
   { id: "matcha", label: "Matcha", kind: "dark" },
   { id: "contrast", label: "High Contrast", kind: "dark" },
 ];

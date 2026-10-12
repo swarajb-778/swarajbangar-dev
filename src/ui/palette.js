@@ -34,7 +34,7 @@ export function createPalette(app) {
       return app.commands.map((c) => ({ label: `${c.category}: ${c.title}`, detail: c.keys ? keyLabel(c.keys) : "", run: c.run }));
     }
     return app.themes.map((t) => ({
-      label: t.label,
+      label: t.note ? `${t.label} (${t.note})` : t.label,
       detail: t.id === session.originalTheme ? "current" : t.kind,
       run: () => app.setTheme(t.id),
       preview: () => applyTheme(t.id),
