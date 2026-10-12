@@ -48,6 +48,8 @@ test("resume asks visitors to email instead of downloading", () => {
   const { output, effects } = newShell().run("resume");
   assert.match(output.join(" "), /ada@example\.com/);
   assert.doesNotMatch(output.join(" "), /download/i);
+  assert.match(output.join(" "), /\bmy résumé/);
+  assert.doesNotMatch(output.join(" "), /\bAda\b/);
   assert.deepEqual(effects, [{ type: "requestResume" }]);
 });
 

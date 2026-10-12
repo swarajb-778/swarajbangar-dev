@@ -91,6 +91,8 @@ test("the résumé file only offers it on request by email", () => {
   const resume = files.find((f) => f.path === "resume.pdf");
   assert.ok(resume.text.some((line) => line.includes("ada@example.com")));
   assert.ok(resume.text.every((line) => !/download|\.pdf\b.*http|assets\//i.test(line)));
+  assert.ok(resume.text.some((line) => /\bmy résumé/i.test(line)));
+  assert.ok(resume.text.every((line) => !/\bAda\b/.test(line)));
 });
 
 test("education is part of the experience file", () => {

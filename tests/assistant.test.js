@@ -1,9 +1,29 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { answer } from "../src/lib/assistant.js";
+import realContent from "../src/content.js";
 import { content } from "./fixtures.js";
 
 const linksTo = (reply, path) => reply.links.some((l) => l.path === path);
+
+// One question per intent, plus the fallback, so the voice checks cover every reply.
+const QUESTIONS = [
+  "Are you open to work?",
+  "How can I contact you?",
+  "Can I see your resume?",
+  "Where did you study?",
+  "Tell me about your agentic AI experience",
+  "What impact have you had?",
+  "show me what you've built — any projects?",
+  "What are your skills?",
+  "Where have you worked?",
+  "where are you based",
+  "hello",
+  "qwerty",
+];
+const FIRST_PERSON = /\b(?:I|I'm|I've|I'll|me|my|My)\b/;
+const THIRD_PERSON = /\b(?:he|him|his|she|her|hers)\b|\b\w+ \w+'s portfolio\b/i;
+const firstName = (c) => c.profile.name.split(" ")[0];
 
 test("skills questions list skills and link to the skills file", () => {
   const reply = answer("What are your skills?", content);
@@ -58,8 +78,29 @@ test("résumé questions point to email, not a download", () => {
   assert.ok(linksTo(reply, "contact/contact.ts"));
 });
 
-test("greetings introduce the person", () => {
-  assert.match(answer("hello", content).text, /Ada Example/);
+test("greetings introduce the person in the first person", () => {
+  const { text } = answer("hello", content);
+  assert.match(text, /\bI'm Ada Example\b/);
+  assert.doesNotMatch(text, /Ada Example's/);
+});
+
+test("every reply speaks as the owner, in the first person", () => {
+  for (const question of QUESTIONS) {
+    const { text } = answer(question, content);
+    assert.match(text, FIRST_PERSON, `${question} → ${text}`);
+    assert.doesNotMatch(text, THIRD_PERSON, `${question} → ${text}`);
+  }
+});
+
+test("only the greeting names the owner; no reply refers to them by first name", () => {
+  for (const c of [content, realContent]) {
+    const name = new RegExp(`\\b${firstName(c)}\\b`);
+    for (const question of QUESTIONS.filter((q) => q !== "hello")) {
+      const { text } = answer(question, c);
+      assert.doesNotMatch(text, name, `${question} → ${text}`);
+      assert.doesNotMatch(text, THIRD_PERSON, `${question} → ${text}`);
+    }
+  }
 });
 
 test("unknown questions fall back to suggested topics", () => {
