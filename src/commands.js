@@ -45,7 +45,7 @@ export function createCommands(app) {
       app.terminal.print(["Keyboard shortcuts:", ...SHORTCUTS.map(([keys, label]) => `  ${keyLabel(keys).padEnd(14)} ${label}`), ""], "is-muted");
     }),
     command("about", "Help", "About This Portfolio", () =>
-      app.toast("Hand-built with plain HTML, CSS, and JavaScript. No frameworks, no build step."),
+      app.toast("I hand-built this with plain HTML, CSS, and JavaScript. No frameworks, no build step."),
     ),
     ...app.content.socials.map((s) => command(`social:${s.label}`, "Open", s.label, () => window.open(s.url, "_blank", "noopener"))),
   ];

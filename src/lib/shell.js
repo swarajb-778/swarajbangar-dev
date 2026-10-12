@@ -93,7 +93,7 @@ export function createShell({ content, files, themes }) {
     resume: [
       "resume",
       "request my résumé",
-      () => result(["The résumé is shared on request.", `Email ${profile.email} and you'll get the latest version.`], [{ type: "requestResume" }]),
+      () => result(["I share my résumé on request.", `Email me at ${profile.email} and I'll send you the latest version.`], [{ type: "requestResume" }]),
     ],
     ask: [
       "ask <question>",

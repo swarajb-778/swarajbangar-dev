@@ -305,7 +305,7 @@ export function buildFiles(content) {
         icon: "json",
         view: "activity",
         lines: jsonLines({ user: content.github.user, range: "last 12 months", updates: "on each visit" }),
-        extraText: [`GitHub contributions for ${content.github.user}`],
+        extraText: [`My GitHub contributions (@${content.github.user})`],
       }),
     file("projects/projects.tsx", {
       language: "TypeScript JSX",
@@ -329,7 +329,7 @@ export function buildFiles(content) {
       extraText: skills.flatMap((g) => g.items.map((i) => `${i.name} — ${i.note}`)),
     }),
     file("contact/contact.ts", { language: "TypeScript", icon: "ts", view: "contact", lines: tsLines(contactObject(content), { name: "contact" }) }),
-    file("resume.pdf", { language: "PDF", icon: "pdf", view: "resume", extraText: [`${profile.name} — résumé`, `Available on request: ${profile.email}`] }),
+    file("resume.pdf", { language: "PDF", icon: "pdf", view: "resume", extraText: ["My résumé, available on request", `Email me at ${profile.email} and I'll send you the latest version.`] }),
     file(".gitignore", { language: "Ignore", icon: "git", view: "code", lines: gitignoreLines() }),
     file("LICENSE", { language: "Plain Text", icon: "txt", view: "code", lines: licenseText(profile.name).map((t) => [["plain", t]]) }),
   ].filter(Boolean);

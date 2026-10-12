@@ -132,11 +132,11 @@ const app = {
     const body = `Hi ${first},\n\nI came across your portfolio and would love to see your latest résumé.\n\nA bit about me / the role:\n\n`;
     app.palette.pick({
       placeholder: "Résumé · shared on request",
-      message: `${first} shares the résumé personally so it's always current. Reach out and you'll get the latest version.`,
+      message: "I share my résumé personally so it's always current. Reach out and I'll send you the latest version.",
       items: [
         { label: `Email ${email}`, detail: "opens your mail app", glyph: "mail", run: () => (window.location.href = mailtoUrl(email, "Résumé request", body)) },
         { label: "Copy email address", detail: email, glyph: "copy", run: () => app.copy(email, "Email address copied.") },
-        linkedin && { label: "Message on LinkedIn", detail: linkedin.handle, glyph: "linkedin", run: () => window.open(linkedin.url, "_blank", "noopener") },
+        linkedin && { label: "Message me on LinkedIn", detail: linkedin.handle, glyph: "linkedin", run: () => window.open(linkedin.url, "_blank", "noopener") },
         { label: "Open the contact form", detail: "contact.ts", glyph: "chat", run: () => app.open("contact/contact.ts") },
       ].filter(Boolean),
     });

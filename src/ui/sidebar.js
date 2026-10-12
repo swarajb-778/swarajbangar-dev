@@ -10,7 +10,6 @@ const hueFor = (text) => [...text].reduce((n, ch) => (n * 31 + ch.codePointAt(0)
 export function createSidebar(app, root) {
   const { content } = app;
   const { profile } = content;
-  const first = profile.name.split(" ")[0];
   let searchQuery = "";
   let skillQuery = "";
 
@@ -190,8 +189,8 @@ export function createSidebar(app, root) {
       const box = h("textarea", {
         class: "input",
         rows: 3,
-        placeholder: `Message (${keyLabel("mod+enter")} to email ${first})`,
-        "aria-label": `Message to ${first}`,
+        placeholder: `Message (${keyLabel("mod+enter")} to email me)`,
+        "aria-label": "Your message to me",
         onkeydown: (e) => {
           if ((e.metaKey || e.ctrlKey) && e.key === "Enter") send();
         },

@@ -49,7 +49,7 @@ function chart(days) {
 export function renderActivity(file, ctx) {
   const { user } = ctx.content.github;
   const profile = `https://github.com/${user}`;
-  const status = h("p", { class: "hint", role: "status" }, "Loading the public contribution graph…");
+  const status = h("p", { class: "hint", role: "status" }, "Loading my public contribution graph…");
   const board = h("div", { class: "heat-board" });
 
   fetch(contributionsUrl(user), { signal: AbortSignal.timeout(8000) })
@@ -61,7 +61,7 @@ export function renderActivity(file, ctx) {
       const days = Array.isArray(payload.contributions) ? payload.contributions : [];
       if (!days.length) throw new Error("empty");
       const total = contributionTotal(payload).toLocaleString("en-US");
-      status.textContent = `${total} public contributions in the last 12 months. A push can take up to a day to show here, and private contributions stay on your GitHub profile.`;
+      status.textContent = `${total} public contributions in the last 12 months. A push can take up to a day to show here, and my private contributions stay on my GitHub profile.`;
       board.replaceChildren(
         chart(days),
         h(
@@ -76,7 +76,7 @@ export function renderActivity(file, ctx) {
     })
     .catch(() => {
       status.textContent = "The live graph didn't load. GitHub still has it:";
-      board.replaceChildren(h("a", { class: "btn", href: profile, target: "_blank", rel: "noopener noreferrer" }, "Open GitHub profile"));
+      board.replaceChildren(h("a", { class: "btn", href: profile, target: "_blank", rel: "noopener noreferrer" }, "Open my GitHub profile"));
     });
 
   return doc(

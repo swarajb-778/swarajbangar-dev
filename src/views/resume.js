@@ -5,7 +5,6 @@ const SKELETON = [62, 38, 90, 84, 70, 0, 45, 92, 88, 76, 0, 52, 86, 80];
 
 export function renderResume(file, ctx) {
   const { profile } = ctx.content;
-  const first = profile.name.split(" ")[0];
 
   return doc(
     heading("Résumé", "resume"),
@@ -25,7 +24,7 @@ export function renderResume(file, ctx) {
         h(
           "p",
           { class: "card-text" },
-          `${first} shares the résumé personally so it's always current. Send a quick note and you'll get the latest version by email.`,
+          "I share my résumé personally so it's always current. Send me a quick note and I'll email you the latest version.",
         ),
         h(
           "div",

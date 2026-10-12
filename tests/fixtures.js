@@ -5,7 +5,7 @@ export const content = {
     role: "Software Engineer",
     roles: ["AI Engineer", "Software Engineer"],
     tagline: "I build small, sharp tools.",
-    bio: "Ada writes software for people who write software.",
+    bio: "I write software for people who write software.",
     location: "Pune, India",
     email: "ada@example.com",
     availability: "Open to full-time roles",
@@ -23,10 +23,10 @@ export const content = {
     { label: "Load time", company: "Acme", before: 4, after: 1.7, unit: "s", better: "lower" },
   ],
   ai: {
-    summary: "Ada builds retrieval-grounded agents.",
+    summary: "I build retrieval-grounded agents.",
     agent: {
       name: "AdaBot",
-      summary: "answers questions about Ada",
+      summary: "answers questions about my work",
       nodes: [
         { id: "classify", fn: "classify_intent", label: "Classify", detail: "Find the intent" },
         { id: "retrieve", fn: "retrieve_docs", label: "Retrieve", detail: "Search the notes" },
@@ -37,7 +37,7 @@ export const content = {
         ["retrieve", "generate"],
         ["generate", "END"],
       ],
-      traces: [{ question: "What does Ada do?", steps: [["classify", "about_query · 0.9", 30], ["retrieve", "top-k 4", 40], ["generate", "120 tokens", 300]] }],
+      traces: [{ question: "What do you do?", steps: [["classify", "about_query · 0.9", 30], ["retrieve", "top-k 4", 40], ["generate", "120 tokens", 300]] }],
       evals: [{ metric: "Faithfulness", score: 0.9 }],
       evalNote: "20-question test set",
     },

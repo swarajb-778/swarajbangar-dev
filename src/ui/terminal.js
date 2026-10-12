@@ -127,7 +127,7 @@ export function createTerminal(app, root) {
   function greet() {
     if (greeted) return;
     greeted = true;
-    print([`Welcome to ${app.content.profile.name}'s portfolio shell.`, 'Type "help" to see commands, or try "projects", "skills", "contact".', ""], "is-muted");
+    print(["Welcome to my portfolio shell.", 'Type "help" to see commands, or try "projects", "skills", "contact".', ""], "is-muted");
   }
 
   const render = (state, prev) => {

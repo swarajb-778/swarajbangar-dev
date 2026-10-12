@@ -13,7 +13,7 @@ export default {
     roles: ["AI Engineer", "Agentic Engineer", "Full-Stack Software Engineer", "AI-native builder"],
     tagline: "I build agentic AI systems on top of production-grade full-stack platforms.",
     bio:
-      "Full-stack software engineer with 4+ years shipping fintech platforms at McKinsey and Amazon (via ThoughtWorks): " +
+      "I'm a full-stack software engineer with 4+ years shipping fintech platforms at McKinsey and Amazon (via ThoughtWorks): " +
       "Python/FastAPI and Go microservices, React and Next.js frontends, Kafka, and AWS. Now I build agentic AI on top: " +
       "LangGraph workflows, hybrid RAG with cited answers, voice agents, and MCP tooling, measured like any other production system.",
     location: "San Francisco, CA",
@@ -62,8 +62,8 @@ export default {
 
   ai: {
     summary:
-      "At McKinsey, Swaraj built an agentic research platform (LangChain and LangGraph, hybrid BM25 + embedding retrieval on Pinecone, " +
-      "evidence-linked citations, abstention controls) that cut median analyst research time by 40%. Side projects include " +
+      "At McKinsey, I built an agentic research platform (LangChain and LangGraph, hybrid BM25 + embedding retrieval on Pinecone, " +
+      "evidence-linked citations, abstention controls) that cut median analyst research time by 40%. My side projects include " +
       "SuperVoiceAI, TDS Agents, and the RapidOrch and SEOptiMCP MCP servers.",
     agent: {
       name: "SwarajOS",
@@ -89,7 +89,7 @@ export default {
       // FABRICATED: simulated timings for the demo trace replay.
       traces: [
         {
-          question: "What did Swaraj build at McKinsey?",
+          question: "What did you build at McKinsey?",
           steps: [
             ["classify", "experience_query · 0.94", 38],
             ["route", "experience_agent", 4],
@@ -110,7 +110,7 @@ export default {
           ],
         },
         {
-          question: "What salary is he asking for?",
+          question: "What salary are you asking for?",
           steps: [
             ["classify", "personal_query · 0.88", 33],
             ["route", "policy_agent", 3],

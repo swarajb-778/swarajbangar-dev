@@ -19,7 +19,7 @@ function chunksFrom(files) {
 
 export function renderRetrieve(file, ctx) {
   const chunks = chunksFrom(ctx.files);
-  const presets = ["analyst research time", "voice agents", "what salary is he asking for"];
+  const presets = ["analyst research time", "voice agents", "what salary are you asking for"];
   const query = h("input", { class: "input", value: presets[0], "aria-label": "Retrieval query" });
   const threshold = h("input", { type: "range", min: "0", max: "0.04", step: "0.001", value: "0.012", "aria-label": "Abstain threshold" });
   const thresholdLabel = h("span", { class: "card-sub" });

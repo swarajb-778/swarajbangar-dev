@@ -44,14 +44,14 @@ function detectIntent(question) {
   return best?.intent ?? null;
 }
 
+// Replies speak as the portfolio owner, in the first person.
 export function answer(question, { profile, projects, skills, experience, socials, ai, impact = [], education = [] }) {
-  const first = profile.name.split(" ")[0];
   const socialNames = socials.map((s) => s.label).join(", ");
 
   switch (detectIntent(question)) {
     case "education": {
       const degrees = education.map((e) => `${e.degree} at ${e.school} (${formatPeriod(e.start, e.end)}${e.notes ? `; ${e.notes}` : ""})`).join("; ");
-      return { text: degrees ? `${first} studied: ${degrees}.` : `${first} hasn't listed education yet.`, links: [LINKS.experience] };
+      return { text: degrees ? `Here's where I studied: ${degrees}.` : "I haven't listed my education yet.", links: [LINKS.experience] };
     }
     case "ai": {
       if (!ai) break;
@@ -64,28 +64,28 @@ export function answer(question, { profile, projects, skills, experience, social
         .slice(0, 3)
         .map((m) => `${m.label}: ${formatMetric(m.before, m.unit)} → ${formatMetric(m.after, m.unit)} (${impactDelta(m)})`)
         .join("; ");
-      return { text: `Measured results: ${top}.`, links: [LINKS.impact] };
+      return { text: `Measured results from my work: ${top}.`, links: [LINKS.impact] };
     }
     case "availability":
-      return { text: `${profile.availability}. The quickest way to reach ${first} is ${profile.email}.`, links: [LINKS.contact] };
+      return { text: `${profile.availability}. The quickest way to reach me is ${profile.email}.`, links: [LINKS.contact] };
     case "contact":
       return {
-        text: `Email ${first} at ${profile.email}${socialNames ? `, or find ${first} on ${socialNames}` : ""}.`,
+        text: `Email me at ${profile.email}${socialNames ? `, or find me on ${socialNames}` : ""}.`,
         links: [LINKS.contact],
       };
     case "resume":
       return {
-        text: `${first} shares the résumé on request so it's always current. Email ${profile.email} and you'll get the latest version.`,
+        text: `I share my résumé on request so it's always current. Email me at ${profile.email} and I'll send you the latest version.`,
         links: [LINKS.contact],
       };
     case "projects": {
       const picks = [...projects].sort((a, b) => Number(b.featured) - Number(a.featured)).slice(0, 3);
       const list = picks.map((p) => `${p.name} (${p.description.replace(/\.$/, "")})`).join("; ");
-      return { text: `A few things ${first} has built: ${list}.`, links: [LINKS.projects] };
+      return { text: `A few things I've built: ${list}.`, links: [LINKS.projects] };
     }
     case "skills":
       return {
-        text: skills.map((g) => `${g.group}: ${g.items.slice(0, 5).map((i) => i.name).join(", ")}${g.items.length > 5 ? ", and more" : ""}`).join(". ") + ".",
+        text: `Here's what I work with. ${skills.map((g) => `${g.group}: ${g.items.slice(0, 5).map((i) => i.name).join(", ")}${g.items.length > 5 ? ", and more" : ""}`).join(". ")}.`,
         links: [LINKS.skills],
       };
     case "experience": {
@@ -93,18 +93,18 @@ export function answer(question, { profile, projects, skills, experience, social
         .slice(0, 3)
         .map((e) => `${e.role} at ${e.company} (${formatPeriod(e.start, e.end)})`)
         .join("; ");
-      return { text: `${first}'s recent experience: ${roles}.`, links: [LINKS.experience] };
+      return { text: `My recent experience: ${roles}.`, links: [LINKS.experience] };
     }
     case "location":
-      return { text: `${first} is based in ${profile.location}.`, links: [LINKS.profile] };
+      return { text: `I'm based in ${profile.location}.`, links: [LINKS.profile] };
     case "greeting":
       return {
-        text: `Hi! This is ${profile.name}'s portfolio. ${profile.tagline} Ask about projects, skills, experience, or how to get in touch.`,
+        text: `Hi, I'm ${profile.name}. ${profile.tagline} Ask me about my projects, skills, experience, or how to get in touch.`,
         links: [LINKS.projects, LINKS.contact],
       };
   }
   return {
-    text: `I can only answer questions about ${first}'s work. Try asking about projects, skills, experience, location, or how to get in touch.`,
+    text: "I can only answer questions about my work. Try asking about my projects, skills, experience, location, or how to get in touch.",
     links: [LINKS.projects, LINKS.skills, LINKS.contact],
   };
 }
