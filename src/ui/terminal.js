@@ -3,6 +3,15 @@ import { createShell } from "../lib/shell.js";
 
 const ERROR_LINE = /^(command not found|usage:|\w+: .*(No such|unknown))/;
 
+// VS Code's panel tabs. Only the terminal is interactive; the others show what VS Code shows when idle.
+const PANEL_TABS = [
+  { id: "problems", label: "Problems", empty: "No problems have been detected in the workspace." },
+  { id: "output", label: "Output", empty: "[info] Static site · plain HTML, CSS, and JavaScript · 0 dependencies, no build step." },
+  { id: "debug", label: "Debug Console", empty: "No active debug session. Open ai/agents.py to replay an agent trace step by step." },
+  { id: "terminal", label: "Terminal", badge: "1" },
+  { id: "ports", label: "Ports", empty: "No forwarded ports. This portfolio has no server to forward." },
+];
+
 const commonPrefix = (values) =>
   values.reduce((prefix, value) => {
     let i = 0;
@@ -16,6 +25,7 @@ export function createTerminal(app, root) {
   const prompt = `${user}@portfolio ~ %`;
   let cursor = null;
   let greeted = false;
+  let tabId = "terminal";
 
   const output = h("div", { class: "term-output", role: "log", "aria-live": "polite" });
   const input = h("input", {
@@ -33,22 +43,56 @@ export function createTerminal(app, root) {
     h("div", { class: "term-line term-prompt-line" }, h("span", { class: "term-prompt" }, prompt), input),
   );
 
+  const placeholder = h("div", { class: "panel-empty", hidden: true });
+  const tabs = PANEL_TABS.map((tab) =>
+    h(
+      "button",
+      { class: "panel-tab", type: "button", role: "tab", onclick: () => showTab(tab.id) },
+      tab.label,
+      tab.badge && h("span", { class: "panel-badge", "aria-label": `${tab.badge} open` }, tab.badge),
+    ),
+  );
+  const maximize = h("button", { class: "icon-button", type: "button", onclick: () => setMaximized(!root.classList.contains("is-maximized")) });
+
+  function showTab(id) {
+    tabId = id;
+    const tab = PANEL_TABS.find((t) => t.id === id);
+    tabs.forEach((el, i) => el.setAttribute("aria-selected", String(PANEL_TABS[i].id === id)));
+    body.hidden = id !== "terminal";
+    placeholder.hidden = id === "terminal";
+    placeholder.textContent = tab.empty ?? "";
+    if (id === "terminal") requestAnimationFrame(() => input.focus());
+  }
+
+  function setMaximized(on) {
+    root.classList.toggle("is-maximized", on);
+    const label = on ? "Restore panel size" : "Maximize panel size";
+    maximize.replaceChildren(icon(on ? "restore" : "maximize", { size: 16 }));
+    maximize.setAttribute("aria-label", label);
+    maximize.title = label;
+  }
+
   root.append(
     h(
       "div",
       { class: "panel-header" },
-      h("span", { class: "panel-tab" }, "Terminal"),
+      h("div", { class: "panel-tabs", role: "tablist", "aria-label": "Panel" }, tabs),
       h(
         "div",
         { class: "panel-actions" },
         h("button", { class: "icon-button", type: "button", "aria-label": "Clear terminal", title: "Clear", onclick: () => clear() }, icon("trash", { size: 16 })),
+        maximize,
         h("button", { class: "icon-button", type: "button", "aria-label": "Close panel", title: "Close", onclick: () => app.togglePanel(false) }, icon("close", { size: 16 })),
       ),
     ),
     body,
+    placeholder,
   );
+  showTab(tabId);
+  setMaximized(false);
 
   function print(lines, kind) {
+    if (tabId !== "terminal") showTab("terminal");
     output.append(
       ...lines.map((line) => {
         const cls = kind ?? (ERROR_LINE.test(line) ? "is-error" : "");
@@ -127,18 +171,21 @@ export function createTerminal(app, root) {
   function greet() {
     if (greeted) return;
     greeted = true;
-    print(["Welcome to my portfolio shell.", 'Type "help" to see commands, or try "projects", "skills", "contact".', ""], "is-muted");
+    // toUTCString() already reads like macOS: "Mon, 12 Oct 2026 22:12:30 GMT".
+    print([`Last login: ${new Date().toUTCString()} on ttys001`]);
+    print(['Type "help" to see commands, or try "projects", "skills", "contact".', ""], "is-muted");
   }
 
   const render = (state, prev) => {
     root.hidden = !state.panelOpen;
+    if (!state.panelOpen) setMaximized(false);
     if (state.panelOpen && (!prev || !prev.panelOpen)) {
       greet();
-      requestAnimationFrame(() => input.focus());
+      showTab("terminal");
     }
   };
   app.store.subscribe(render);
   render(app.store.get());
 
-  return { print, clear, focus: () => input.focus() };
+  return { print, clear, focus: () => showTab("terminal") };
 }

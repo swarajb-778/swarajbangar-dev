@@ -1997,33 +1997,85 @@ textarea.input {
   background: var(--bg-panel);
 }
 
+/* Maximized, the panel takes the whole editor group, like VS Code's "Maximize Panel Size". */
+.panel.is-maximized {
+  flex: 1;
+  height: auto;
+}
+
+.editor-group:has(> .panel.is-maximized) > :not(.panel) {
+  display: none;
+}
+
 .panel-header {
   display: flex;
-  align-items: center;
+  align-items: stretch;
   flex: none;
-  height: 34px;
-  padding: 0 8px 0 16px;
+  gap: 8px;
+  height: 35px;
+  padding: 0 8px 0 10px;
+}
+
+.panel-tabs {
+  display: flex;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
 }
 
 .panel-tab {
-  padding: 6px 0;
-  border-bottom: 1px solid var(--accent);
-  color: var(--fg-strong);
+  display: inline-flex;
+  align-items: center;
+  flex: none;
+  gap: 6px;
+  margin: 0 10px;
+  padding: 0;
+  border-bottom: 1px solid transparent;
+  color: var(--fg-muted);
   font-size: 11px;
-  letter-spacing: 0.07em;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.panel-tab:hover {
+  color: var(--fg-strong);
+}
+
+.panel-tab[aria-selected="true"] {
+  border-bottom-color: var(--accent);
+  color: var(--fg-strong);
+}
+
+.panel-badge {
+  min-width: 17px;
+  padding: 0 5px;
+  border-radius: 4px;
+  background: var(--border-strong);
+  color: var(--fg-strong);
+  font: 11px/16px var(--font-ui);
+  letter-spacing: 0;
+  text-align: center;
 }
 
 .panel-actions {
   display: flex;
+  align-items: center;
+  flex: none;
   margin-left: auto;
+}
+
+.panel-empty {
+  padding: 6px 20px;
+  color: var(--fg-muted);
+  font: 12.5px/1.6 var(--font-mono);
 }
 
 .term-body {
   flex: 1;
   min-height: 0;
   overflow: auto;
-  padding: 2px 16px 12px;
+  padding: 4px 20px 12px;
   font: 12.5px/1.6 var(--font-mono);
   cursor: text;
 }
