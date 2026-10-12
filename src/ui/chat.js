@@ -10,9 +10,23 @@ const SUGGESTIONS = [
   "How can I contact you?",
 ];
 
+const normalize = (text) => text.trim().toLowerCase();
+
 export function createChat(app, root) {
   const log = h("div", { class: "chat-log", role: "log", "aria-live": "polite" });
   const input = h("input", { class: "input", placeholder: "Ask about my work…", "aria-label": "Ask a question", enterkeyhint: "send" });
+  const suggestions = h("div", { class: "chat-suggest" });
+  // ponytail: kept in memory on purpose, so a reload brings every suggestion back.
+  const asked = new Set();
+
+  function renderSuggestions() {
+    const hadFocus = suggestions.contains(document.activeElement);
+    const remaining = SUGGESTIONS.filter((s) => !asked.has(normalize(s)));
+    suggestions.replaceChildren(...remaining.map((s) => h("button", { class: "chip-btn", type: "button", onclick: () => ask(s) }, s)));
+    suggestions.hidden = remaining.length === 0;
+    // The clicked chip is gone, so keep keyboard users inside the assistant.
+    if (hadFocus) (suggestions.querySelector("button") ?? input).focus();
+  }
 
   function bubble(kind, text, links = []) {
     const el = h(
@@ -29,6 +43,10 @@ export function createChat(app, root) {
   function ask(question) {
     const q = question.trim();
     if (!q) return;
+    if (!asked.has(normalize(q))) {
+      asked.add(normalize(q));
+      renderSuggestions();
+    }
     bubble("user", q);
     const typing = bubble("bot typing", "Thinking…");
     setTimeout(
@@ -64,10 +82,11 @@ export function createChat(app, root) {
     ),
     h("p", { class: "chat-note" }, "Answers come from this portfolio's content. No AI service, and nothing leaves your browser."),
     log,
-    h("div", { class: "chat-suggest" }, SUGGESTIONS.map((s) => h("button", { class: "chip-btn", type: "button", onclick: () => ask(s) }, s))),
+    suggestions,
     form,
   );
 
+  renderSuggestions();
   bubble("bot", answer("hello", app.content).text);
 
   const render = (state, prev) => {
