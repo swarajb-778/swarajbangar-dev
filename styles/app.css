@@ -2254,10 +2254,13 @@ textarea.input {
   justify-content: space-between;
   overflow: hidden;
   background: var(--bg-statusbar);
-  border-top: 1px solid var(--border);
   color: var(--fg-statusbar);
   font-size: 12px;
   user-select: none;
+}
+
+[data-theme="contrast"] .statusbar {
+  border-top: 1px solid var(--border);
 }
 
 .sb-group {
@@ -2274,20 +2277,19 @@ textarea.input {
 }
 
 button.status-item:hover {
-  background: var(--bg-hover);
-  color: var(--fg-strong);
+  background: rgb(255 255 255 / 0.12);
 }
 
+/* VS Code's green remote indicator. */
 .status-remote {
-  background: var(--accent-strong);
-  color: var(--accent-fg);
+  background: #16825d;
+  color: #ffffff;
   font: 700 11px/1 var(--font-mono);
 }
 
 button.status-remote:hover {
-  background: var(--accent-strong);
-  color: var(--accent-fg);
-  filter: brightness(1.1);
+  background: #16825d;
+  filter: brightness(1.12);
 }
 
 /* ---------- Overlays ---------- */

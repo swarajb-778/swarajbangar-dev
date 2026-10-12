@@ -71,6 +71,7 @@ const GLYPHS = {
   mail: "mail",
   maximize: "screen-full",
   restore: "screen-normal",
+  sync: "sync",
 };
 
 // Codicons has no brand marks, so LinkedIn keeps the site's own stroke drawing.
