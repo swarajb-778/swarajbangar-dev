@@ -14,7 +14,7 @@ const normalize = (text) => text.trim().toLowerCase();
 
 export function createChat(app, root) {
   const log = h("div", { class: "chat-log", role: "log", "aria-live": "polite" });
-  const input = h("input", { class: "input", placeholder: "Ask about my work…", "aria-label": "Ask a question", enterkeyhint: "send" });
+  const input = h("input", { class: "chat-input", placeholder: "Ask about my work…", "aria-label": "Ask a question", enterkeyhint: "send" });
   const suggestions = h("div", { class: "chat-suggest" });
   // ponytail: kept in memory on purpose, so a reload brings every suggestion back.
   const asked = new Set();
@@ -69,8 +69,7 @@ export function createChat(app, root) {
         input.value = "";
       },
     },
-    input,
-    h("button", { class: "btn primary icon-only", type: "submit", "aria-label": "Send" }, icon("send", { size: 16 })),
+    h("div", { class: "chat-box" }, input, h("button", { class: "chat-send", type: "submit", "aria-label": "Send", title: "Send" }, icon("send", { size: 16 }))),
   );
 
   root.append(

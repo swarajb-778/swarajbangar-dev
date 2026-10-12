@@ -2116,9 +2116,55 @@ textarea.input {
 }
 
 .chat-form {
-  display: flex;
-  gap: 6px;
   padding: 10px 14px 14px;
+}
+
+/* The send button sits inside the text box, like VS Code's chat input. */
+.chat-box {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 3px 3px 10px;
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  background: var(--bg-input);
+}
+
+.chat-box:focus-within {
+  border-color: var(--accent);
+}
+
+.chat-input {
+  flex: 1;
+  min-width: 0;
+  padding: 6px 0;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: var(--fg-strong);
+}
+
+.chat-input::placeholder {
+  color: var(--fg-faint);
+}
+
+.chat-send {
+  display: inline-grid;
+  flex: none;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  color: var(--fg-faint);
+}
+
+.chat-box:has(.chat-input:not(:placeholder-shown)) .chat-send,
+.chat-send:hover {
+  color: var(--accent);
+}
+
+.chat-send:hover {
+  background: var(--bg-hover);
 }
 
 /* ---------- Status bar ---------- */
