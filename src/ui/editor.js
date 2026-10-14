@@ -7,6 +7,8 @@ const LINE_HEIGHT = 20;
 export function createEditor(app, { tabs, breadcrumbs, scroller, gutter, content }) {
   const scrollPositions = new Map();
   let renderedPath;
+  // index.html's title is the search-result title; the README (home) view keeps it.
+  const homeTitle = document.title;
   let lineCount = 0;
 
   const ctx = {
@@ -115,7 +117,7 @@ export function createEditor(app, { tabs, breadcrumbs, scroller, gutter, content
     content.replaceChildren(file ? renderView(file, ctx) : welcome());
     scroller.scrollTop = scrollPositions.get(active) ?? 0;
     updateGutter();
-    document.title = file ? `${file.name} — ${app.content.profile.handle}` : `${app.content.profile.name} — Portfolio`;
+    document.title = file && file.path !== "about/README.md" ? `${file.name} — ${app.content.profile.name}` : homeTitle;
   }
 
   const observer = new ResizeObserver(updateGutter);

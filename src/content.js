@@ -379,7 +379,7 @@ export default {
       year: 2026,
       description: "This site: an editor-style portfolio with a terminal, command palette, full-text search, an agent lab, and themes. Zero dependencies.",
       tags: ["javascript", "css", "no-build"],
-      repo: "", // add the GitHub URL once you push it
+      repo: "https://github.com/swarajb-778/swarajbangar-dev",
       live: "",
       featured: false,
     },

@@ -5,17 +5,12 @@ import { impactTable } from "./impact.js";
 
 let hasTyped = false;
 
+/** CSS reveals the name; the full text stays in the DOM so crawlers never see it half-typed. */
 function typeIn(el) {
-  if (hasTyped || prefersReducedMotion()) return;
+  if (hasTyped) return;
   hasTyped = true;
-  const full = el.textContent;
-  el.textContent = "";
-  let i = 0;
-  const tick = () => {
-    el.textContent = full.slice(0, ++i);
-    if (i < full.length) setTimeout(tick, 55);
-  };
-  setTimeout(tick, 300);
+  el.style.setProperty("--chars", el.textContent.length);
+  el.classList.add("is-typing");
 }
 
 /** Types each role, pauses, deletes it, and moves on. Stops once the element leaves the page. */

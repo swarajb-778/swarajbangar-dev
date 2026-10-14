@@ -1202,6 +1202,22 @@ textarea.input {
   letter-spacing: -0.01em;
 }
 
+/* Typewriter reveal of the name (README). The mono font makes 1ch one letter. */
+.typed.is-typing {
+  display: inline-block;
+  width: calc(var(--chars) * 1ch);
+  overflow: hidden;
+  white-space: nowrap;
+  vertical-align: bottom;
+  animation: type-in 0.8s steps(var(--chars)) 0.3s backwards;
+}
+
+@keyframes type-in {
+  from {
+    width: 0;
+  }
+}
+
 .caret {
   display: inline-block;
   width: 0.5em;
@@ -2418,13 +2434,6 @@ button.status-remote:hover {
     opacity: 0;
     transform: translateY(8px);
   }
-}
-
-.noscript {
-  max-width: 560px;
-  margin: 15vh auto;
-  padding: 0 20px;
-  font-size: 15px;
 }
 
 /* ---------- Responsive ---------- */
