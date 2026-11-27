@@ -5,7 +5,7 @@ import { buildFiles } from "../src/files.js";
 import { content } from "./fixtures.js";
 
 const files = buildFiles(content);
-const newShell = () => createShell({ content, files, themes: ["midnight", "daylight"] });
+const newShell = () => createShell({ content, files, themes: ["midnight", "daylight"], fonts: ["vscode-default", "jetbrains", "fira-code"] });
 const out = (shell, input) => shell.run(input).output;
 
 test("help lists the core commands", () => {
@@ -57,6 +57,14 @@ test("theme without a name lists themes; an unknown theme is an error", () => {
   const shell = newShell();
   assert.match(out(shell, "theme").join("\n"), /midnight[\s\S]*daylight/);
   assert.deepEqual(out(shell, "theme neon"), ["theme: neon: unknown theme (try: midnight, daylight)"]);
+});
+
+test("font lists, switches, and autocompletes font presets", () => {
+  const shell = newShell();
+  assert.match(out(shell, "font").join("\n"), /vscode-default[\s\S]*jetbrains/);
+  assert.deepEqual(shell.run("font jetbrains").effects, [{ type: "font", name: "jetbrains" }]);
+  assert.deepEqual(out(shell, "font comic"), ["font: comic: unknown font (try: vscode-default, jetbrains, fira-code)"]);
+  assert.deepEqual(shell.complete("font je"), ["font jetbrains"]);
 });
 
 test("contact prints email and social links", () => {

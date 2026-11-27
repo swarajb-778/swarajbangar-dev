@@ -66,16 +66,19 @@ export function createEditor(app, { tabs, breadcrumbs, scroller, gutter, content
         return tab;
       }),
     );
-    tabs.querySelector(".tab.is-active")?.scrollIntoView({ block: "nearest", inline: "nearest" });
+    tabs.querySelector(".tab.is-active")?.scrollIntoView({ block: "nearest", inline: "nearest", container: "nearest" });
   }
 
   function renderBreadcrumbs({ active }) {
     if (!active) return breadcrumbs.replaceChildren();
+    const file = app.fileMap.get(active);
     const parts = [app.content.profile.handle, ...active.split("/")];
     breadcrumbs.replaceChildren(
       ...parts.flatMap((part, i) => [
         ...(i > 0 ? [icon("chevronRight", { size: 12 })] : []),
-        h("span", { class: i === parts.length - 1 ? "crumb is-current" : "crumb" }, part),
+        i === parts.length - 1
+          ? h("span", { class: "crumb is-current" }, file ? fileIcon(file.icon, file.name) : null, part)
+          : h("span", { class: "crumb" }, part),
       ]),
     );
   }

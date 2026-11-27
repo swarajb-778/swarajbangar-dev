@@ -5,10 +5,12 @@ import { buildFiles, buildTree } from "./files.js";
 import { createStore } from "./lib/store.js";
 import { hashForPath, pathFromHash } from "./lib/router.js";
 import { mailtoUrl } from "./lib/mail.js";
-import { THEMES, applyTheme, defaultTheme } from "./themes.js";
+import { THEMES, applyTheme, defaultTheme, resolveTheme } from "./themes.js";
+import { FONTS, applyFont, defaultFont, resolveFont } from "./fonts.js";
 import { createCommands } from "./commands.js";
 import { createToaster } from "./ui/toast.js";
 import { createPalette } from "./ui/palette.js";
+import { createFeedbackDialog } from "./ui/feedback.js";
 import { createTitlebar } from "./ui/titlebar.js";
 import { createActivityBar } from "./ui/activitybar.js";
 import { createEditor } from "./ui/editor.js";
@@ -26,6 +28,8 @@ const files = buildFiles(content);
 const fileMap = new Map(files.map((f) => [f.path, f]));
 const paths = files.map((f) => f.path);
 const mobile = window.matchMedia("(max-width: 900px)");
+const wideDesktop = window.matchMedia("(min-width: 1080px)");
+const colorSchemeLight = window.matchMedia("(prefers-color-scheme: light)");
 const isMobile = () => mobile.matches;
 
 function safeStorage() {
@@ -36,22 +40,36 @@ function safeStorage() {
   }
 }
 
+const hadSavedTheme = (() => {
+  try {
+    return Boolean(JSON.parse(safeStorage()?.getItem(STORAGE_KEY) || "{}").theme);
+  } catch {
+    return false;
+  }
+})();
+
+let themePinned = hadSavedTheme;
+
 const store = createStore(
   {
     theme: defaultTheme(),
+    font: defaultFont(),
+    fontPinned: false,
+    density: "default",
     openTabs: ["about/README.md"],
     active: "about/README.md",
     sidebarView: "explorer",
     sidebarOpen: !isMobile(),
     panelOpen: false,
-    chatOpen: false,
+    // Keep Ask Me open by default on wide desktop so the AI assistant is immediately visible.
+    chatOpen: wideDesktop.matches,
     expanded: {},
     // Panel sizes in px, set by dragging a sash; null keeps the default from styles/themes.css.
     sidebarW: null,
     chatW: null,
     panelH: null,
   },
-  { storage: safeStorage(), key: STORAGE_KEY, persist: ["theme", "openTabs", "active", "sidebarView", "expanded", "sidebarW", "chatW", "panelH"] },
+  { storage: safeStorage(), key: STORAGE_KEY, persist: ["theme", "font", "fontPinned", "density", "openTabs", "active", "sidebarView", "expanded", "sidebarW", "chatW", "panelH"] },
 );
 
 // Persisted state comes from an older visit (or a hand-edited localStorage), so validate it.
@@ -59,8 +77,12 @@ const store = createStore(
   const s = store.get();
   const openTabs = Array.isArray(s.openTabs) ? s.openTabs.filter((p) => fileMap.has(p)) : [];
   const active = pathFromHash(location.hash, paths) ?? (fileMap.has(s.active) ? s.active : (openTabs[0] ?? null));
+  const fontPinned = s.fontPinned === true;
   store.set({
-    theme: THEMES.some((t) => t.id === s.theme) ? s.theme : defaultTheme(),
+    theme: resolveTheme(s.theme),
+    font: fontPinned ? resolveFont(s.font) : defaultFont(),
+    fontPinned,
+    density: s.density === "compact" ? "compact" : "default",
     openTabs: active && !openTabs.includes(active) ? [...openTabs, active] : openTabs,
     active,
     sidebarView: SIDEBAR_VIEWS.includes(s.sidebarView) ? s.sidebarView : "explorer",
@@ -78,6 +100,7 @@ const app = {
   tree: buildTree(files),
   store,
   themes: THEMES,
+  fonts: FONTS,
   toast: createToaster(),
 
   open(path) {
@@ -110,9 +133,22 @@ const app = {
   toggleSidebar: (force) => store.set((s) => ({ sidebarOpen: force ?? !s.sidebarOpen, ...(isMobile() ? { chatOpen: false } : {}) })),
   togglePanel: (force) => store.set((s) => ({ panelOpen: force ?? !s.panelOpen })),
   toggleChat: (force) => store.set((s) => ({ chatOpen: force ?? !s.chatOpen, ...(isMobile() ? { sidebarOpen: false } : {}) })),
+  toggleDensity() {
+    store.set((s) => {
+      const density = s.density === "compact" ? "default" : "compact";
+      app.toast(`Layout density: ${density === "compact" ? "Compact" : "Default (Floating Panels)"}.`);
+      return { density };
+    });
+  },
 
   setTheme(id) {
-    if (THEMES.some((t) => t.id === id)) store.set({ theme: id });
+    const resolved = resolveTheme(id);
+    themePinned = true;
+    store.set({ theme: resolved });
+  },
+
+  setFont(id) {
+    store.set({ font: resolveFont(id), fontPinned: true });
   },
 
   async copy(text, message = "Copied.") {
@@ -145,9 +181,23 @@ const app = {
 
 app.commands = createCommands(app);
 app.palette = createPalette(app);
+app.feedback = createFeedbackDialog(app);
+
+const applyDensity = (density) => {
+  document.documentElement.dataset.density = density === "compact" ? "compact" : "default";
+};
 
 applyTheme(store.get().theme);
-store.subscribe((s, prev) => s.theme !== prev.theme && applyTheme(s.theme));
+applyFont(store.get().font);
+applyDensity(store.get().density);
+store.subscribe((s, prev) => {
+  if (s.theme !== prev.theme) applyTheme(s.theme);
+  if (s.font !== prev.font) applyFont(s.font);
+  if (s.density !== prev.density) applyDensity(s.density);
+});
+colorSchemeLight.addEventListener("change", () => {
+  if (!themePinned) store.set({ theme: defaultTheme() });
+});
 
 createTitlebar(app, $("#titlebar"));
 createActivityBar(app, $("#activitybar"));
@@ -187,6 +237,7 @@ document.addEventListener("keydown", (e) => {
   if ((mod && e.shiftKey && key === "p") || e.key === "F1" || (mod && !e.shiftKey && key === "k")) action = () => app.palette.open("commands");
   else if (mod && !e.shiftKey && key === "p") action = () => app.palette.open("files");
   else if (mod && !e.shiftKey && !e.altKey && key === "b") action = () => app.toggleSidebar();
+  else if (mod && e.altKey && !e.shiftKey && key === "b") action = () => app.toggleChat();
   else if (e.ctrlKey && e.code === "Backquote") action = () => app.togglePanel();
   else if (mod && e.shiftKey && key === "f") action = () => app.showView("search", true);
   else if (mod && e.shiftKey && key === "e") action = () => app.showView("explorer", true);

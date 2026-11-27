@@ -6,7 +6,7 @@ const result = (output = [], effects = []) => ({ output, effects });
  * A tiny, side-effect-free command interpreter. Anything that needs the UI
  * (opening a file, switching theme) is returned as an effect for the caller.
  */
-export function createShell({ content, files, themes }) {
+export function createShell({ content, files, themes, fonts = [] }) {
   const { profile, projects, skills, experience, socials, impact = [], education = [] } = content;
   const firstName = profile.name.split(" ")[0].toLowerCase();
   const history = [];
@@ -109,6 +109,16 @@ export function createShell({ content, files, themes }) {
         return result([`Theme set to ${name}.`], [{ type: "theme", name }]);
       },
     ],
+    font: [
+      "font [name]",
+      "list or switch font presets",
+      (args) => {
+        if (!args[0]) return result(["Available fonts:", ...fonts.map((f) => `  ${f}`), 'Use "font <name>" to switch.']);
+        const name = args[0].toLowerCase();
+        if (!fonts.includes(name)) return result([`font: ${args[0]}: unknown font (try: ${fonts.join(", ")})`]);
+        return result([`Font set to ${name}.`], [{ type: "font", name }]);
+      },
+    ],
     history: ["history", "show previous commands", () => result(history.map((cmd, i) => `${String(i + 1).padStart(3)}  ${cmd}`))],
     echo: ["echo <text>", "print text", (args) => result([args.join(" ")])],
     date: ["date", "print the date", () => result([new Date().toString()])],
@@ -151,7 +161,7 @@ export function createShell({ content, files, themes }) {
       return Object.keys(commands).filter((c) => c.startsWith(prefix));
     }
     const [cmd, arg = ""] = parts;
-    const pools = { theme: themes, cat: files.map((f) => f.name), open: files.map((f) => f.name), ls: folders };
+    const pools = { theme: themes, font: fonts, cat: files.map((f) => f.name), open: files.map((f) => f.name), ls: folders };
     return (pools[cmd.toLowerCase()] ?? [])
       .filter((option) => option.toLowerCase().startsWith(arg.toLowerCase()))
       .map((option) => `${cmd} ${option}`);

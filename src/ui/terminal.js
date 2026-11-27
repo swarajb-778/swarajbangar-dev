@@ -21,7 +21,7 @@ const commonPrefix = (values) =>
   });
 
 export function createTerminal(app, root) {
-  const shell = createShell({ content: app.content, files: app.files, themes: app.themes.map((t) => t.id) });
+  const shell = createShell({ content: app.content, files: app.files, themes: app.themes.map((t) => t.id), fonts: (app.fonts ?? []).map((f) => f.id) });
   const user = app.content.profile.name.split(" ")[0].toLowerCase();
   const prompt = `${user}@portfolio ~ %`;
   let cursor = null;
@@ -115,6 +115,8 @@ export function createTerminal(app, root) {
         return app.open(effect.path);
       case "theme":
         return app.setTheme(effect.name);
+      case "font":
+        return app.setFont(effect.name);
       case "clear":
         return clear();
       case "closePanel":

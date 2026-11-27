@@ -11,7 +11,7 @@ body {
 }
 
 body {
-  background: var(--bg-editor);
+  background: var(--bg-chrome);
   color: var(--fg);
   font: 13px/1.5 var(--font-ui);
   -webkit-font-smoothing: antialiased;
@@ -37,15 +37,43 @@ a {
   color: var(--link);
 }
 
+.kbd-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  flex: none;
+  vertical-align: middle;
+}
+
+.kbd-sep {
+  color: var(--fg-faint);
+  font-size: 0.65rem;
+  line-height: 1;
+}
+
 kbd {
-  font: 11px/1 var(--font-mono);
-  padding: 2px 5px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-inline-size: 18px;
+  min-block-size: 18px;
+  padding: 1px 5px;
   border: 1px solid var(--border-strong);
-  border-bottom-width: 2px;
-  border-radius: 4px;
-  background: var(--bg-elevated);
+  border-radius: var(--radius-pill);
+  background: var(--bg-surface-2);
+  box-shadow: inset 0 -1px 0 color-mix(in srgb, var(--border-strong) 75%, transparent);
   color: var(--fg-muted);
+  font-family: var(--font-ui);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
   white-space: nowrap;
+}
+
+kbd.kbd-sym {
+  padding: 1px 4px;
+  font-size: 0.72rem;
 }
 
 mark {
@@ -55,7 +83,7 @@ mark {
 }
 
 :focus-visible {
-  outline: 1px solid var(--accent);
+  outline: 1px solid var(--focus-border);
   outline-offset: -1px;
 }
 
@@ -86,48 +114,101 @@ mark {
   grid-template-rows: var(--titlebar-h) minmax(0, 1fr) var(--statusbar-h);
   height: 100vh;
   height: 100dvh;
+  background: var(--bg-chrome);
 }
 
 .workbench {
   position: relative;
   display: flex;
   min-height: 0;
+  padding: 0 var(--panel-gap);
+  background: var(--bg-chrome);
 }
 
 /* Sashes: drag handles on the sidebar, terminal and assistant edges (src/ui/resize.js).
-   Negative margins keep them out of the layout, straddling the panel border. */
+   In default floating-panel density they sit cleanly inside the 4px gutter between cards;
+   in compact density they straddle the 1px seam. */
 
 .sash {
   --sash-size: 4px;
   position: relative;
   z-index: 10;
   flex: none;
+  border-radius: 999px;
   touch-action: none;
-  transition: background-color 0.1s;
+  transition: background-color 0.12s;
 }
 
 .sash-x {
   width: var(--sash-size);
-  margin: 0 calc(var(--sash-size) / -2);
+  margin: 0 calc(var(--sash-size) * -1) 0 0;
   cursor: col-resize;
 }
 
 .sash-y {
   height: var(--sash-size);
-  margin: calc(var(--sash-size) / -2) 0;
+  margin: 0 0 calc(var(--sash-size) * -1) 0;
   cursor: row-resize;
+}
+
+[data-density="compact"] .sash-x {
+  margin: 0 calc(var(--sash-size) / -2);
+  border-radius: 0;
+}
+
+[data-density="compact"] .sash-y {
+  margin: calc(var(--sash-size) / -2) 0;
+  border-radius: 0;
 }
 
 /* Like VS Code, hovering lights the sash only after a short pause. */
 .sash:hover {
   background: var(--accent);
-  transition-delay: 0.25s;
+  transition-delay: 0.22s;
 }
 
 .sash:focus-visible,
 .sash.is-dragging {
   background: var(--accent);
   transition-delay: 0s;
+}
+
+/* Standard thin scrollbars with accessible thumb contrast (WCAG 1.4.11) + WebKit fallback. */
+.editor,
+.sb-scroll,
+.chat-log,
+.term-body,
+.palette-list,
+.code,
+.mcp-result {
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+}
+
+@supports not (scrollbar-color: auto) {
+  .editor,
+  .sb-scroll,
+  .chat-log,
+  .term-body,
+  .palette-list,
+  .code,
+  .mcp-result {
+    scrollbar-width: auto;
+  }
+
+  :is(.editor, .sb-scroll, .chat-log, .term-body, .palette-list, .code, .mcp-result)::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  :is(.editor, .sb-scroll, .chat-log, .term-body, .palette-list, .code, .mcp-result)::-webkit-scrollbar-thumb {
+    background: var(--scrollbar-thumb);
+    border-radius: 999px;
+  }
+
+  :is(.editor, .sb-scroll, .chat-log, .term-body, .palette-list, .code, .mcp-result)::-webkit-scrollbar-track {
+    background: var(--scrollbar-track);
+  }
 }
 
 .is-resizing-x,
@@ -160,10 +241,13 @@ mark {
 .icon-button {
   display: inline-grid;
   place-items: center;
-  width: 28px;
-  height: 26px;
-  border-radius: 5px;
+  width: 26px;
+  height: 24px;
+  border-radius: var(--radius-pill);
   color: var(--fg-muted);
+  transition:
+    background-color 120ms ease,
+    color 120ms ease;
 }
 
 .icon-button:hover,
@@ -173,6 +257,10 @@ mark {
 
 .icon-button:hover {
   background: var(--bg-hover);
+}
+
+.title-actions .icon-button[aria-pressed="true"] {
+  background: color-mix(in srgb, var(--fg-strong) 8%, transparent);
 }
 
 .btn {
@@ -261,6 +349,7 @@ textarea.input {
 }
 
 .file-icon {
+  display: block;
   flex: none;
   width: 16px;
   height: 16px;
@@ -277,10 +366,13 @@ textarea.input {
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 0 8px;
+  padding: 0 10px;
   background: var(--bg-chrome);
-  border-bottom: 1px solid var(--border);
   user-select: none;
+}
+
+[data-density="compact"] .titlebar {
+  border-bottom: 1px solid var(--border);
 }
 
 .window-dots {
@@ -370,9 +462,17 @@ textarea.input {
   outline: none;
 }
 
+.menu-item:hover kbd,
+.menu-item:focus-visible kbd {
+  border-color: color-mix(in srgb, var(--accent-fg) 35%, transparent);
+  background: color-mix(in srgb, var(--accent-fg) 14%, transparent);
+  box-shadow: none;
+  color: var(--accent-fg);
+}
+
 .menu-keys {
-  font-size: 12px;
-  opacity: 0.7;
+  display: inline-flex;
+  align-items: center;
 }
 
 .menu-sep {
@@ -389,23 +489,42 @@ textarea.input {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  width: min(440px, 38vw);
-  height: 24px;
-  padding: 0 10px;
-  border: 1px solid var(--border-strong);
-  border-radius: 6px;
-  background: var(--bg-input);
+  width: min(420px, 34vw);
+  min-block-size: 24px;
+  padding: 2px 4px 2px 10px;
+  border: 1px solid var(--border-cmd);
+  border-radius: var(--radius-control);
+  background: color-mix(in srgb, var(--bg-elevated) 65%, var(--bg-chrome));
   color: var(--fg-muted);
-  font-size: 12px;
+  font-size: 0.75rem;
+  transition:
+    background-color 120ms ease,
+    border-color 120ms ease,
+    color 120ms ease;
 }
 
 .title-search:hover {
+  background: var(--bg-hover);
   color: var(--fg-strong);
-  border-color: var(--fg-faint);
+  border-color: var(--border-strong);
+}
+
+.title-search .kbd-group {
+  margin-left: auto;
 }
 
 .title-search kbd {
-  margin-left: auto;
+  min-inline-size: 17px;
+  min-block-size: 17px;
+  padding: 0 4px;
+  border-color: color-mix(in srgb, var(--border-strong) 85%, transparent);
+  background: color-mix(in srgb, var(--fg-strong) 7%, transparent);
+  box-shadow: none;
+  color: var(--fg-muted);
+}
+
+.title-search:hover kbd {
+  color: var(--fg);
 }
 
 .title-search-label {
@@ -414,15 +533,57 @@ textarea.input {
 
 .title-actions {
   display: flex;
-  gap: 2px;
+  align-items: center;
+  gap: 3px;
   margin-left: auto;
+}
+
+.title-sep {
+  width: 1px;
+  height: 14px;
+  margin: 0 3px;
+  background: var(--border-strong);
+}
+
+.title-ask {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 24px;
+  padding: 0 10px;
+  border: 1px solid color-mix(in srgb, var(--accent) 44%, var(--border-strong));
+  border-radius: var(--radius-control);
+  background: color-mix(in srgb, var(--accent) 12%, var(--bg-elevated));
+  color: var(--fg-strong);
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+  transition:
+    background-color 140ms ease,
+    border-color 140ms ease,
+    box-shadow 140ms ease;
+}
+
+.title-ask svg {
+  color: var(--accent);
+}
+
+.title-ask:hover {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 20%, var(--bg-elevated));
+}
+
+.title-ask[aria-pressed="true"] {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 22%, var(--bg-elevated));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 22%, transparent);
 }
 
 .mobile-only {
   display: none;
 }
 
-/* ---------- Activity bar ---------- */
+/* ---------- Activity bar (classic left vertical rail, VS Code 2026 styling) ---------- */
 
 .activitybar {
   display: flex;
@@ -430,34 +591,52 @@ textarea.input {
   flex-direction: column;
   justify-content: space-between;
   width: var(--activity-w);
-  background: var(--bg-chrome);
-  border-right: 1px solid var(--border);
+  padding: 6px 0;
+  background: var(--bg-sidebar);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-panel) 0 0 var(--radius-panel);
+}
+
+.workbench:has(> .sidebar[hidden]) .activitybar {
+  border-radius: var(--radius-panel);
 }
 
 .activity-group {
   display: flex;
   flex-direction: column;
+  gap: 2px;
 }
 
 .activity-button {
   position: relative;
   display: grid;
   place-items: center;
-  height: 48px;
-  color: var(--fg-faint);
+  width: 36px;
+  height: 36px;
+  margin: 0 auto;
+  border-radius: var(--radius-control);
+  color: var(--fg-muted);
+  transition:
+    background-color 120ms ease,
+    color 120ms ease;
 }
 
-.activity-button:hover,
+.activity-button:hover {
+  background: var(--bg-hover);
+  color: var(--fg-strong);
+}
+
 .activity-button.is-active {
+  background: var(--bg-activity-active);
   color: var(--fg-strong);
 }
 
 .activity-button.is-active::before {
   content: "";
   position: absolute;
-  left: 0;
-  top: 10px;
-  bottom: 10px;
+  left: -6px;
+  top: 8px;
+  bottom: 8px;
   width: 2px;
   border-radius: 0 2px 2px 0;
   background: var(--accent);
@@ -472,16 +651,54 @@ textarea.input {
   flex-direction: column;
   min-height: 0;
   background: var(--bg-sidebar);
+  overflow: hidden;
 }
 
 .sidebar {
   width: var(--sidebar-w);
-  border-right: 1px solid var(--border);
+  border: 1px solid var(--border);
+  border-left: 0;
+  border-radius: 0 var(--radius-panel) var(--radius-panel) 0;
 }
 
 .chat {
+  position: relative;
   width: var(--chat-w);
-  border-left: 1px solid var(--border);
+  margin-left: var(--panel-gap);
+  border: 1px solid color-mix(in srgb, var(--accent) 34%, var(--border));
+  border-radius: var(--radius-panel);
+  background:
+    radial-gradient(ellipse 95% 150px at 85% 0%, color-mix(in srgb, var(--accent) 11%, transparent), transparent 72%),
+    var(--bg-sidebar);
+}
+
+.chat::before {
+  content: "";
+  position: absolute;
+  inset: 0 18px auto;
+  z-index: 2;
+  height: 2px;
+  border-radius: 0 0 2px 2px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  opacity: 0.85;
+  pointer-events: none;
+}
+
+[data-density="compact"] .activitybar {
+  border-top: 0;
+  border-left: 0;
+  border-bottom: 0;
+}
+
+[data-density="compact"] .sidebar {
+  border-top: 0;
+  border-bottom: 0;
+}
+
+[data-density="compact"] .chat {
+  border-top: 0;
+  border-right: 0;
+  border-bottom: 0;
 }
 
 .sb-view {
@@ -580,13 +797,35 @@ textarea.input {
   list-style: none;
 }
 
+.tree ul[role="group"] {
+  position: relative;
+}
+
+.tree ul[role="group"]::before {
+  content: "";
+  position: absolute;
+  top: 2px;
+  bottom: 4px;
+  left: 17px;
+  width: 1px;
+  background: color-mix(in srgb, var(--border-strong) 55%, transparent);
+  pointer-events: none;
+  transition: background-color 140ms ease;
+}
+
+.tree:hover ul[role="group"]::before {
+  background: var(--border-strong);
+}
+
 .tree-row {
   display: flex;
   align-items: center;
   gap: 6px;
-  width: 100%;
-  min-height: 22px;
-  padding: 0 10px 0 calc(8px + var(--depth, 0) * 14px);
+  width: calc(100% - 8px);
+  min-height: 24px;
+  margin: 1px 4px;
+  padding: 0 8px 0 calc(6px + var(--depth, 0) * 14px);
+  border-radius: var(--radius-pill);
   color: var(--fg);
   text-decoration: none;
   white-space: nowrap;
@@ -1012,24 +1251,101 @@ textarea.input {
   opacity: 0.45;
 }
 
-/* ---------- Editor ---------- */
+/* ---------- Editor & Connected Tabs (VS Code Oct 2026) ---------- */
+
+@property --fade-start {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
+}
+
+@property --fade-end {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
+}
 
 .editor-group {
   display: flex;
   flex: 1;
   flex-direction: column;
   min-width: 0;
+  margin-left: var(--panel-gap);
+  background: transparent;
+}
+
+.editor-surface {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-panel);
   background: var(--bg-editor);
+  overflow: hidden;
+}
+
+[data-density="compact"] .editor-surface {
+  border-top: 0;
+  border-left: 0;
+  border-right: 0;
+  border-bottom: 0;
 }
 
 .tabs {
+  position: relative;
   display: flex;
+  align-items: flex-end;
+  gap: 2px;
   flex: none;
   height: var(--tabs-h);
+  padding: 4px 6px 0;
   overflow-x: auto;
-  background: var(--bg-chrome);
-  border-bottom: 1px solid var(--border);
+  overflow-y: hidden;
+  background: var(--bg-tabstrip);
   scrollbar-width: none;
+  scroll-snap-type: inline proximity;
+  scroll-padding-inline: 24px;
+}
+
+/* Bottom hairline sits at z-index: 1 so the connected active tab (z-index: 2) fuses cleanly across it. */
+.tabs::before {
+  content: "";
+  position: absolute;
+  inset: auto 0 0;
+  z-index: 1;
+  height: 1px;
+  background: var(--border);
+  pointer-events: none;
+}
+
+@supports (animation-timeline: scroll()) {
+  .tabs {
+    --fade-size: 24px;
+    mask:
+      linear-gradient(black, black) no-clip subtract,
+      linear-gradient(to right, black, transparent) 0 0 / var(--fade-start) 100% no-repeat no-clip,
+      linear-gradient(to right, transparent, black) 100% 0 / var(--fade-end) 100% no-repeat no-clip;
+    animation:
+      tabs-fade-start linear both,
+      tabs-fade-end linear both;
+    animation-timeline: scroll(self inline);
+    animation-range:
+      0 var(--fade-size),
+      calc(100% - var(--fade-size)) 100%;
+  }
+}
+
+@keyframes tabs-fade-start {
+  to {
+    --fade-start: var(--fade-size);
+  }
+}
+
+@keyframes tabs-fade-end {
+  from {
+    --fade-end: var(--fade-size);
+  }
 }
 
 .tabs::-webkit-scrollbar {
@@ -1042,30 +1358,55 @@ textarea.input {
   align-items: center;
   gap: 7px;
   flex: none;
-  padding: 0 6px 0 12px;
-  border-right: 1px solid var(--border);
+  height: 28px;
+  margin-bottom: 4px;
+  padding: 0 6px 0 10px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-control);
   color: var(--fg-muted);
   font-size: 12.5px;
   cursor: pointer;
   user-select: none;
+  scroll-snap-align: start;
+  transition:
+    background-color 120ms ease,
+    color 120ms ease;
 }
 
 .tab:hover {
   background: var(--bg-hover);
+  color: var(--fg-strong);
 }
 
-.tab.is-active {
+/* Connected active tab: fuses directly into the editor surface below with a forced-colors-safe top border. */
+.tab[aria-selected="true"] {
+  z-index: 2;
+  height: 32px;
+  margin-bottom: 0;
+  padding-bottom: 1px;
+  border-color: var(--border);
+  border-bottom-color: var(--bg-editor);
+  border-radius: var(--radius-control) var(--radius-control) 0 0;
   background: var(--bg-editor);
   color: var(--fg-strong);
-  box-shadow: 0 1px 0 var(--bg-editor);
 }
 
-.tab.is-active::after {
+.tab[aria-selected="true"]:hover {
+  background: var(--bg-editor);
+}
+
+.tab[aria-selected="true"]::after {
   content: "";
   position: absolute;
-  inset: 0 0 auto;
-  height: 1px;
-  background: var(--accent);
+  inset: -1px 5px auto;
+  border-block-start: 2px solid var(--accent);
+  border-radius: 2px 2px 0 0;
+  pointer-events: none;
+}
+
+.tab .file-icon {
+  width: 15px;
+  height: 15px;
 }
 
 .tab-close {
@@ -1073,12 +1414,12 @@ textarea.input {
   place-items: center;
   width: 20px;
   height: 20px;
-  border-radius: 4px;
+  border-radius: var(--radius-pill);
   opacity: 0;
 }
 
 .tab:hover .tab-close,
-.tab.is-active .tab-close {
+.tab[aria-selected="true"] .tab-close {
   opacity: 1;
 }
 
@@ -1091,16 +1432,25 @@ textarea.input {
   align-items: center;
   gap: 2px;
   flex: none;
-  height: 24px;
-  padding: 0 16px;
+  height: 26px;
+  padding: 2px 16px 0;
   overflow: hidden;
+  background: var(--bg-editor);
   color: var(--fg-muted);
   font-size: 12px;
   white-space: nowrap;
 }
 
 .crumb.is-current {
-  color: var(--fg);
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--fg-strong);
+}
+
+.breadcrumbs .file-icon {
+  width: 14px;
+  height: 14px;
 }
 
 .editor {
@@ -1120,6 +1470,7 @@ textarea.input {
   padding: 6px 18px 0 0;
   color: var(--fg-faint);
   font: var(--code-size) / var(--line-h) var(--font-mono);
+  font-size-adjust: from-font;
   text-align: right;
   user-select: none;
   white-space: pre;
@@ -1128,6 +1479,7 @@ textarea.input {
 .editor-content {
   min-width: 0;
   padding: 6px 32px 120px 8px;
+  font-size-adjust: from-font;
 }
 
 .editor.is-empty {
@@ -1143,6 +1495,7 @@ textarea.input {
 .code {
   overflow-x: auto;
   font: var(--code-size) / var(--line-h) var(--font-mono);
+  font-size-adjust: from-font;
   white-space: pre;
   tab-size: 2;
 }
@@ -1198,8 +1551,9 @@ textarea.input {
 .md-h1 {
   margin: 22px 0 8px;
   color: var(--fg-strong);
-  font: 700 clamp(26px, 4vw, 36px) / 1.2 var(--font-mono);
+  font: 700 clamp(1.625rem, 1.2rem + 2vw, 2.25rem) / 1.2 var(--font-mono);
   letter-spacing: -0.01em;
+  text-wrap: balance;
 }
 
 /* Typewriter reveal of the name (README). The mono font makes 1ch one letter. */
@@ -1256,15 +1610,17 @@ textarea.input {
   max-width: 70ch;
   margin: 0 0 14px;
   color: var(--fg-muted);
-  font-size: 13.5px;
+  font-size: 0.84375rem;
   line-height: 1.7;
+  text-wrap: pretty;
 }
 
 .md-h2 {
   margin: 30px 0 12px;
   color: var(--fg-strong);
-  font-size: 16px;
+  font-size: 1rem;
   font-weight: 600;
+  text-wrap: balance;
 }
 
 .hint {
@@ -2009,14 +2365,24 @@ textarea.input {
   flex: none;
   flex-direction: column;
   height: var(--panel-h);
-  border-top: 1px solid var(--border);
+  margin-top: var(--panel-gap);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-panel);
   background: var(--bg-panel);
+  overflow: hidden;
+}
+
+[data-density="compact"] .panel {
+  border-left: 0;
+  border-right: 0;
+  border-bottom: 0;
 }
 
 /* Maximized, the panel takes the whole editor group, like VS Code's "Maximize Panel Size". */
 .panel.is-maximized {
   flex: 1;
   height: auto;
+  margin-top: 0;
 }
 
 .editor-group:has(> .panel.is-maximized) > :not(.panel) {
@@ -2093,6 +2459,7 @@ textarea.input {
   overflow: auto;
   padding: 4px 20px 12px;
   font: 12.5px/1.6 var(--font-mono);
+  font-size-adjust: from-font;
   cursor: text;
 }
 
@@ -2131,71 +2498,429 @@ textarea.input {
   caret-color: var(--accent);
 }
 
-/* ---------- Assistant ---------- */
+/* ---------- Assistant (Ask Me — VS Code 2026 Secondary Sidebar) ---------- */
 
-.chat-note {
-  margin: 0;
-  padding: 0 16px 8px;
-  color: var(--fg-muted);
-  font-size: 11.5px;
+.chat-header {
+  height: 38px;
+  padding: 0 8px 0 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.chat-title-group {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+}
+
+.chat-title-icon {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: 22px;
+  height: 22px;
+  border: 1px solid color-mix(in srgb, var(--accent) 40%, var(--border));
+  border-radius: var(--radius-control);
+  background: color-mix(in srgb, var(--accent) 16%, var(--bg-elevated));
+  color: var(--accent);
+}
+
+.chat-header .sb-title {
+  color: var(--fg-strong);
+  font-weight: 600;
+}
+
+.chat-agent-pill {
+  display: inline-flex;
+  align-items: center;
+  height: 18px;
+  padding: 0 7px;
+  border: 1px solid color-mix(in srgb, var(--accent) 36%, var(--border));
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  color: var(--link);
+  font: 600 10px/1 var(--font-mono);
+  letter-spacing: 0.04em;
+  white-space: nowrap;
 }
 
 .chat-log {
   display: flex;
   flex: 1;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
   min-height: 0;
   overflow: auto;
-  padding: 8px 14px;
+  padding: 12px;
 }
 
-.bubble {
-  max-width: 92%;
-  padding: 8px 11px;
+/* Welcome deck + starter prompt cards */
+
+.chat-welcome {
+  display: grid;
+  gap: 12px;
+  padding-top: 2px;
+}
+
+.chat-welcome-hero {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 11px 12px;
+  border: 1px solid color-mix(in srgb, var(--accent) 26%, var(--border));
+  border-radius: var(--radius-panel);
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--accent) 12%, transparent), transparent 65%),
+    var(--bg-elevated);
+}
+
+.chat-emblem {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: 32px;
+  height: 32px;
+  border: 1px solid color-mix(in srgb, var(--accent) 42%, var(--border));
+  border-radius: var(--radius-panel);
+  background: color-mix(in srgb, var(--accent) 16%, var(--bg-editor));
+  color: var(--accent);
+}
+
+.chat-welcome-copy {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.chat-welcome-title {
+  margin: 0;
+  color: var(--fg-strong);
+  font-size: 13.5px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.chat-welcome-sub {
+  margin: 0;
+  color: var(--fg-muted);
+  font-size: 11.5px;
+  line-height: 1.45;
+}
+
+.starter-list {
+  display: grid;
+  gap: 6px;
+}
+
+.starter-card {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  padding: 9px 10px;
   border: 1px solid var(--border);
-  border-radius: 12px 12px 12px 4px;
+  border-radius: var(--radius-panel);
   background: var(--bg-elevated);
-  font-size: 12.5px;
-  line-height: 1.55;
+  text-align: left;
+  transition:
+    border-color 140ms ease,
+    background-color 140ms ease,
+    transform 140ms ease;
 }
 
-.bubble p {
+.starter-card:hover {
+  border-color: color-mix(in srgb, var(--accent) 62%, var(--border));
+  background: var(--bg-surface-2);
+  transform: translateY(-1px);
+}
+
+.starter-icon {
+  display: inline-grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-control);
+  background: color-mix(in srgb, var(--accent) 12%, var(--bg-editor));
+  color: var(--accent);
+}
+
+.starter-body {
+  display: grid;
+  gap: 1px;
+  min-width: 0;
+}
+
+.starter-title {
+  color: var(--fg-strong);
+  font-size: 12.5px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.starter-prompt {
+  overflow: hidden;
+  color: var(--fg-muted);
+  font-size: 11.5px;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.starter-source {
+  padding: 2px 6px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  background: var(--bg-editor);
+  color: var(--fg-muted);
+  font: 10px/1.3 var(--font-mono);
+  white-space: nowrap;
+}
+
+/* Conversation messages & structured grounded answer cards */
+
+.chat-user {
+  align-self: flex-end;
+  max-width: 88%;
+  padding: 7px 11px;
+  border: 1px solid var(--border);
+  border-radius: 10px 10px 3px 10px;
+  background: var(--bg-chat-user);
+  color: var(--fg-strong);
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+
+.chat-user p {
   margin: 0;
 }
 
-.bubble.user {
-  align-self: flex-end;
-  border-color: transparent;
-  border-radius: 12px 12px 4px 12px;
-  background: var(--accent-strong);
-  color: var(--accent-fg);
+.answer-card {
+  display: grid;
+  gap: 8px;
+  padding: 11px 12px;
+  border: 1px solid var(--border);
+  border-left: 2px solid var(--accent);
+  border-radius: var(--radius-panel);
+  background: var(--bg-elevated);
+  font-size: 12.5px;
+  line-height: 1.5;
+  animation: toast-in 0.16s ease-out;
 }
 
-.bubble.typing {
+.answer-card.is-abstained {
+  border-left-color: var(--warning);
+}
+
+.answer-card.is-thinking {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 12px;
   color: var(--fg-muted);
+  font-size: 12px;
+}
+
+.answer-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--accent);
   animation: pulse 1s ease-in-out infinite;
 }
 
 @keyframes pulse {
   50% {
-    opacity: 0.5;
+    opacity: 0.35;
   }
 }
 
-.bubble-links {
+.answer-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.answer-title {
+  color: var(--fg-strong);
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.answer-badge {
+  display: inline-flex;
+  align-items: center;
+  height: 18px;
+  padding: 0 7px;
+  border: 1px solid color-mix(in srgb, var(--success) 45%, var(--border));
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--success) 12%, transparent);
+  color: var(--success);
+  font: 600 10px/1 var(--font-mono);
+  white-space: nowrap;
+}
+
+.answer-badge.is-abstained {
+  border-color: color-mix(in srgb, var(--warning) 48%, var(--border));
+  background: color-mix(in srgb, var(--warning) 12%, transparent);
+  color: var(--warning);
+}
+
+.answer-badge.is-welcome {
+  border-color: color-mix(in srgb, var(--accent) 48%, var(--border));
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  color: var(--link);
+}
+
+.answer-trace {
+  display: grid;
+  gap: 2px;
+  margin: 0;
+  padding: 6px 8px;
+  list-style: none;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-control);
+  background: var(--bg-editor);
+  color: var(--fg-muted);
+  font: 10.5px/1.45 var(--font-mono);
+}
+
+.answer-trace-step {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.answer-trace-step::before {
+  content: "›";
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.answer-card.is-abstained .answer-trace-step::before {
+  color: var(--warning);
+}
+
+.answer-summary {
+  margin: 0;
+  color: var(--fg);
+  font-size: 0.78125rem;
+  line-height: 1.55;
+  text-wrap: pretty;
+}
+
+.answer-facts {
+  display: grid;
+  gap: 5px;
+  margin: 0;
+}
+
+.answer-fact {
+  display: grid;
+  gap: 2px;
+  padding: 7px 9px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-control);
+  background: var(--bg-surface-2);
+}
+
+.answer-fact-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.answer-fact-label {
+  color: var(--fg-strong);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.answer-fact-val {
+  margin: 0;
+  color: var(--fg-muted);
+  font: 600 11px/1.3 var(--font-mono);
+  text-align: right;
+  white-space: nowrap;
+}
+
+.answer-fact-val.is-success {
+  color: var(--success);
+}
+
+.answer-fact-val.is-accent {
+  color: var(--link);
+}
+
+.answer-fact-detail {
+  margin: 0;
+  color: var(--fg-muted);
+  font-size: 11.5px;
+  line-height: 1.4;
+}
+
+.answer-sources {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: 6px;
-  margin-top: 8px;
+  padding-top: 7px;
+  border-top: 1px solid var(--border);
+}
+
+.answer-sources-label {
+  color: var(--fg-faint);
+  font: 600 10px/1 var(--font-mono);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.answer-sources-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.source-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 22px;
+  padding: 0 8px 0 6px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-pill);
+  background: var(--bg-editor);
+  color: var(--fg);
+  font: 11px/1 var(--font-mono);
+  transition:
+    border-color 120ms ease,
+    color 120ms ease,
+    background-color 120ms ease;
+}
+
+.source-chip .file-icon {
+  width: 13px;
+  height: 13px;
+}
+
+.source-chip:hover {
+  border-color: var(--accent);
+  background: var(--bg-surface-2);
+  color: var(--fg-strong);
 }
 
 .chip-btn {
   padding: 3px 9px;
   border: 1px solid var(--border-strong);
   border-radius: 999px;
-  color: var(--fg);
+  background: var(--bg-elevated);
+  color: var(--fg-muted);
   font-size: 11.5px;
+  transition:
+    border-color 120ms ease,
+    color 120ms ease;
 }
 
 .chip-btn:hover {
@@ -2206,69 +2931,134 @@ textarea.input {
 .chat-suggest {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
-  padding: 8px 14px 0;
+  gap: 5px;
+  padding: 6px 12px 0;
 }
 
 .chat-form {
-  padding: 10px 14px 14px;
+  padding: 8px 12px 12px;
+  border-top: 1px solid var(--border);
+  background: color-mix(in srgb, var(--bg-sidebar) 92%, var(--bg-editor));
 }
 
-/* The send button sits inside the text box, like VS Code's chat input. */
-.chat-box {
+.chat-context {
   display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-bottom: 6px;
+}
+
+.chat-context-pill {
+  display: inline-flex;
   align-items: center;
+  gap: 5px;
+  height: 21px;
+  padding: 0 7px 0 5px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  background: var(--bg-elevated);
+  color: var(--fg-muted);
+  font: 11px/1 var(--font-mono);
+  transition:
+    border-color 120ms ease,
+    color 120ms ease;
+}
+
+.chat-context-pill .file-icon {
+  width: 13px;
+  height: 13px;
+}
+
+.chat-context-pill.is-agent {
+  border-color: color-mix(in srgb, var(--accent) 34%, var(--border));
+  color: var(--link);
+}
+
+.chat-context-pill:hover {
+  border-color: var(--accent);
+  color: var(--fg-strong);
+}
+
+/* VS Code 2026 chat composer: stacked input + micro toolbar inside rounded surface. */
+.chat-box {
+  display: grid;
   gap: 4px;
-  padding: 3px 3px 3px 10px;
+  padding: 7px 7px 6px 10px;
   border: 1px solid var(--border-strong);
-  border-radius: 8px;
-  background: var(--bg-input);
+  border-radius: var(--radius-panel);
+  background: var(--bg-chat-input);
+  transition:
+    border-color 140ms ease,
+    box-shadow 140ms ease;
 }
 
 .chat-box:focus-within {
   border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--focus-border);
 }
 
 .chat-input {
-  flex: 1;
+  width: 100%;
   min-width: 0;
-  padding: 6px 0;
+  padding: 3px 2px;
   border: 0;
   outline: none;
   background: transparent;
   color: var(--fg-strong);
+  font-size: 12.5px;
 }
 
 .chat-input::placeholder {
   color: var(--fg-faint);
 }
 
+.chat-box-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.chat-mode-tag {
+  color: var(--fg-faint);
+  font: 10.5px/1 var(--font-mono);
+}
+
 .chat-send {
   display: inline-grid;
   flex: none;
   place-items: center;
-  width: 28px;
-  height: 28px;
-  border-radius: 6px;
+  width: 26px;
+  height: 26px;
+  border-radius: var(--radius-control);
   color: var(--fg-faint);
+  transition:
+    background-color 120ms ease,
+    color 120ms ease;
 }
 
-.chat-box:has(.chat-input:not(:placeholder-shown)) .chat-send,
-.chat-send:hover {
-  color: var(--accent);
+.chat-box:has(.chat-input:not(:placeholder-shown)) .chat-send {
+  background: var(--accent-strong);
+  color: var(--accent-fg);
+}
+
+.chat-box:has(.chat-input:not(:placeholder-shown)) .chat-send:hover {
+  background: var(--accent-hover);
 }
 
 .chat-send:hover {
   background: var(--bg-hover);
+  color: var(--fg-strong);
 }
 
-/* ---------- Status bar ---------- */
+/* ---------- Status bar (classic VS Code blue bar + green remote badge) ---------- */
 
 .statusbar {
   display: flex;
   align-items: stretch;
   justify-content: space-between;
   overflow: hidden;
+  padding: 0;
   background: var(--bg-statusbar);
   color: var(--fg-statusbar);
   font-size: 12px;
@@ -2282,6 +3072,7 @@ textarea.input {
 .sb-group {
   display: flex;
   align-items: stretch;
+  gap: 0;
 }
 
 .status-item {
@@ -2289,15 +3080,20 @@ textarea.input {
   align-items: center;
   gap: 5px;
   padding: 0 9px;
+  border-radius: 0;
+  color: inherit;
   white-space: nowrap;
+  transition: background-color 120ms ease;
 }
 
 button.status-item:hover {
-  background: rgb(255 255 255 / 0.12);
+  background: var(--bg-status-hover);
+  color: var(--fg-statusbar);
 }
 
-/* VS Code's green remote indicator. */
+/* Classic VS Code green remote indicator. */
 .status-remote {
+  padding: 0 10px;
   background: #16825d;
   color: #ffffff;
   font: 700 11px/1 var(--font-mono);
@@ -2305,7 +3101,22 @@ button.status-item:hover {
 
 button.status-remote:hover {
   background: #16825d;
+  color: #ffffff;
   filter: brightness(1.12);
+}
+
+.status-ask {
+  color: var(--fg-statusbar);
+  font-weight: 500;
+}
+
+.status-ask[aria-pressed="true"] {
+  background: rgb(255 255 255 / 0.16);
+  color: var(--fg-statusbar);
+}
+
+.status-ask svg {
+  color: currentColor;
 }
 
 /* ---------- Overlays ---------- */
@@ -2436,16 +3247,285 @@ button.status-remote:hover {
   }
 }
 
+/* ---------- Feedback & Report Bug Modal (<dialog>) ---------- */
+
+.visually-hidden:where(:not(:focus-within, :active)) {
+  position: absolute !important;
+  clip-path: inset(50%) !important;
+  overflow: hidden !important;
+  width: 1px !important;
+  height: 1px !important;
+  margin: -1px !important;
+  padding: 0 !important;
+  border: 0 !important;
+  white-space: nowrap !important;
+}
+
+dialog:modal {
+  overscroll-behavior: contain;
+}
+
+dialog::backdrop {
+  overflow: hidden;
+  overscroll-behavior: contain;
+}
+
+dialog.feedback-dialog {
+  width: min(500px, calc(100vw - 32px));
+  max-height: calc(100dvh - 40px);
+  margin: auto;
+  padding: 0;
+  border: 1px solid var(--border-strong);
+  border-radius: 12px;
+  background: var(--bg-elevated);
+  box-shadow: var(--shadow);
+  color: var(--fg);
+  opacity: 0;
+  transition-property: opacity, transform, display, overlay;
+  transition-duration: 180ms;
+  transition-timing-function: ease-out;
+  transition-behavior: allow-discrete;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  dialog.feedback-dialog {
+    transform: translateY(6px) scale(0.97);
+  }
+}
+
+dialog.feedback-dialog::backdrop {
+  background-color: transparent;
+  backdrop-filter: blur(0px);
+  transition-property: background-color, backdrop-filter, display, overlay;
+  transition-duration: 180ms;
+  transition-timing-function: ease-out;
+  transition-behavior: allow-discrete;
+}
+
+dialog.feedback-dialog[open]:where(:not([data-closing])) {
+  opacity: 1;
+
+  @starting-style {
+    opacity: 0;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    transform: translateY(0) scale(1);
+
+    @starting-style {
+      transform: translateY(6px) scale(0.97);
+    }
+  }
+
+  &::backdrop {
+    background-color: var(--scrim);
+    backdrop-filter: blur(2px);
+
+    @starting-style {
+      background-color: transparent;
+      backdrop-filter: blur(0px);
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  dialog.feedback-dialog,
+  dialog.feedback-dialog::backdrop {
+    transition-duration: 90ms;
+  }
+}
+
+.feedback-shell {
+  display: grid;
+  gap: 14px;
+  padding: 18px 20px 16px;
+}
+
+.feedback-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.feedback-heading {
+  display: grid;
+  gap: 3px;
+}
+
+.feedback-title {
+  margin: 0;
+  color: var(--fg-strong);
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.feedback-subtitle {
+  margin: 0;
+  color: var(--fg-muted);
+  font-size: 12px;
+}
+
+.feedback-close {
+  flex: none;
+  margin: -4px -6px 0 0;
+}
+
+.feedback-type {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px;
+  margin: 0;
+  padding: 3px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg-input);
+}
+
+.feedback-pill {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 30px;
+  padding: 5px 10px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  color: var(--fg-muted);
+  font-size: 12.5px;
+  font-weight: 500;
+  cursor: pointer;
+  user-select: none;
+  transition:
+    background-color 120ms ease,
+    border-color 120ms ease,
+    color 120ms ease;
+}
+
+.feedback-pill input {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.feedback-pill:hover {
+  color: var(--fg-strong);
+}
+
+.feedback-pill:has(input:checked) {
+  border-color: var(--border-strong);
+  background: var(--bg-elevated);
+  color: var(--fg-strong);
+}
+
+.feedback-pill:has(input[value="feedback"]:checked) svg {
+  color: var(--accent);
+}
+
+.feedback-pill:has(input[value="bug"]:checked) svg {
+  color: var(--warning);
+}
+
+.feedback-pill:has(input:focus-visible) {
+  outline: 2px solid var(--focus);
+  outline-offset: -2px;
+}
+
+.feedback-form {
+  gap: 12px;
+}
+
+.feedback-form .field-label {
+  font-size: 12.5px;
+}
+
+.feedback-form .input {
+  padding: 8px 11px;
+  border-radius: 6px;
+}
+
+.field-error {
+  display: none;
+  align-items: center;
+  gap: 6px;
+  color: var(--danger);
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.field-error-badge {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--danger);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.feedback-form :is(.input:user-invalid, .input.user-invalid-fallback) {
+  border-color: var(--danger);
+  background: color-mix(in srgb, var(--danger) 8%, var(--bg-input));
+}
+
+.feedback-form :is(.input:user-invalid, .input.user-invalid-fallback) + .field-error {
+  display: flex;
+}
+
+.feedback-context {
+  color: var(--fg-muted);
+  font-size: 12px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.feedback-context input {
+  accent-color: var(--accent);
+}
+
 /* ---------- Responsive ---------- */
 
 @media (max-width: 900px) {
   .menubar,
-  .window-dots {
+  .window-dots,
+  .title-sep {
     display: none;
   }
 
   .mobile-only {
     display: inline-grid;
+  }
+
+  .workbench {
+    padding: 0;
+  }
+
+  .activitybar {
+    border-radius: 0;
+    border-top: 0;
+    border-left: 0;
+    border-bottom: 0;
+  }
+
+  .editor-group {
+    margin-left: 0;
+  }
+
+  .editor-surface {
+    border-radius: 0;
+    border-left: 0;
+    border-right: 0;
+    border-bottom: 0;
   }
 
   .title-search {
@@ -2461,17 +3541,24 @@ button.status-remote:hover {
     top: 0;
     bottom: 0;
     z-index: 20;
+    margin-left: 0;
+    border-radius: 0;
     box-shadow: var(--shadow);
   }
 
   .sidebar {
     left: var(--activity-w);
     width: min(300px, calc(100vw - var(--activity-w) - 32px));
+    border-top: 0;
+    border-bottom: 0;
   }
 
   .chat {
     right: 0;
-    width: min(360px, 100vw);
+    width: min(370px, 100vw);
+    border-top: 0;
+    border-right: 0;
+    border-bottom: 0;
   }
 
   .scrim {
@@ -2487,6 +3574,11 @@ button.status-remote:hover {
 
   .panel {
     height: 45%;
+    margin-top: 0;
+    border-radius: 0;
+    border-left: 0;
+    border-right: 0;
+    border-bottom: 0;
   }
 
   .contact-layout {
@@ -2504,11 +3596,24 @@ button.status-remote:hover {
     padding-right: 10px;
   }
 
-  .title-search kbd,
-  .title-actions [data-key="chatOpen"],
+  .title-search .kbd-group,
+  .title-ask-label,
+  .title-actions .icon-button[data-key="chatOpen"],
   .status-optional,
   .status-optional-text {
     display: none;
+  }
+
+  .title-search {
+    justify-content: flex-start;
+  }
+
+  .title-search-label {
+    margin-left: 0;
+  }
+
+  .title-ask {
+    padding: 0 7px;
   }
 
   .breadcrumbs {

@@ -1,12 +1,14 @@
 import { h, icon, fileIcon, highlighted } from "../lib/dom.js";
-import { keyLabel } from "../lib/keys.js";
+import { kbd } from "../lib/keys.js";
 import { fuzzyFilter } from "../lib/fuzzy.js";
 import { applyTheme } from "../themes.js";
+import { applyFont } from "../fonts.js";
 
 const PLACEHOLDERS = {
   files: "Search files by name (type > for commands)",
   commands: "Type a command",
   themes: "Select a color theme (↑/↓ to preview)",
+  fonts: "Select a font family (↑/↓ to preview)",
 };
 
 export function createPalette(app) {
@@ -23,7 +25,7 @@ export function createPalette(app) {
   );
   document.body.append(overlay);
 
-  const mode = () => (session.mode === "themes" || session.mode === "pick" ? session.mode : input.value.startsWith(">") ? "commands" : "files");
+  const mode = () => (session.mode === "themes" || session.mode === "fonts" || session.mode === "pick" ? session.mode : input.value.startsWith(">") ? "commands" : "files");
 
   function sourceItems(current) {
     if (current === "pick") return session.pick.items;
@@ -31,7 +33,15 @@ export function createPalette(app) {
       return app.files.map((f) => ({ label: f.name, detail: f.folder ?? "", match: `${f.name} ${f.path}`, icon: f.icon, run: () => app.open(f.path) }));
     }
     if (current === "commands") {
-      return app.commands.map((c) => ({ label: `${c.category}: ${c.title}`, detail: c.keys ? keyLabel(c.keys) : "", run: c.run }));
+      return app.commands.map((c) => ({ label: `${c.category}: ${c.title}`, keys: c.keys, run: c.run }));
+    }
+    if (current === "fonts") {
+      return app.fonts.map((f) => ({
+        label: f.note ? `${f.label} — ${f.note}` : f.label,
+        detail: f.id === session.originalFont ? "current" : f.id,
+        run: () => app.setFont(f.id),
+        preview: () => applyFont(f.id),
+      }));
     }
     return app.themes.map((t) => ({
       label: t.note ? `${t.label} (${t.note})` : t.label,
@@ -71,7 +81,7 @@ export function createPalette(app) {
           item.icon && fileIcon(item.icon, item.label),
           item.glyph && icon(item.glyph, { size: 16 }),
           h("span", { class: "palette-label" }, highlighted(item.label, indices.filter((x) => x < item.label.length))),
-          item.detail && h("span", { class: "palette-detail" }, item.detail),
+          item.keys ? h("span", { class: "palette-detail" }, kbd(item.keys)) : item.detail && h("span", { class: "palette-detail" }, item.detail),
         ),
       ),
     );
@@ -88,28 +98,32 @@ export function createPalette(app) {
   function choose(i) {
     const chosen = results[i]?.item;
     if (!chosen) return;
-    close({ restoreTheme: false, restoreFocus: false });
+    close({ restorePreview: false, restoreFocus: false });
     chosen.run();
   }
 
   function open(initialMode = "files", pick = null) {
     if (session) close();
-    session = { mode: initialMode, pick, selected: 0, originalTheme: app.store.get().theme, returnFocus: document.activeElement };
+    const state = app.store.get();
+    session = { mode: initialMode, pick, selected: 0, originalTheme: state.theme, originalFont: state.font, returnFocus: document.activeElement };
     input.value = initialMode === "commands" ? ">" : "";
     message.textContent = pick?.message ?? "";
     message.hidden = !pick?.message;
     overlay.hidden = false;
     refresh();
-    if (initialMode === "themes") {
+    if (initialMode === "themes" || initialMode === "fonts") {
       session.selected = Math.max(0, results.findIndex((r) => r.item.detail === "current"));
       renderList();
     }
     input.focus();
   }
 
-  function close({ restoreTheme = true, restoreFocus = true } = {}) {
+  function close({ restorePreview = true, restoreFocus = true } = {}) {
     if (!session) return;
-    if (restoreTheme) applyTheme(app.store.get().theme);
+    if (restorePreview) {
+      applyTheme(app.store.get().theme);
+      applyFont(app.store.get().font);
+    }
     overlay.hidden = true;
     if (restoreFocus) session.returnFocus?.focus?.();
     session = null;

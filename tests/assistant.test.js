@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { answer } from "../src/lib/assistant.js";
+import { answer, STARTER_PROMPTS } from "../src/lib/assistant.js";
 import realContent from "../src/content.js";
 import { content } from "./fixtures.js";
 
@@ -104,8 +104,31 @@ test("only the greeting names the owner; no reply refers to them by first name",
   }
 });
 
-test("unknown questions fall back to suggested topics", () => {
+test("unknown questions fall back to suggested topics with an abstained card", () => {
   const reply = answer("qwerty", content);
   assert.match(reply.text, /projects/);
   assert.ok(reply.links.length > 0);
+  assert.equal(reply.card.status, "abstained");
+  assert.match(reply.card.badge, /abstained/i);
+  assert.ok(reply.card.trace.length >= 2);
+});
+
+test("grounded replies include a structured card with trace and facts", () => {
+  for (const question of QUESTIONS.filter((q) => q !== "qwerty" && q !== "hello")) {
+    const reply = answer(question, realContent);
+    assert.equal(reply.card.status, "grounded", `${question} should be grounded`);
+    assert.ok(reply.card.title.length > 0);
+    assert.ok(reply.card.trace.length >= 2);
+    assert.ok(reply.card.facts.length >= 1, `${question} should return structured facts`);
+    assert.ok(reply.links.length >= 1, `${question} should cite at least one source`);
+  }
+});
+
+test("every starter prompt resolves to a grounded answer card", () => {
+  assert.ok(STARTER_PROMPTS.length >= 4);
+  for (const item of STARTER_PROMPTS) {
+    const reply = answer(item.prompt, realContent);
+    assert.equal(reply.card.status, "grounded", `${item.prompt} should be grounded`);
+    assert.ok(reply.links.some((l) => l.label === item.source), `${item.prompt} should cite ${item.source}`);
+  }
 });

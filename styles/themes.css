@@ -1,127 +1,325 @@
+/* VS Code October 2026 (v1.147) design tokens and color themes.
+   2026 Dark & 2026 Light mirror VS Code's shipped 2026-dark.json and 2026-light.json
+   surface hierarchy, connected tab strip, floating card radii, and accent palette. */
+
 :root {
-  --font-ui: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  --font-mono: ui-monospace, "SF Mono", "JetBrains Mono", "Cascadia Code", Menlo, Consolas, monospace;
+  color-scheme: dark light;
+  /* Default: JetBrains Mono + Inter */
+  --font-ui: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, Menlo, Monaco, "Courier New", monospace;
   --code-size: 13px;
   --line-h: 20px;
-  --titlebar-h: 36px;
+  --titlebar-h: 38px;
   --statusbar-h: 24px;
   --activity-w: 48px;
-  --sidebar-w: 264px;
-  --chat-w: 330px;
+  --sidebar-w: 248px;
+  --chat-w: 356px;
   --tabs-h: 36px;
-  --panel-h: 250px;
-  --gutter-w: 60px;
+  --panel-h: 240px;
+  --gutter-w: 58px;
+  /* VS Code 2026 Modern UI floating-panels geometry tokens */
+  --panel-gap: 4px;
+  --radius-panel: 8px;
+  --radius-control: 6px;
+  --radius-pill: 4px;
 }
 
+/* Font presets (select via Status Bar, View menu, Command Palette, or `font` in terminal) */
+[data-font="vscode-default"] {
+  --font-ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: Menlo, Monaco, "Courier New", monospace;
+}
+
+[data-font="jetbrains"] {
+  --font-ui: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, Menlo, Monaco, monospace;
+}
+
+[data-font="fira-code"] {
+  --font-ui: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-mono: "Fira Code", ui-monospace, Menlo, Monaco, monospace;
+}
+
+[data-font="ibm-plex"] {
+  --font-ui: "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, Menlo, Monaco, monospace;
+}
+
+[data-density="compact"] {
+  --titlebar-h: 34px;
+  --statusbar-h: 24px;
+  --panel-gap: 0px;
+  --radius-panel: 0px;
+}
+
+/* 2026 Dark — default (VS Code 2026-dark.json) */
 :root,
+[data-theme="dark-2026"],
 [data-theme="midnight"] {
   color-scheme: dark;
-  --bg-chrome: #15161a;
-  --bg-sidebar: #18191e;
-  --bg-editor: #1c1d22;
-  --bg-panel: #18191e;
-  --bg-elevated: #23252c;
-  --bg-input: #121317;
-  --bg-hover: rgb(255 255 255 / 0.05);
-  --bg-active: rgb(110 155 255 / 0.16);
+  --bg-chrome: #191a1b;
+  --bg-sidebar: #191a1b;
+  --bg-editor: #121314;
+  --bg-tabstrip: #202122;
+  --bg-panel: #191a1b;
+  --bg-elevated: #202122;
+  --bg-surface-2: #242526;
+  --bg-input: #191a1b;
+  --bg-chat-input: #202122;
+  --bg-chat-user: rgb(255 255 255 / 0.08);
+  --bg-activity-active: #313233;
+  --bg-hover: rgb(255 255 255 / 0.08);
+  --bg-active: rgb(255 255 255 / 0.13);
   --bg-statusbar: #007acc;
-  --border: #2a2c34;
-  --border-strong: #383b45;
-  --fg: #d3d6de;
-  --fg-strong: #f4f5f8;
-  --fg-muted: #9196a3;
-  --fg-faint: #5c606c;
+  --bg-status-hover: rgb(255 255 255 / 0.14);
+  --border: #2a2b2c;
+  --border-strong: #333536;
+  --border-cmd: #2e3031;
+  --fg: #bfbfbf;
+  --fg-editor: #bbbebf;
+  --fg-strong: #ededed;
+  --fg-muted: #8c8c8c;
+  --fg-faint: #6d7072;
   --fg-statusbar: #ffffff;
-  --accent: #7aa2ff;
-  --accent-strong: #3d6fe0;
+  --accent: #3994bc;
+  --accent-strong: #297aa0;
+  --accent-hover: #2b7da3;
   --accent-fg: #ffffff;
-  --link: #8db3ff;
-  --success: #4ec98b;
-  --warning: #e5b759;
-  --danger: #f27272;
-  --tok-key: #8ccbff;
-  --tok-property: #9fd8f2;
-  --tok-string: #e6a57e;
-  --tok-number: #b8dc9f;
-  --tok-keyword: #c99bf5;
-  --tok-type: #5fd4bd;
-  --tok-fn: #f0d68a;
-  --tok-punct: #a3a8b5;
-  --tok-comment: #6f8f6a;
-  --heat-0: #151b23;
-  --heat-1: #033a16;
-  --heat-2: #196c2e;
-  --heat-3: #2ea043;
-  --heat-4: #56d364;
-  --shadow: 0 12px 40px rgb(0 0 0 / 0.45);
-  --scrim: rgb(0 0 0 / 0.45);
+  --focus-border: #3994bcb3;
+  --link: #48a0c7;
+  --link-hover: #53a5ca;
+  --success: #73c991;
+  --warning: #e5ba7d;
+  --danger: #f48771;
+  --tok-key: #7ee787;
+  --tok-property: #79c0ff;
+  --tok-string: #a5d6ff;
+  --tok-number: #79c0ff;
+  --tok-keyword: #ff7b72;
+  --tok-type: #ffa657;
+  --tok-fn: #d2a8ff;
+  --tok-punct: #c9d1d9;
+  --tok-comment: #76a670;
+  --heat-0: #191c20;
+  --heat-1: #0e4429;
+  --heat-2: #006d32;
+  --heat-3: #26a641;
+  --heat-4: #39d353;
+  --scrollbar-thumb: #7b7d7f;
+  --scrollbar-track: transparent;
+  --shadow: 0 12px 36px rgb(0 0 0 / 0.5);
+  --scrim: rgb(0 0 0 / 0.5);
+  accent-color: var(--accent-strong);
 }
 
+/* Material Dark — super-dark OLED Ocean/Darker palette */
+[data-theme="material-dark"] {
+  color-scheme: dark;
+  --bg-chrome: #090b10;
+  --bg-sidebar: #0b0d14;
+  --bg-editor: #0f111a;
+  --bg-tabstrip: #0b0d14;
+  --bg-panel: #0b0d14;
+  --bg-elevated: #141722;
+  --bg-surface-2: #191d2b;
+  --bg-input: #0b0d14;
+  --bg-chat-input: #141722;
+  --bg-chat-user: rgb(128 203 196 / 0.12);
+  --bg-activity-active: #1b2030;
+  --bg-hover: rgb(143 147 162 / 0.11);
+  --bg-active: rgb(128 203 196 / 0.16);
+  --bg-statusbar: #007acc;
+  --bg-status-hover: rgb(255 255 255 / 0.14);
+  --border: #1b1f2e;
+  --border-strong: #272d42;
+  --border-cmd: #22273a;
+  --fg: #b8c2db;
+  --fg-editor: #a6accd;
+  --fg-strong: #eeffff;
+  --fg-muted: #7883a3;
+  --fg-faint: #576182;
+  --fg-statusbar: #ffffff;
+  --accent: #80cbc4;
+  --accent-strong: #00897b;
+  --accent-hover: #009c8d;
+  --accent-fg: #ffffff;
+  --focus-border: #80cbc4b3;
+  --link: #82aaff;
+  --link-hover: #a6c4ff;
+  --success: #c3e88d;
+  --warning: #ffcb6b;
+  --danger: #f07178;
+  --tok-key: #89ddff;
+  --tok-property: #f07178;
+  --tok-string: #c3e88d;
+  --tok-number: #f78c6c;
+  --tok-keyword: #c792ea;
+  --tok-type: #ffcb6b;
+  --tok-fn: #82aaff;
+  --tok-punct: #89ddff;
+  --tok-comment: #78aa74;
+  --heat-0: #111521;
+  --heat-1: #0b3b36;
+  --heat-2: #14635a;
+  --heat-3: #249689;
+  --heat-4: #80cbc4;
+  --scrollbar-thumb: #667091;
+  --scrollbar-track: transparent;
+  --shadow: 0 14px 40px rgb(0 0 0 / 0.65);
+  --scrim: rgb(0 0 0 / 0.62);
+  accent-color: var(--accent-strong);
+}
+
+/* Min Dark — super-dark ultra-minimal palette inspired by Miguel Solorio's Min Theme */
+[data-theme="min-dark"] {
+  color-scheme: dark;
+  --bg-chrome: #0d0d0d;
+  --bg-sidebar: #111111;
+  --bg-editor: #161616;
+  --bg-tabstrip: #111111;
+  --bg-panel: #111111;
+  --bg-elevated: #1a1a1a;
+  --bg-surface-2: #202020;
+  --bg-input: #111111;
+  --bg-chat-input: #1a1a1a;
+  --bg-chat-user: rgb(179 146 240 / 0.13);
+  --bg-activity-active: #242424;
+  --bg-hover: rgb(255 255 255 / 0.07);
+  --bg-active: rgb(179 146 240 / 0.16);
+  --bg-statusbar: #007acc;
+  --bg-status-hover: rgb(255 255 255 / 0.14);
+  --border: #222222;
+  --border-strong: #303030;
+  --border-cmd: #282828;
+  --fg: #c6c6c6;
+  --fg-editor: #d4d4d4;
+  --fg-strong: #f2f2f2;
+  --fg-muted: #828282;
+  --fg-faint: #606060;
+  --fg-statusbar: #ffffff;
+  --accent: #b392f0;
+  --accent-strong: #7e57c2;
+  --accent-hover: #8e68d1;
+  --accent-fg: #ffffff;
+  --focus-border: #b392f0b3;
+  --link: #79b8ff;
+  --link-hover: #9ccaff;
+  --success: #85e89d;
+  --warning: #ffab70;
+  --danger: #f97583;
+  --tok-key: #79b8ff;
+  --tok-property: #b392f0;
+  --tok-string: #ffab70;
+  --tok-number: #79b8ff;
+  --tok-keyword: #f97583;
+  --tok-type: #b392f0;
+  --tok-fn: #b392f0;
+  --tok-punct: #a6a6a6;
+  --tok-comment: #78aa74;
+  --heat-0: #161616;
+  --heat-1: #2a1f42;
+  --heat-2: #4c3575;
+  --heat-3: #7e57c2;
+  --heat-4: #b392f0;
+  --scrollbar-thumb: #6f6f6f;
+  --scrollbar-track: transparent;
+  --shadow: 0 14px 40px rgb(0 0 0 / 0.7);
+  --scrim: rgb(0 0 0 / 0.65);
+  accent-color: var(--accent-strong);
+}
+
+/* 2026 Light (VS Code 2026-light.json) */
+[data-theme="light-2026"],
 [data-theme="daylight"] {
   color-scheme: light;
-  --bg-chrome: #eceef2;
-  --bg-sidebar: #f3f4f7;
-  --bg-editor: #fbfbfc;
-  --bg-panel: #f3f4f7;
+  --bg-chrome: #fafafd;
+  --bg-sidebar: #fafafd;
+  --bg-editor: #ffffff;
+  --bg-tabstrip: #eaeaea;
+  --bg-panel: #fafafd;
   --bg-elevated: #ffffff;
+  --bg-surface-2: #f2f3f5;
   --bg-input: #ffffff;
-  --bg-hover: rgb(20 30 60 / 0.06);
-  --bg-active: rgb(40 100 230 / 0.12);
+  --bg-chat-input: #f7f7fa;
+  --bg-chat-user: rgb(0 105 204 / 0.08);
+  --bg-activity-active: #e2e3e8;
+  --bg-hover: rgb(0 0 0 / 0.06);
+  --bg-active: rgb(0 105 204 / 0.12);
   --bg-statusbar: #007acc;
-  --border: #dcdfe6;
-  --border-strong: #c7cbd5;
-  --fg: #2e323b;
+  --bg-status-hover: rgb(255 255 255 / 0.14);
+  --border: #e4e5e6;
+  --border-strong: #d8d8d8;
+  --border-cmd: #d8d8d8;
+  --fg: #202020;
+  --fg-editor: #202020;
   --fg-strong: #12141a;
-  --fg-muted: #5f6573;
-  --fg-faint: #9ba0ac;
+  --fg-muted: #606060;
+  --fg-faint: #84868c;
   --fg-statusbar: #ffffff;
-  --accent: #2a64e0;
-  --accent-strong: #2a64e0;
+  --accent: #0069cc;
+  --accent-strong: #0069cc;
+  --accent-hover: #0063c1;
   --accent-fg: #ffffff;
-  --link: #1f57cc;
-  --success: #1f9d61;
-  --warning: #a8720e;
-  --danger: #cf3b3b;
-  --tok-key: #0b5cad;
-  --tok-property: #1d6d9e;
-  --tok-string: #a3471d;
-  --tok-number: #3f7d20;
-  --tok-keyword: #8a3fc6;
-  --tok-type: #11806f;
-  --tok-fn: #8a6100;
-  --tok-punct: #5d6370;
-  --tok-comment: #5f7f52;
+  --focus-border: #0069cc;
+  --link: #0069cc;
+  --link-hover: #0058ad;
+  --success: #388a34;
+  --warning: #895503;
+  --danger: #ad0707;
+  --tok-key: #116329;
+  --tok-property: #0550ae;
+  --tok-string: #0a3069;
+  --tok-number: #0550ae;
+  --tok-keyword: #cf222e;
+  --tok-type: #953800;
+  --tok-fn: #8250df;
+  --tok-punct: #1f2328;
+  --tok-comment: #52804a;
   --heat-0: #eff2f5;
   --heat-1: #aceebb;
   --heat-2: #4ac26b;
   --heat-3: #2da44e;
   --heat-4: #116329;
-  --shadow: 0 12px 36px rgb(20 30 60 / 0.16);
-  --scrim: rgb(20 30 60 / 0.3);
+  --scrollbar-thumb: #76767a;
+  --scrollbar-track: transparent;
+  --shadow: 0 12px 32px rgb(20 30 60 / 0.14);
+  --scrim: rgb(20 30 60 / 0.28);
+  accent-color: var(--accent-strong);
 }
 
 [data-theme="matcha"] {
   color-scheme: dark;
-  --bg-chrome: #121714;
-  --bg-sidebar: #151b17;
-  --bg-editor: #18201b;
-  --bg-panel: #151b17;
-  --bg-elevated: #1f2923;
-  --bg-input: #0f1411;
-  --bg-hover: rgb(200 255 220 / 0.05);
+  --bg-chrome: #131915;
+  --bg-sidebar: #161d18;
+  --bg-editor: #101512;
+  --bg-tabstrip: #1c241f;
+  --bg-panel: #161d18;
+  --bg-elevated: #1c251f;
+  --bg-surface-2: #222d26;
+  --bg-input: #131915;
+  --bg-chat-input: #1c251f;
+  --bg-chat-user: rgb(143 214 160 / 0.12);
+  --bg-activity-active: #27342c;
+  --bg-hover: rgb(200 255 220 / 0.06);
   --bg-active: rgb(140 220 160 / 0.14);
   --bg-statusbar: #007acc;
+  --bg-status-hover: rgb(255 255 255 / 0.14);
   --border: #253029;
   --border-strong: #33413a;
+  --border-cmd: #2c3931;
   --fg: #d2ddd5;
+  --fg-editor: #d2ddd5;
   --fg-strong: #f1f7f2;
   --fg-muted: #8fa196;
-  --fg-faint: #58695e;
+  --fg-faint: #677a6e;
   --fg-statusbar: #ffffff;
   --accent: #8fd6a0;
   --accent-strong: #3f9a5c;
+  --accent-hover: #49aa68;
   --accent-fg: #ffffff;
+  --focus-border: #8fd6a0b3;
   --link: #9ee0ae;
+  --link-hover: #b4ecc1;
   --success: #8fd6a0;
   --warning: #e0c06a;
   --danger: #ee7d7d;
@@ -139,8 +337,11 @@
   --heat-2: #196c2e;
   --heat-3: #2ea043;
   --heat-4: #56d364;
+  --scrollbar-thumb: #6f8376;
+  --scrollbar-track: transparent;
   --shadow: 0 12px 40px rgb(0 0 0 / 0.5);
   --scrim: rgb(0 0 0 / 0.5);
+  accent-color: var(--accent-strong);
 }
 
 [data-theme="contrast"] {
@@ -148,23 +349,34 @@
   --bg-chrome: #000000;
   --bg-sidebar: #000000;
   --bg-editor: #000000;
+  --bg-tabstrip: #0a0a0a;
   --bg-panel: #000000;
   --bg-elevated: #0a0a0a;
+  --bg-surface-2: #121212;
   --bg-input: #000000;
-  --bg-hover: rgb(255 255 255 / 0.1);
+  --bg-chat-input: #0a0a0a;
+  --bg-chat-user: rgb(255 210 80 / 0.16);
+  --bg-activity-active: #1f1f1f;
+  --bg-hover: rgb(255 255 255 / 0.12);
   --bg-active: rgb(255 210 80 / 0.22);
   --bg-statusbar: #000000;
+  --bg-status-hover: #222222;
   --border: #6b6b6b;
   --border-strong: #c8c8c8;
+  --border-cmd: #c8c8c8;
   --fg: #ffffff;
+  --fg-editor: #ffffff;
   --fg-strong: #ffffff;
   --fg-muted: #d0d0d0;
   --fg-faint: #a0a0a0;
   --fg-statusbar: #ffffff;
   --accent: #ffd250;
   --accent-strong: #ffd250;
+  --accent-hover: #ffe07d;
   --accent-fg: #000000;
+  --focus-border: #ffd250;
   --link: #7fd4ff;
+  --link-hover: #a6e3ff;
   --success: #5ff59a;
   --warning: #ffd250;
   --danger: #ff7b7b;
@@ -182,6 +394,9 @@
   --heat-2: #196c2e;
   --heat-3: #2ea043;
   --heat-4: #56d364;
+  --scrollbar-thumb: #c8c8c8;
+  --scrollbar-track: #000000;
   --shadow: 0 0 0 1px #c8c8c8;
   --scrim: rgb(0 0 0 / 0.7);
+  accent-color: var(--accent-strong);
 }

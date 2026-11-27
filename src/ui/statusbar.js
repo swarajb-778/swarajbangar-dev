@@ -7,8 +7,10 @@ export function createStatusbar(app, root) {
   const item = (props, ...children) => h(props.onclick ? "button" : "span", { type: props.onclick ? "button" : null, ...props, class: `status-item ${props.class ?? ""}` }, ...children);
 
   const language = item({ class: "status-optional", title: "Language mode" });
+  const font = item({ class: "status-optional", title: "Font family", onclick: () => app.palette.open("fonts") });
   const theme = item({ title: "Color theme", onclick: () => app.palette.open("themes") });
   const cursor = item({ class: "status-optional", title: "Go to line" }, "Ln 1, Col 1");
+  const askItem = item({ class: "status-ask", title: "Toggle Ask Me assistant", "aria-pressed": "false", onclick: () => app.toggleChat() }, icon("sparkle", { size: 14 }), h("span", { class: "status-optional-text" }, "Ask me"));
 
   root.append(
     h(
@@ -28,9 +30,10 @@ export function createStatusbar(app, root) {
       item({ class: "status-optional" }, "UTF-8"),
       item({ class: "status-optional" }, "LF"),
       language,
+      font,
       theme,
       item({ class: "status-optional", title: "Copy email address", onclick: () => app.copy(profile.email, "Email address copied.") }, profile.email),
-      item({ title: "Ask the assistant", onclick: () => app.toggleChat() }, icon("sparkle", { size: 14 }), h("span", { class: "status-optional-text" }, "Ask me")),
+      askItem,
       item({ title: "Notifications", "aria-label": "Notifications", onclick: () => app.toast("No new notifications. Thanks for stopping by!") }, icon("bell", { size: 14 })),
     ),
   );
@@ -42,7 +45,9 @@ export function createStatusbar(app, root) {
   const render = (state) => {
     language.textContent = state.active ? app.fileMap.get(state.active).language : "";
     language.hidden = !state.active;
+    font.textContent = app.fonts?.find((f) => f.id === state.font)?.label ?? state.font;
     theme.textContent = app.themes.find((t) => t.id === state.theme)?.label ?? state.theme;
+    askItem.setAttribute("aria-pressed", String(Boolean(state.chatOpen)));
   };
   app.store.subscribe(render);
   render(app.store.get());

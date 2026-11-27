@@ -69,6 +69,7 @@ const GLYPHS = {
   collapse: "collapse-all",
   lock: "lock",
   mail: "mail",
+  plus: "plus",
   maximize: "screen-full",
   restore: "screen-normal",
   sync: "sync",

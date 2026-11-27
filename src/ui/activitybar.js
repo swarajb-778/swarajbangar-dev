@@ -17,13 +17,24 @@ export function createActivityBar(app, root) {
     ),
   );
 
+  const openManage = () =>
+    app.palette.pick({
+      placeholder: "Manage preferences",
+      items: [
+        { label: "Color Theme…", detail: app.themes.find((t) => t.id === app.store.get().theme)?.label ?? "", glyph: "sparkle", run: () => app.palette.open("themes") },
+        { label: "Font Family…", detail: app.fonts.find((f) => f.id === app.store.get().font)?.label ?? "", glyph: "gear", run: () => app.palette.open("fonts") },
+        { label: "Toggle Layout Density", detail: app.store.get().density === "compact" ? "Compact" : "Default", glyph: "sidebarLeft", run: () => app.toggleDensity() },
+        { label: "Keyboard Shortcuts", detail: "Terminal", glyph: "run", run: () => app.commands.find((c) => c.id === "shortcuts")?.run() },
+      ],
+    });
+
   root.append(
     h("div", { class: "activity-group" }, buttons),
     h(
       "div",
       { class: "activity-group" },
       h("button", { class: "activity-button", type: "button", "aria-label": "Contact", title: "Contact", onclick: () => app.open("contact/contact.ts") }, icon("account", { size: 22 })),
-      h("button", { class: "activity-button", type: "button", "aria-label": "Color theme", title: "Color theme", onclick: () => app.palette.open("themes") }, icon("gear", { size: 22 })),
+      h("button", { class: "activity-button", type: "button", "aria-label": "Manage themes & fonts", title: "Manage (Theme, Font, Density)", onclick: openManage }, icon("gear", { size: 22 })),
     ),
   );
 

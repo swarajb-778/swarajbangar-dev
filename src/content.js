@@ -40,6 +40,10 @@ export default {
 
   github: { user: "swarajb-778" },
 
+  // Optional: paste a Formspree, Web3Forms, or FormSubmit JSON endpoint to deliver
+  // Help -> Feedback & Report Bug straight to your inbox without opening a mail app.
+  feedback: { endpoint: "" },
+
   socials: [
     { label: "GitHub", handle: "swarajb-778", url: "https://github.com/swarajb-778" },
     { label: "LinkedIn", handle: "swarajb778", url: "https://www.linkedin.com/in/swarajb778/" },
@@ -62,7 +66,7 @@ export default {
     summary:
       "At McKinsey, I built an agentic research platform (LangChain and LangGraph, hybrid BM25 + embedding retrieval on Pinecone, " +
       "evidence-linked citations, abstention controls) that cut median analyst research time by 40%. My side projects include " +
-      "SuperVoiceAI, TDS Agents, and the RapidOrch and SEOptiMCP MCP servers.",
+      "SuperVoiceAI, ChronoGraph, TDS Agents, and the RapidOrch and SEOptiMCP MCP servers.",
     agent: {
       name: "SwarajOS",
       summary: "a multi-agent assistant that answers questions about my work, with its reasoning trace exposed",
@@ -255,6 +259,18 @@ export default {
       pinned: 1,
     },
     {
+      name: "ChronoGraph",
+      slug: "chronograph",
+      year: 2026,
+      description:
+        "Bi-temporal knowledge graph and multi-agent truth layer: tracks valid and transaction time across snapshots, resolves cross-page conflicts by source authority, and serves verified context via MCP.",
+      tags: ["agentic-ai", "mcp", "knowledge-graph", "python"],
+      repo: "https://github.com/swarajb-778/ChronoGraph",
+      live: "",
+      featured: true,
+      pinned: 2,
+    },
+    {
       name: "SkyMart",
       slug: "skymart",
       year: 2026,
@@ -263,7 +279,7 @@ export default {
       repo: "https://github.com/swarajb-778/SkyMart",
       live: "https://sky-mart-rho-eight.vercel.app",
       featured: false,
-      pinned: 2,
+      pinned: 3,
     },
     {
       name: "TDS Agents",
@@ -339,6 +355,7 @@ export default {
       repo: "https://github.com/swarajb-778/candidateSync",
       live: "",
       featured: false,
+      pinned: 4,
     },
     {
       name: "StockPilot",
@@ -349,7 +366,6 @@ export default {
       repo: "https://github.com/swarajb-778/StockPilot",
       live: "",
       featured: false,
-      pinned: 5,
     },
     {
       name: "JWT Interact",
@@ -360,7 +376,6 @@ export default {
       repo: "https://github.com/swarajb-778/JWT-Interact",
       live: "https://swarajb-778.github.io/JWT-Interact/",
       featured: false,
-      pinned: 3,
     },
     {
       name: "Portfolio v1",
@@ -371,7 +386,7 @@ export default {
       repo: "https://github.com/swarajb-778/swarajbangar-dev",
       live: "https://swarajbangar-dev.vercel.app",
       featured: false,
-      pinned: 4,
+      pinned: 5,
     },
     {
       name: "Editor Portfolio",

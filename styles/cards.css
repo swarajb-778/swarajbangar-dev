@@ -10,7 +10,7 @@
   --card-lift-shadow: 0 2px 8px rgb(0 0 0 / 0.28);
 }
 
-[data-theme="daylight"] {
+:is([data-theme="light-2026"], [data-theme="daylight"]) {
   --tone-l: 0.48;
   --tone-c: 0.13;
   --card-lift-shadow: 0 2px 8px rgb(20 30 60 / 0.08);

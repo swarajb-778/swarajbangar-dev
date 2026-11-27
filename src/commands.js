@@ -4,6 +4,7 @@ export const SHORTCUTS = [
   ["mod+shift+p", "Show all commands"],
   ["mod+p", "Go to file"],
   ["mod+b", "Toggle sidebar"],
+  ["mod+alt+b", "Toggle Ask Me (secondary sidebar)"],
   ["ctrl+`", "Toggle terminal"],
   ["mod+shift+f", "Search in files"],
   ["mod+shift+e", "Show explorer"],
@@ -18,6 +19,7 @@ export function createCommands(app) {
     command("quickOpen", "Go", "Go to File…", () => app.palette.open("files"), "mod+p"),
     command("commandPalette", "View", "Command Palette…", () => app.palette.open("commands"), "mod+shift+p"),
     command("theme", "Preferences", "Color Theme…", () => app.palette.open("themes")),
+    command("font", "Preferences", "Font Family…", () => app.palette.open("fonts")),
     command("explorer", "View", "Explorer", () => app.showView("explorer", true), "mod+shift+e"),
     command("search", "View", "Search in Files", () => app.showView("search", true), "mod+shift+f"),
     command("git", "View", "Source Control (experience)", () => app.showView("git", true)),
@@ -25,7 +27,8 @@ export function createCommands(app) {
     command("extensions", "View", "Extensions (skills)", () => app.showView("extensions", true)),
     command("toggleSidebar", "View", "Toggle Primary Sidebar", () => app.toggleSidebar(), "mod+b"),
     command("toggleTerminal", "View", "Toggle Terminal", () => app.togglePanel(), "ctrl+`"),
-    command("toggleChat", "View", "Toggle Assistant", () => app.toggleChat()),
+    command("toggleChat", "View", "Toggle Ask Me (Secondary Sidebar)", () => app.toggleChat(), "mod+alt+b"),
+    command("toggleDensity", "View", "Toggle Layout Density (Default / Compact)", () => app.toggleDensity()),
     goto("goReadme", "about/README.md"),
     goto("goAgents", "ai/agents.py"),
     goto("goImpact", "metrics/impact.json"),
@@ -40,6 +43,7 @@ export function createCommands(app) {
     command("closeEditor", "File", "Close Editor", () => app.store.get().active && app.close(app.store.get().active)),
     command("closeAll", "File", "Close All Editors", () => app.closeAll()),
     command("askAssistant", "Help", "Ask the Assistant", () => app.toggleChat(true)),
+    command("feedback", "Help", "Feedback & Report Bug…", () => app.feedback.open()),
     command("shortcuts", "Help", "Keyboard Shortcuts", () => {
       app.togglePanel(true);
       app.terminal.print(["Keyboard shortcuts:", ...SHORTCUTS.map(([keys, label]) => `  ${keyLabel(keys).padEnd(14)} ${label}`), ""], "is-muted");

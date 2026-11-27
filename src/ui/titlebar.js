@@ -4,10 +4,10 @@ import { kbd, keyLabel } from "../lib/keys.js";
 const MENUS = [
   { label: "File", items: ["quickOpen", "-", "requestResume", "-", "closeEditor", "closeAll"] },
   { label: "Edit", items: ["copyEmail", "-", "search"] },
-  { label: "View", items: ["commandPalette", "-", "explorer", "search", "git", "run", "extensions", "-", "toggleSidebar", "toggleTerminal", "toggleChat", "-", "theme"] },
+  { label: "View", items: ["commandPalette", "-", "explorer", "search", "git", "run", "extensions", "-", "toggleSidebar", "toggleTerminal", "toggleChat", "toggleDensity", "-", "theme", "font"] },
   { label: "Go", items: ["quickOpen", "-", "goReadme", "goAgents", "goImpact", "goProjects", "goExperience", "goSkills", "goContact"] },
   { label: "Terminal", items: ["newTerminal", "clearTerminal"] },
-  { label: "Help", items: ["shortcuts", "askAssistant", "-", "about"] },
+  { label: "Help", items: ["shortcuts", "askAssistant", "-", "feedback", "-", "about"] },
 ];
 
 export function createTitlebar(app, root) {
@@ -56,7 +56,7 @@ export function createTitlebar(app, root) {
                 },
               },
               h("span", {}, command.title),
-              command.keys && h("span", { class: "menu-keys" }, keyLabel(command.keys)),
+              command.keys && h("span", { class: "menu-keys" }, kbd(command.keys)),
             ),
           );
         }),
@@ -89,10 +89,25 @@ export function createTitlebar(app, root) {
   const toggle = (iconName, label, key, run, extraClass = "") =>
     h("button", { class: `icon-button ${extraClass}`, type: "button", "aria-label": label, title: label, "aria-pressed": "false", dataset: { key }, onclick: run }, icon(iconName, { size: 16 }));
 
+  const askButton = h(
+    "button",
+    {
+      class: "title-ask",
+      type: "button",
+      "aria-label": "Toggle Ask Me assistant",
+      title: `Ask Me (${keyLabel("mod+alt+b")})`,
+      "aria-pressed": "false",
+      dataset: { key: "chatOpen" },
+      onclick: () => app.toggleChat(),
+    },
+    icon("sparkle", { size: 14 }),
+    h("span", { class: "title-ask-label" }, "Ask me"),
+  );
+
   const toggles = [
     toggle("sidebarLeft", "Toggle primary sidebar", "sidebarOpen", () => app.toggleSidebar()),
     toggle("panelBottom", "Toggle terminal", "panelOpen", () => app.togglePanel()),
-    toggle("sidebarRight", "Toggle assistant", "chatOpen", () => app.toggleChat()),
+    toggle("sidebarRight", "Toggle secondary sidebar (Ask Me)", "chatOpen", () => app.toggleChat()),
   ];
 
   root.append(
@@ -111,10 +126,11 @@ export function createTitlebar(app, root) {
       h("span", { class: "title-search-label" }, app.content.profile.handle),
       kbd("mod+p"),
     ),
-    h("div", { class: "title-actions" }, toggles),
+    h("div", { class: "title-actions" }, askButton, h("span", { class: "title-sep", "aria-hidden": "true" }), toggles),
   );
 
-  const render = (state) => toggles.forEach((button) => button.setAttribute("aria-pressed", String(Boolean(state[button.dataset.key]))));
+  const tracked = [askButton, ...toggles];
+  const render = (state) => tracked.forEach((button) => button.setAttribute("aria-pressed", String(Boolean(state[button.dataset.key]))));
   app.store.subscribe(render);
   render(app.store.get());
 }
