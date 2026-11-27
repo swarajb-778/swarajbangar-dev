@@ -1,5 +1,6 @@
 // Boots the editor: builds the virtual files, restores saved UI state, and
 // connects the sidebar, terminal, assistant, and keyboard shortcuts.
+import { injectSpeedInsights } from "@vercel/speed-insights";
 import content from "./content.js";
 import { buildFiles, buildTree } from "./files.js";
 import { createStore } from "./lib/store.js";
@@ -17,6 +18,9 @@ import { createTerminal } from "./ui/terminal.js";
 import { createChat } from "./ui/chat.js";
 import { createStatusbar } from "./ui/statusbar.js";
 import { createResizers } from "./ui/resize.js";
+
+// Initialize Vercel Speed Insights
+injectSpeedInsights();
 
 const STORAGE_KEY = "swaraj-portfolio:v1";
 const SIDEBAR_VIEWS = ["explorer", "search", "git", "run", "extensions"];
